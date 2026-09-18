@@ -84,7 +84,7 @@ Suite 10890, 61 Bridge Street, Kington, United Kingdom, HR5 3DJ
 
 一处同时满足 Companies Act 2006 的网站披露义务与 Stripe 的主体一致性要求。
 
-**待核对**：用户提供的地址第三行写作 "Kingdom"，但邮编 HR5 3DJ 归属赫里福德郡 **Kington**，判断为笔误，暂按 Kington 采用。此地址须与 Companies House 公开记录及提交给 Stripe 的主体信息**逐字一致**——Stripe 人工复审会比对，不一致即驳回。实现前需确认。
+地址已由用户确认为 Kington（原始记录中的 "Kingdom" 为笔误）。此地址须与 Companies House 公开记录及提交给 Stripe 的主体信息**逐字一致**——Stripe 人工复审会比对，不一致即驳回。
 
 客服邮箱：**vichajser@gmail.com**
 
@@ -200,7 +200,7 @@ README §3.3 的"上位阶段约束向下流动、下位不得推翻上位"，�
 |---|---|---|
 | 全部在售商品 + 价格 | `/pricing` | TeachFlow-KR Complete Bundle — USD 19.90，一次性买断，列全 6 个 skill |
 | 具体商品描述 | `/pricing` + `/skills` | 6 个 Claude Skill 文件包（SKILL.md + references），zip 下载 |
-| 数字商品交付说明 | `/legal/delivery` | 付款后经 Agensi 即时下载；无实体配送；列明运行环境要求 |
+| 数字商品交付说明 | `/legal/delivery` | 经 Agensi 购买：付款后获签名下载链接（24 小时有效，可在 dashboard 重新生成），zip 内含 SKILL.md + references；版本更新免费重下。无实体配送。另列明运行环境要求 |
 | 退款政策 | `/legal/refund` | 见 6.2 |
 | 取消政策 | `/legal/refund` 同页 | 一次性买断、无订阅、无自动续费 |
 | 客服联系方式 | 全站页脚 + `/pricing` 页内"联系与支持"区块 | `vichajser@gmail.com` 直达 + 响应时限承诺（建议"2 个工作日内"）；不得仅提供表单。不单独开 `/support` 页 |
@@ -211,13 +211,17 @@ README §3.3 的"上位阶段约束向下流动、下位不得推翻上位"，�
 
 ### 6.2 退款政策写法
 
-Agensi 为 merchant of record，退款由 Agensi 执行；但 Stripe 审核的是本站政策。页面需同时说明两层，并单列消费者法定权利：
+已于 2026-09-18 经浏览器核实（见 10.2）：**Agensi 为 merchant of record，退款与拒付均由 Agensi 执行**，卖家的 Stripe Connect 账户仅为收款目的地。
 
-- 通过 Agensi 购买 → 适用 Agensi 退款流程（附链接）
-- 直接联系购买 → 14 天内未下载可全额退款
+页面需分两条路径说明，并单列消费者法定权利：
+
+- **通过 Agensi 购买** → 适用 Agensi 退款政策，由 Agensi 受理，附 `https://www.agensi.io/terms` 链接
+- **直接联系我们购买** → 14 天内未下载可全额退款
 - **EU/UK 消费者** → 享 14 天无理由撤回权；数字商品一经下载，依 UK Consumer Contracts Regulations 2013 撤回权终止，购买前明确提示并取得同意
 
 第三条为英国主体向 EU/UK 消费者销售数字商品的法定要求，不可省略。
+
+**写法纪律**：第一条**只给链接、不复述 Agensi 的具体退款天数**。Agensi 自家两份文件互相矛盾（`/terms` §5.5 称 30 天无理由，`/stripe-terms` 称 14 天且需"materially defective"），且其条款可随时变更。复述等于把别人的错误抄进我们的法律页。
 
 ### 6.3 `/security` 页结构
 
@@ -309,21 +313,36 @@ Agensi 为 merchant of record，退款由 Agensi 执行；但 Stripe 审核的�
 
 ### 10.1 已确定
 
-- **注册办公地址** —— `Suite 10890, 61 Bridge Street, Kington, United Kingdom, HR5 3DJ`（"Kington" 一词待用户最终核对，见 3.3）
+- **注册办公地址** —— `Suite 10890, 61 Bridge Street, Kington, United Kingdom, HR5 3DJ`（已确认）
 - **客服邮箱** —— `vichajser@gmail.com`（域名确定后建议迁移至自有域名）
 
-### 10.2 待核实：Agensi 平台事实
+### 10.2 Agensi 平台事实（2026-09-18 经浏览器核实，已结）
 
-现有信息来自搜索引擎摘要（WebFetch 当时被网络策略拦截），三项均未经一手核实：
-
-| 事项 | 影响 | 紧要度 |
+| 事项 | 结论 | 出处 |
 |---|---|---|
-| **退款由谁执行、走什么流程** | 直接决定 `/legal/refund` 全页写法；Stripe 审核重点查此页。若 Agensi 并非 merchant of record，该页须重写 | **高** |
-| **交付形态** | 决定 `/legal/delivery` 表述。spec 现假设"付款后经 Agensi 即时下载 zip"，若实为账号内解锁或邮件发送则需修改 | 中 |
-| **分成比例** | 官方页面自相矛盾（首页 70/30，payouts 页直销 80/20）。不写入网站，仅影响实收测算 | 低 |
+| Merchant of record | **Agensi**。以自己名义向买家销售，负责计税、开票，**并处理退款与拒付** | `/terms` §7.5、§5.1；`/stripe-terms`；`/sell` |
+| 卖家 Stripe 账户角色 | **仅为收款目的地**（Stripe Connect payout destination），买家扣款不经过卖家账户 | `/terms` §7.2 |
+| 交付方式 | 付款后获**签名下载链接，24 小时有效**，可在 dashboard 重新生成；每次下载带买家指纹；版本更新免费重下。无邮件交付 | `/terms` §5.2、§5.3、§8.3 |
+| 分成 | **70/30**（卖家 70%）。正文全部一致；80/20 仅出现在两篇 blog 的标题与 meta 中，而该两篇正文自身写的是 70/30，属过期文案残留 | `/terms` §6.4、§7.1；首页；`/sell`；`/about` |
+| 退款条款 | **两页互相矛盾**：`/terms` §5.5（2026-09-02 更新）称 30 天无理由全额退；`/stripe-terms`（2026-06-24 更新）称 14 天且"refunds are not guaranteed"、需"materially defective"。商品页徽章显示"30-day refund guarantee" | 同左 |
+| 退款清算 | 买家退款时按 70/30 反向从卖家 Stripe 余额扣回，卖家仅承担自己那份 | `/learn/how-agensi-payouts-work-stripe-connect` |
 
-核实途径：走一遍 Agensi 卖家注册流程，查阅其 seller terms 中的退款责任条款。
+按 70% 计，USD 19.90 的单笔实收约 **USD 13.93**。
 
-### 10.3 待定：域名
+**未能确定**：Agensi 无独立退款政策页（`/refund`、`/refunds`、`/legal`、`/seller-terms` 等均 404）；30 天与 14 天哪个实际生效未见其官方澄清；结账流程中 EU 撤回权同意的实际措辞需登录后才能验证。上述不确定性正是 6.2 规定"只给链接、不复述天数"的原因。
+
+### 10.3 本站申请 Stripe 的定位（因上述发现需重新确认）
+
+原始需求假设"官网为上架 Agensi 申请支付所需"。核实结果表明该前提不成立：**Agensi 上架只需连接 Stripe Connect（Express）账户，不需要独立的 Stripe 商户激活审核**，且 Agensi 销售的资金流完全不经过本站的 Stripe 账户。
+
+因此本站申请 Stripe 商户账户的真实理由只剩：**为将来从本站直接销售铺路**。
+
+由此产生一项审核风险：审核员访问站点时若发现购买按钮跳转至第三方、站内无任何结算能力，可能质疑该 Stripe 账户的用途。
+
+应对（本期采用）：`/pricing` 明确区分两条购买路径——经 Agensi 购买，或直接联系 `vichajser@gmail.com` 购买；`/legal/refund` 对直销路径给出本站自己的 14 天条款。本站 Stripe 账户对应的即为直销收款。此方案不扩大本期"仅做展示"的范围。
+
+**需用户确认**：是否接受该定位，或改为本期即实现站内直销结算（超出当前范围），或推迟 Stripe 申请。
+
+### 10.4 待定：域名
 
 域名尚未购买，开发期使用占位域名。`canonical` 与 `hreflang` 的域名部分通过单一配置项注入，确定后一处改动即可。
