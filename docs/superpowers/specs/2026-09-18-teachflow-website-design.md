@@ -78,10 +78,17 @@ TeachFlow-KR 是面向韩国英语教师的 6 个 Claude Skill 组成的套件�
 ### 3.3 全站页脚
 
 ```
-CROSSXTOP LTD · Registered in England and Wales · Company No. 16339041 · <注册办公地址>
+CROSSXTOP LTD · Registered in England and Wales · Company No. 16339041
+Suite 10890, 61 Bridge Street, Kington, United Kingdom, HR5 3DJ
 ```
 
 一处同时满足 Companies Act 2006 的网站披露义务与 Stripe 的主体一致性要求。
+
+**待核对**：用户提供的地址第三行写作 "Kingdom"，但邮编 HR5 3DJ 归属赫里福德郡 **Kington**，判断为笔误，暂按 Kington 采用。此地址须与 Companies House 公开记录及提交给 Stripe 的主体信息**逐字一致**——Stripe 人工复审会比对，不一致即驳回。实现前需确认。
+
+客服邮箱：**vichajser@gmail.com**
+
+**待处理**：Gmail 地址可用于 Stripe 激活审核，但商用可信度低于自有域名邮箱。域名确定后建议改为 `support@<域名>`，并在此处同步更新。
 
 ## 4. 主动画：六 skill 依赖关系图
 
@@ -196,7 +203,7 @@ README §3.3 的"上位阶段约束向下流动、下位不得推翻上位"，�
 | 数字商品交付说明 | `/legal/delivery` | 付款后经 Agensi 即时下载；无实体配送；列明运行环境要求 |
 | 退款政策 | `/legal/refund` | 见 6.2 |
 | 取消政策 | `/legal/refund` 同页 | 一次性买断、无订阅、无自动续费 |
-| 客服联系方式 | 全站页脚 + `/pricing` 页内"联系与支持"区块 | 邮箱直达 + 响应时限承诺；不得仅提供表单。不单独开 `/support` 页 |
+| 客服联系方式 | 全站页脚 + `/pricing` 页内"联系与支持"区块 | `vichajser@gmail.com` 直达 + 响应时限承诺（建议"2 个工作日内"）；不得仅提供表单。不单独开 `/support` 页 |
 | 主体信息一致 | 全站页脚 | 见 3.3 |
 | 站点公开可访问 | 部署配置 | 无 Basic Auth、无 `noindex`、无 "Coming Soon" |
 
@@ -300,10 +307,23 @@ Agensi 为 merchant of record，退款由 Agensi 执行；但 Stripe 审核的�
 
 ## 10. 待确认事项（实现前必须坐实）
 
-以下三项在写入页面前必须获得确定答案，均为上线阻塞项：
+### 10.1 已确定
 
-1. **CROSSXTOP LTD 注册办公地址** —— 页脚与 legal 页均需。从 Companies House 公开记录查询公司号 16339041，或人工读取 `公司信息/in01.pdf`（扫描件，无法程序抽取）
-2. **客服邮箱** —— 域名尚未购买，开发期用占位；上线前必须替换为真实可达地址
-3. **Agensi 分成比例与退款流程细节** —— 现有信息来自搜索引擎摘要（WebFetch 当时被网络策略拦截），上线前需在浏览器中核实
+- **注册办公地址** —— `Suite 10890, 61 Bridge Street, Kington, United Kingdom, HR5 3DJ`（"Kington" 一词待用户最终核对，见 3.3）
+- **客服邮箱** —— `vichajser@gmail.com`（域名确定后建议迁移至自有域名）
 
-域名尚未购买，开发期使用占位域名；`canonical` 与 `hreflang` 的域名部分通过单一配置项注入，确定域名后一处改动即可。
+### 10.2 待核实：Agensi 平台事实
+
+现有信息来自搜索引擎摘要（WebFetch 当时被网络策略拦截），三项均未经一手核实：
+
+| 事项 | 影响 | 紧要度 |
+|---|---|---|
+| **退款由谁执行、走什么流程** | 直接决定 `/legal/refund` 全页写法；Stripe 审核重点查此页。若 Agensi 并非 merchant of record，该页须重写 | **高** |
+| **交付形态** | 决定 `/legal/delivery` 表述。spec 现假设"付款后经 Agensi 即时下载 zip"，若实为账号内解锁或邮件发送则需修改 | 中 |
+| **分成比例** | 官方页面自相矛盾（首页 70/30，payouts 页直销 80/20）。不写入网站，仅影响实收测算 | 低 |
+
+核实途径：走一遍 Agensi 卖家注册流程，查阅其 seller terms 中的退款责任条款。
+
+### 10.3 待定：域名
+
+域名尚未购买，开发期使用占位域名。`canonical` 与 `hreflang` 的域名部分通过单一配置项注入，确定后一处改动即可。
