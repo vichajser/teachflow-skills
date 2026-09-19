@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://teachflow-kr.example/sitemap-index.xml
