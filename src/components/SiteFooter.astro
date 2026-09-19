@@ -1,0 +1,70 @@
+---
+import { SITE } from '@/config/site';
+import { localizePath, type Locale } from '@/i18n/config';
+import { useTranslations } from '@/i18n/t';
+
+interface Props {
+  lang: Locale;
+  path: string;
+}
+
+// path 本组件不需要（页脚无"当前页"高亮），但保留以统一
+// SiteHeader / SiteFooter / LanguageSwitcher 三者的 Props 形状。
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+const legalLinks = [
+  { href: '/legal/terms', label: t('footer.terms') },
+  { href: '/legal/privacy', label: t('footer.privacy') },
+  { href: '/legal/refund', label: t('footer.refund') },
+  { href: '/legal/delivery', label: t('footer.delivery') },
+];
+
+// Companies Act 2006 s.82 要求披露注册名称、注册号、注册地、注册办公地址。
+// 这一行**在两种语言下都保持英文原文**，且四段值全部来自 SITE：
+// 它与 Companies House 公开记录及提交给 Stripe 的主体资料逐字一致，
+// 翻译其中任何一段都会让两者对不上，Stripe 人工复审会因此驳回。
+const disclosure = `${SITE.companyName} · Registered in ${SITE.registeredIn} · Company No. ${SITE.companyNumber}`;
+---
+
+<footer class="mt-24 border-t border-border bg-surface">
+  <div class="mx-auto grid max-w-6xl gap-8 px-4 py-12 md:grid-cols-2">
+    <section>
+      <h2 class="mb-3 text-sm font-semibold text-text-hi">{t('footer.legal')}</h2>
+      <ul class="space-y-1 text-sm">
+        {legalLinks.map((link) => (
+          <li>
+            <a
+              href={localizePath(link.href, lang)}
+              class="text-text-body underline-offset-2 hover:text-text-hi hover:underline"
+            >{link.label}</a>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <section>
+      <h2 class="mb-3 text-sm font-semibold text-text-hi">{t('footer.support')}</h2>
+      <p class="text-sm text-text-body">{t('footer.supportLine')}</p>
+      <!-- 客服邮箱必须是可点击的 mailto，不能只给表单（Stripe 审核项）。 -->
+      <a
+        href={`mailto:${SITE.supportEmail}`}
+        class="mt-1 inline-block font-mono text-sm text-accent hover:underline"
+      >{SITE.supportEmail}</a>
+    </section>
+  </div>
+
+  <!--
+    网站披露义务与 Stripe 主体一致性要求在此一并满足。
+    这段文字不翻译、不换行拆段：必须与 Companies House 公开记录逐字一致。
+  -->
+  <div class="border-t border-border">
+    <address
+      lang="en"
+      class="mx-auto max-w-6xl px-4 py-6 text-xs not-italic leading-relaxed text-text-mute"
+    >
+      {disclosure}<br />
+      {SITE.address}
+    </address>
+  </div>
+</footer>

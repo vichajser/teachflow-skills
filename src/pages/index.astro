@@ -1,0 +1,21 @@
+---
+import { SITE } from '@/config/site';
+
+// 纯静态托管没有服务端可发 302，所以根路径是一个 HTML shim：
+// meta refresh 给浏览器，<a> 给禁刷新/无 JS 的客户端，canonical 指向
+// /en 以免爬虫把 shim 当成重复内容收录。**不加 noindex**：站点必须公开可抓取。
+// Caddy 层另有一条真 302（Task 12），两层并存。
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="refresh" content="0; url=/en" />
+    <link rel="canonical" href={`${SITE.domain}/en`} />
+    <title>TeachFlow-KR</title>
+  </head>
+  <body>
+    <p><a href="/en">Continue to TeachFlow-KR</a></p>
+  </body>
+</html>

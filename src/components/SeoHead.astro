@@ -1,0 +1,33 @@
+---
+import { SITE } from '@/config/site';
+import { LOCALES, localizePath, type Locale } from '@/i18n/config';
+
+interface Props {
+  lang: Locale;
+  title: string;
+  description: string;
+  /** 去掉语言前缀的路径，如 '/pricing'、'/legal/refund'、'/' */
+  path: string;
+}
+
+const { lang, title, description, path } = Astro.props;
+
+// path 已按 BaseLayout 的契约剥掉语言前缀，故这里直接加前缀即可；
+// 若照抄 Astro.url.pathname（带前缀）会得到 /ko/en/... —— 语言切换器
+// 与前缀重组都靠 `localizePath` 只加不剥这一事实，见其 JSDoc。
+const url = (locale: Locale) => `${SITE.domain}${localizePath(path, locale)}`;
+---
+
+<title>{title}</title>
+<meta name="description" content={description} />
+<link rel="canonical" href={url(lang)} />
+{LOCALES.map((locale) => (
+  <link rel="alternate" hreflang={locale} href={url(locale)} />
+))}
+<link rel="alternate" hreflang="x-default" href={url('en')} />
+
+<meta property="og:type" content="website" />
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={url(lang)} />
+<meta property="og:locale" content={lang === 'ko' ? 'ko_KR' : 'en_GB'} />

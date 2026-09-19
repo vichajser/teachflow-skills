@@ -1,0 +1,45 @@
+---
+import '@/styles/global.css';
+import SeoHead from '@/components/SeoHead.astro';
+import SiteHeader from '@/components/SiteHeader.astro';
+import SiteFooter from '@/components/SiteFooter.astro';
+import type { Locale } from '@/i18n/config';
+
+interface Props {
+  lang: Locale;
+  title: string;
+  description: string;
+  /**
+   * **去掉语言前缀**的路径：`/pricing`、`/legal/refund`、`/` 表首页。
+   * 不是 `Astro.url.pathname`（那个带前缀）。canonical 与 hreflang 由它派生。
+   */
+  path: string;
+  /** 'legal' 关闭辉光与动效（spec §5.5 合规区静音） */
+  variant?: 'marketing' | 'legal';
+}
+
+const { lang, title, description, path, variant = 'marketing' } = Astro.props;
+---
+
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <SeoHead lang={lang} title={title} description={description} path={path} />
+  </head>
+  <body
+    data-quiet={variant === 'legal' ? '' : undefined}
+    class="min-h-screen bg-void text-text-body antialiased"
+  >
+    <a
+      href="#main"
+      class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-raised focus:px-3 focus:py-2 focus:text-text-hi"
+    >Skip to content</a>
+
+    <SiteHeader lang={lang} path={path} />
+    <main id="main" class="mx-auto max-w-6xl px-4"><slot /></main>
+    <SiteFooter lang={lang} path={path} />
+  </body>
+</html>

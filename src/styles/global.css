@@ -28,3 +28,22 @@ html {
 html:lang(ko) {
   font-family: var(--font-ko);
 }
+
+/* spec §5.5：合规区静音——/pricing 与 /legal/* 取消辉光与动效 */
+body[data-quiet] * {
+  box-shadow: none !important;
+  animation: none !important;
+  transition: none !important;
+}
+
+/* spec §8：prefers-reduced-motion 下渲染终态，无任何位移 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
