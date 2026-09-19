@@ -1,5 +1,6 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
+import sitemap from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
 
 // 域名尚未购买：占位域名只允许出现在这里与 src/config/site.ts。
@@ -9,5 +10,7 @@ export default defineConfig({
   output: 'static',
   trailingSlash: 'ignore',
   build: { format: 'directory' },
+  // robots.txt 承诺了 /sitemap-index.xml，这里负责真的生成它。
+  integrations: [sitemap()],
   vite: { plugins: [tailwindcss()] },
 });
