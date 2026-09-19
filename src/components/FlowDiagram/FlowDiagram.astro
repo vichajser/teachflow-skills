@@ -140,4 +140,13 @@ const STAGES = ([1, 2, 3] as const).map((stage) => ({
   </ol>
 
   <p class="mt-6 text-sm text-text-mute">{t('flow.constraint')}</p>
+
+  <!--
+    渐进增强：脚本只在图进入视口时把 SVG 从静态终态"藏起再放出"。
+    关 JS、prefers-reduced-motion 或 md 以下（SVG 未渲染）时，HTML 本身就是终态。
+    目前只有首页引用本组件，所以这段 JS 也只随首页输出。
+  -->
+  <script>
+    import './flow-diagram.ts';
+  </script>
 </figure>
