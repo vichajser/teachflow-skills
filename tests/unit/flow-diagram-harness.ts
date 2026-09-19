@@ -50,12 +50,6 @@ interface StubEl {
   children: StubEl[];
 }
 
-/** `data-flow-node` → `flowNode`，与真实 `HTMLElement.dataset` 同一套命名转换。 */
-const datasetKey = (attr: string): string =>
-  attr
-    .slice('data-'.length)
-    .replace(/-([a-z])/g, (_, c: string) => c.toUpperCase());
-
 const NODE_IDS = [
   'lesson-workflow',
   'ppt-workflow',
@@ -299,6 +293,16 @@ export function install(options: Options = {}): Recorder {
   g.document = {
     querySelector: (sel: string) =>
       matches(root, sel) ? root : (root as unknown as { querySelector(s: string): unknown }).querySelector(sel),
+    // 裁决 8 之后 Escape 监听器挂在 `document` 上（鼠标打开高亮时焦点在
+    // `<body>`，keydown 冒泡不到 `figure`）。桩里给 document 一个与元素同构的
+    // 注册入口，label 固定 `'document'`，测试便能用 `rec.fire('document', …)`
+    // 触发它——否则那条监听器在桩上永远不可达，Escape 行为无从断言。
+    addEventListener: (type: string, fn: (e: unknown) => void) => {
+      const list = listeners.get('document') ?? [];
+      list.push({ type, fn });
+      listeners.set('document', list);
+      rec.listeners.push({ el: 'document', type });
+    },
   };
 
   g.window = {

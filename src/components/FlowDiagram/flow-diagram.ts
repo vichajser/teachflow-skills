@@ -12,6 +12,8 @@
  * 只被本文件的 `init()` 调用。测试经由 `init()` 观察它们的行为，而不是直接调用。
  */
 
+import { CAPSULE } from './nodes';
+
 const BEAT_MS = 700;
 
 /** 单次淡入 / 单条连线自绘的时长，与 `play()` 里推算清理时刻共用。 */
@@ -147,7 +149,10 @@ const CAPSULE_MS = 1400;
 /**
  * 约束向下流动的发光胶囊（spec §4.2）。
  *
- * 每站：把胶囊移到该节点正上方居中（`box.x + box.width/2 - 66`，66 是胶囊半宽），
+ * 每站：把胶囊移到该节点正上方居中，横向上移半个胶囊宽（`CAPSULE.w / 2`），
+ * 纵向上移整个胶囊高再多留 8 单位空档（`CAPSULE.h + 8`）——两个偏移都从
+ * `CAPSULE` 推出来，改胶囊尺寸时不必回来找这两个魔数。
+ *
  * 给节点挂上 `.is-pulsing` 让它的描边闪一下，400ms 后摘掉。
  *
  * 用 `getBBox()` 而不是 `getBoundingClientRect()`：前者的坐标系是 SVG 用户单位，
@@ -171,7 +176,7 @@ function runConstraintPulse(root: Element): void {
       const box = node.getBBox();
       capsule.setAttribute(
         'transform',
-        `translate(${box.x + box.width / 2 - 66}, ${box.y - 34})`,
+        `translate(${box.x + box.width / 2 - CAPSULE.w / 2}, ${box.y - CAPSULE.h - 8})`,
       );
       node.classList.add('is-pulsing');
       window.setTimeout(() => node.classList.remove('is-pulsing'), 400);
@@ -182,14 +187,22 @@ function runConstraintPulse(root: Element): void {
 }
 
 /**
- * 悬停 / 聚焦 / 点击节点时的连线与侧卡高亮（spec §4.3）。
+ * 悬停 / 点击节点时的连线与侧卡高亮（spec §4.3）。
  *
- * `tabindex` 与 `role="button"` 在 JS 里加，不写进 SVG 静态标记：无 JS 时这些
- * 节点根本不可交互，标成 `role="button"` 是向屏幕阅读器承诺一个不存在的行为。
+ * **刻意不给 SVG 节点加可聚焦性**（Task 13 修复轮 1，评审发现 1/2/4）。整棵
+ * `<svg>` 是 `aria-hidden="true"`（对读屏器只是装饰，结构由 `<ol data-flow-list>`
+ * 承担）。在 aria-hidden 子树里加 `tabindex` 会让键盘用户 Tab 进六个读屏器读不出
+ * 名字的停靠点（WCAG 2.1 SC 4.1.2、axe `aria-hidden-focus`）；而 SVG `<g>` 根本
+ * 不会把 Enter 合成 click，`role="button"` 承诺的激活方式并不存在。
+ *
+ * 于是这里只留指针与触屏增强：`mouseenter` 与 `click`。二者在 aria-hidden 子树里
+ * 都不产生可聚焦性，axe 不判失败；键盘/读屏用户需要的全部信息（needs、makes、
+ * 产物）已静态写在那份 `<ol>` 里，不依赖任何交互。
  * `tests/build/flow-hooks.test.mjs` 有一条断言守着静态产物里零个
- * `[data-flow-node][role="button"]`。
+ * `[data-flow-node][role="button"]`；`flow-diagram.test.ts` 另有一条守着
+ * 运行时也**永不**写 tabindex / role。
  *
- * 点击也走同一条 focus：移动端没有 hover，点击是唯一的开卡方式。
+ * 点击走同一条 `focus`：移动端没有 hover，点击是唯一的开卡方式。
  */
 function bindHover(root: Element): void {
   const nodes = Array.from(root.querySelectorAll<SVGGElement>('[data-flow-node]'));
@@ -224,15 +237,16 @@ function bindHover(root: Element): void {
   for (const node of nodes) {
     const id = node.dataset.flowNode;
     if (!id) continue;
-    node.setAttribute('tabindex', '0');
-    node.setAttribute('role', 'button');
     node.addEventListener('mouseenter', () => focus(id));
-    node.addEventListener('focus', () => focus(id));
     node.addEventListener('click', () => focus(id));
   }
 
   root.addEventListener('mouseleave', clear);
-  root.addEventListener('keydown', (e) => {
+
+  // Escape 挂在 `document` 而非 `figure`（评审发现 8）：鼠标打开高亮时焦点在
+  // `<body>` 上，keydown 事件从 body 沿祖先链冒泡，`figure` 根本不是它的一条
+  // 祖先——挂在 figure 上的监听器永不触发，Escape 清不掉任何东西。
+  document.addEventListener('keydown', (e) => {
     if ((e as KeyboardEvent).key === 'Escape') clear();
   });
 }

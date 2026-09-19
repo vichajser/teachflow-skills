@@ -170,6 +170,156 @@ describe('card content is populated, never a bare heading', () => {
   });
 });
 
+/**
+ * 每张卡的内容必须绑定到**它自己那个节点**（B 组，评审发现 3）。
+ *
+ * 这组是本轮最要紧的补强。上面那些断言（卡数 = 6、键存在于两份字典、卡里
+ * ≥4 个 `<p>`、韩文卡含谚文）**合起来也绑不住"哪张卡渲染了哪个节点的哪条
+ * 内容"**——评审实测三条变异 194/194 全绿存活：
+ *
+ *   · 把某节点的 needsKey / makesKey 互换；
+ *   · 让六个节点全指向 FLOW_NODES[0] 的键；
+ *   · 让韩文卡渲染英文内容。
+ *
+ * 解法是逐卡逐语言取到该节点的字典值做**逐字等值**比较。谚文那条自然被
+ * "ko 卡等于 ko 字典值"一并杀掉：英文值里没有谚文，对不上。
+ */
+describe('every card is bound to its own node, in its own language', () => {
+  const DICTS = { en, ko };
+  /** 取该节点在该语言下两条真实文案；节点数据是唯一真相源 */
+  const expected = (node, lang) => ({
+    needs: DICTS[lang][node.needsKey],
+    makes: DICTS[lang][node.makesKey],
+  });
+  /** 卡片里那一行的文本，压掉模板缩进带来的空白 */
+  const textOfAttr = (card, attr) => {
+    const el = card.querySelector(`[${attr}]`);
+    expect(el, `card has no [${attr}] anchor`).not.toBeNull();
+    return el.structuredText.replace(/\s+/g, ' ').trim();
+  };
+
+  it('renders each card needs line exactly equal to that node dictionary value', () => {
+    for (const lang of ['en', 'ko']) {
+      const root = home(lang);
+      for (const node of FLOW_NODES) {
+        const card = root.querySelector(`[data-flow-card="${node.id}"]`);
+        expect(card, `${lang}: no card for ${node.id}`).not.toBeNull();
+        expect(
+          textOfAttr(card, 'data-flow-card-needs'),
+          `${lang}: card ${node.id} needs line is not its own ${node.needsKey}`,
+        ).toBe(expected(node, lang).needs);
+      }
+    }
+  });
+
+  it('renders each card makes line exactly equal to that node dictionary value', () => {
+    for (const lang of ['en', 'ko']) {
+      const root = home(lang);
+      for (const node of FLOW_NODES) {
+        const card = root.querySelector(`[data-flow-card="${node.id}"]`);
+        expect(card, `${lang}: no card for ${node.id}`).not.toBeNull();
+        expect(
+          textOfAttr(card, 'data-flow-card-makes'),
+          `${lang}: card ${node.id} makes line is not its own ${node.makesKey}`,
+        ).toBe(expected(node, lang).makes);
+      }
+    }
+  });
+
+  it('does not let one language dictionary serve the other', () => {
+    // 上面两条已经隐含语言正确性（ko 卡必须等于 ko 字典值）。这里再把两种语言
+    // 的值本身对立起来：若某节点的两条文案在两语言中恰好相同，语言维度就塌了，
+    // 上面那两条也就同时失去鉴别力。今天没有这种节点，留一条防将来。
+    for (const node of FLOW_NODES) {
+      expect(
+        en[node.needsKey] === ko[node.needsKey] && en[node.makesKey] === ko[node.makesKey],
+        `${node.id} reads identically in both languages — the language assertion is vacuous`,
+      ).toBe(false);
+    }
+  });
+
+  it('renders each node id against the dictionary key that id names (closure)', () => {
+    // 上一条有个盲点，这条专门补它：期望值取的是 `DICTS[lang][node.needsKey]`，
+    // **指针与渲染同源**。于是"把某节点的 needsKey/makesKey 互换"或"让六个节点
+    // 全指向 FLOW_NODES[0] 的键"这两种数据层错绑，会让渲染与期望一起移动、
+    // 永远相等——产物上完全隐形（评审发现 3 点的正是这类存活变异）。
+    // 这里把期望的键**由节点 id 推出**（`flow.needs.<id>` / `flow.makes.<id>`），
+    // 不再经过 `node.needsKey`，指针指错时渲染内容就对不上 id 应有的内容。
+    // 命名约定本就是 `flow.{needs,makes}.<id>`：`nodes.ts` 逐字写出而非拼接，
+    // 只是为了 tsc 能挡下不存在的键，不是换了一套命名。
+    const DICTS = { en, ko };
+    const textOfAttr = (host, attr) => {
+      const el = host.querySelector(`[${attr}]`);
+      expect(el, `host has no [${attr}] anchor`).not.toBeNull();
+      return el.structuredText.replace(/\s+/g, ' ').trim();
+    };
+    for (const lang of ['en', 'ko']) {
+      const root = home(lang);
+      for (const node of FLOW_NODES) {
+        const card = root.querySelector(`[data-flow-card="${node.id}"]`);
+        expect(
+          textOfAttr(card, 'data-flow-card-needs'),
+          `${lang}: card ${node.id} needs does not match flow.needs.${node.id}`,
+        ).toBe(DICTS[lang][`flow.needs.${node.id}`]);
+        expect(
+          textOfAttr(card, 'data-flow-card-makes'),
+          `${lang}: card ${node.id} makes does not match flow.makes.${node.id}`,
+        ).toBe(DICTS[lang][`flow.makes.${node.id}`]);
+
+        const row = root.querySelector(`[data-flow-list-item="${node.id}"]`);
+        expect(
+          textOfAttr(row, 'data-flow-list-needs'),
+          `${lang}: list row ${node.id} needs does not match flow.needs.${node.id}`,
+        ).toBe(DICTS[lang][`flow.needs.${node.id}`]);
+        expect(
+          textOfAttr(row, 'data-flow-list-makes'),
+          `${lang}: list row ${node.id} makes does not match flow.makes.${node.id}`,
+        ).toBe(DICTS[lang][`flow.makes.${node.id}`]);
+      }
+    }
+  });
+});
+
+/**
+ * A 组的 `<ol data-flow-list>` 现在是**无障碍树里唯一结构来源**（SVG 整体
+ * aria-hidden），所以它同样要逐行绑定到自己那个节点——绑错了比侧卡绑错更严重，
+ * 因为读屏用户只有这一处。断言形状与上面的侧卡组对称。
+ */
+describe('every list row is bound to its own node, in its own language', () => {
+  const DICTS = { en, ko };
+  const expected = (node, lang) => ({
+    needs: DICTS[lang][node.needsKey],
+    makes: DICTS[lang][node.makesKey],
+  });
+  const textOfAttr = (row, attr) => {
+    const el = row.querySelector(`[${attr}]`);
+    expect(el, `list row has no [${attr}] anchor`).not.toBeNull();
+    return el.structuredText.replace(/\s+/g, ' ').trim();
+  };
+
+  it('carries the same needs/makes as the card for every node, both locales', () => {
+    for (const lang of ['en', 'ko']) {
+      const root = home(lang);
+      expect(
+        root.querySelectorAll('[data-flow-list]').length,
+        `${lang} has no accessible list`,
+      ).toBe(1);
+      for (const node of FLOW_NODES) {
+        const row = root.querySelector(`[data-flow-list-item="${node.id}"]`);
+        expect(row, `${lang}: no list row for ${node.id}`).not.toBeNull();
+        expect(
+          textOfAttr(row, 'data-flow-list-needs'),
+          `${lang}: list row ${node.id} needs is not its own ${node.needsKey}`,
+        ).toBe(expected(node, lang).needs);
+        expect(
+          textOfAttr(row, 'data-flow-list-makes'),
+          `${lang}: list row ${node.id} makes is not its own ${node.makesKey}`,
+        ).toBe(expected(node, lang).makes);
+      }
+    }
+  });
+});
+
 describe('the sample link follows the samples that actually exist (N2)', () => {
   it('links a ready sample to its anchor on /samples', () => {
     // 变异 N2：删掉侧卡里 `flow.card.sample` 链接的渲染。今天五个样例的
@@ -235,10 +385,15 @@ describe('the sample link follows the samples that actually exist (N2)', () => {
     expect(src, 'the card no longer renders the sample link').toContain("t('flow.card.sample')");
     // 链接必须留在 `sampleHrefFor(...)` 的守卫里，不能无条件渲染——无条件
     // 渲染会让没有样例的节点得到一个 href=undefined 的死链。
+    //
+    // 守卫里的局部变量在修复轮 1 从 `sampleHref` 改名为 `href`（评审发现 11：
+    // 原名遮蔽了文件顶部 import 的 `sampleHref` 函数，两者类型不同）。正则同步
+    // 改成 `{href && (`——不改的话它会永远匹配不上，变成一条**静默失效**的守卫，
+    // 而它守的"链接不得无条件渲染"这个意图必须保住。
     expect(
       src,
       'the sample link is rendered unconditionally — a node without a sample gets a dead link',
-    ).toMatch(/\{sampleHref && \(/);
+    ).toMatch(/\{href && \(/);
   });
 
   it('renders no dead link in the built cards, whatever the data says', () => {
@@ -258,5 +413,54 @@ describe('the sample link follows the samples that actually exist (N2)', () => {
         }
       }
     }
+  });
+});
+
+/**
+ * 空内容守卫只能靠**源码结构**断言（裁决 2 + 评审发现 13）。
+ *
+ * 和上面 N2 那条同一种形状，理由也一样：今天六个节点的 needsKey / makesKey
+ * 两条都有值，产物里根本不出现"空行"分支——**把两处 `{needs.length > 0 && …}`
+ * 整个删掉，构建出的 HTML 与保留守卫逐字节相同**，行为断言无从分辨。
+ * 行为级的证明需要构造一个"某节点键取不到值"的渲染，本沙箱做不到
+ * （见 N2 那条对 AstroContainer / Vite 版本冲突的说明）。
+ *
+ * 所以退到源码层：断言模板里存在"以 `textOf(...)` 的取值长度把关、并渲染对应
+ * 标签键"的守卫。删掉包裹即红。两处都要守——侧卡（视觉）与 `<ol>`（无障碍树
+ * 唯一来源，A 组之后更需要）。
+ */
+describe('empty needs/makes are skipped along with their label (source guard)', () => {
+  const src = readFileSync(
+    resolve(process.cwd(), 'src/components/FlowDiagram/FlowDiagram.astro'),
+    'utf8',
+  );
+
+  it('guards the card needs and makes blocks on a non-empty value', () => {
+    expect(src, 'the card needs block is not guarded on its value')
+      .toMatch(/\{needs\.length > 0 && \(/);
+    expect(src, 'the card makes block is not guarded on its value')
+      .toMatch(/\{makes\.length > 0 && \(/);
+  });
+
+  it('guards the accessible list needs and makes blocks on a non-empty value', () => {
+    // 列表行与侧卡用的是同一对守卫形状。两处都数一遍，避免"只给侧卡留守卫、
+    // 列表那份被顺手删掉"——列表是无障碍树的唯一来源，它漏了更严重。
+    const guarded = src.match(/\{(needs|makes)\.length > 0 && \(/g) ?? [];
+    expect(
+      guarded.length,
+      `expected 4 guarded needs/makes blocks (card + list), found ${guarded.length}`,
+    ).toBe(4);
+  });
+
+  it('keeps the empty-guard tied to the shared textOf lookups, not to output length', () => {
+    // 守卫若从 `textOf(node.needsKey)` 退化成 `node.needs.length`（那是空的
+    // 上游产物扩展名数组，五个节点全为空），今天所有卡会被整段跳过而产物里
+    // 一张卡都没有 needs 行——但"卡数 = 6"依然绿。这里钉住取值来源。
+    expect(src, 'the card no longer reads needs through textOf').toMatch(
+      /const needs = textOf\(node\.needsKey\)/,
+    );
+    expect(src, 'the card no longer reads makes through textOf').toMatch(
+      /const makes = textOf\(node\.makesKey\)/,
+    );
   });
 });

@@ -18,10 +18,11 @@ import { install, uninstall, NODES, EDGE_KEYS, type Recorder } from './flow-diag
 async function run(options = {}): Promise<Recorder> {
   const rec = install(options);
   vi.resetModules();
-  // 被测文件零导出（R-2），tsc 因此把它看成脚本而不是模块，报 TS2306。
-  // 运行时没有任何问题（Vite 照常打成 ES 模块）；为了保住 R-2 不给源文件
-  // 加一个纯为取悦类型检查的 `export {}`，在这里显式标注预期错误。
-  // @ts-expect-error TS2306: 零导出的叶子模块不是 tsc 眼里的 module
+  // Task 13 起本文件 `import { CAPSULE } from './nodes'`（裁决 12：脚本侧从
+  // CAPSULE 取半宽），因此它已经是一个 tsc 眼里的 module，原先那条
+  // `@ts-expect-error TS2306`（零导出叶子模块）不再有可报的错误，留着会让
+  // tsc 以 TS2578「未使用的 ts-expect-error」失败。R-2 的约束是"不导出任何
+  // 供其他模块使用的符号"，import 不违反它——这里如实去掉过期指令。
   await import('@/components/FlowDiagram/flow-diagram');
   return rec;
 }
@@ -199,21 +200,23 @@ describe('showtime', () => {
  * reduced-motion 的早退分支之后调用）只有在这里才可能被杀掉。
  */
 describe('hover binding (Task 13)', () => {
-  it('binds hover, focus and click on every node', async () => {
+  it('binds pointer and touch enhancement on every node, and no focus', async () => {
+    // 修复轮 1 起不再有 `focus` 监听器：节点不进 tab 序（见下一组断言），
+    // 挂上去也永不触发。留下的两个是纯指针/触屏增强，不产生可聚焦性。
     const rec = await run();
     for (const id of NODES) {
       expect(rec.listeners, `${id} has no mouseenter handler`).toContainEqual({
         el: id,
         type: 'mouseenter',
       });
-      expect(rec.listeners, `${id} cannot be reached by keyboard`).toContainEqual({
-        el: id,
-        type: 'focus',
-      });
       expect(rec.listeners, `${id} cannot be opened on a touch screen`).toContainEqual({
         el: id,
         type: 'click',
       });
+      expect(
+        rec.listeners.some((l) => l.el === id && l.type === 'focus'),
+        `${id} still binds focus — the node is not focusable, so it can never fire`,
+      ).toBe(false);
     }
   });
 
@@ -285,84 +288,142 @@ describe('hover binding (Task 13)', () => {
     }
   });
 
-  it('clears the highlight on Escape', async () => {
+  it('clears the highlight on Escape, through a listener on document', async () => {
+    // Escape 挂在 `document` 上，不是 `figure`（评审发现 8）：鼠标打开高亮时
+    // 焦点在 `<body>`，keydown 从 body 沿祖先链冒泡，`figure` 不是它的一条祖先，
+    // 挂在 figure 上永不触发。这条用 `rec.fire('document', …)` 触发——若监听器
+    // 退回 `root`，`document` 上就没有监听器，Escape 清不掉，断言红。
     const rec = await run();
     rec.fire('audio-workflow', 'mouseenter');
     // 非 Escape 键不得复位：写成 `!== 'Enter'` 一类的反向判断会让任意按键
-    // 都清空，键盘用户在节点间 Tab 时高亮一闪即逝。
-    rec.fire('root', 'keydown', { key: 'Tab' });
+    // 都清空，键盘用户在别处按键时高亮一闪即逝。
+    rec.fire('document', 'keydown', { key: 'Tab' });
     expect(rec.classesOf('audio-workflow'), 'Tab must not clear').toContain('is-focused');
 
-    rec.fire('root', 'keydown', { key: 'Escape' });
+    rec.fire('document', 'keydown', { key: 'Escape' });
     expect(rec.classesOf('audio-workflow'), 'Escape must clear').toEqual([]);
     expect(rec.cardVisible('audio-workflow')).toBe(false);
   });
 
-  it('marks the nodes interactive only from script, never in the markup', async () => {
-    // 静态标记里没有 tabindex/role（那由构建测试守着）；这里确认 JS 确实加上了，
-    // 否则"只在 JS 里加"会退化成"哪都没加"，键盘用户永远够不到节点。
+  it('never makes the nodes focusable, from script or markup (fix round 1)', async () => {
+    // 语义整个反过来（Task 13 修复轮 1，评审发现 1/2/4）。原先这条断言 JS 确实
+    // 写上了 tabindex/role，理由是"不加键盘用户够不到节点"。那个理由不成立：
+    // 整棵 <svg> 是 aria-hidden="true"，往里面加 tabindex 会让键盘用户 Tab 进
+    // 六个读屏器念不出名字的停靠点（WCAG 2.1 SC 4.1.2、axe aria-hidden-focus），
+    // 而 SVG <g> 又不会把 Enter 合成 click，"role=button"承诺的激活方式不存在。
+    // 结构改由 <ol data-flow-list> 静态承担，节点只保留指针/触屏增强。
     const rec = await run();
     for (const id of NODES) {
-      expect(rec.attrsOf(id).tabindex, `${id} is not focusable`).toBe('0');
-      expect(rec.attrsOf(id).role, `${id} has no role`).toBe('button');
+      expect(rec.attrsOf(id).tabindex, `${id} became a tab stop inside aria-hidden`).toBeUndefined();
+      expect(rec.attrsOf(id).role, `${id} claims a button role`).toBeUndefined();
+    }
+    // 也不能退化成"连指针/触屏都没了"：那是把交互整个删掉，不是修无障碍。
+    for (const id of NODES) {
+      expect(
+        rec.listeners.some((l) => l.el === id && l.type === 'mouseenter'),
+        `${id} lost its pointer enhancement`,
+      ).toBe(true);
+      expect(
+        rec.listeners.some((l) => l.el === id && l.type === 'click'),
+        `${id} lost its touch enhancement`,
+      ).toBe(true);
     }
   });
 });
 
 describe('constraint pulse (Task 13)', () => {
-  /** 找出 `play()` 排的那个 `BEAT_MS * 4` 定时器（四拍走完的时刻）。 */
-  const pulseStart = (rec: Recorder) => rec.timers.find((t) => t.delay === 2800);
+  /**
+   * 三站的节点及桩 DOM 里 `getBBox()` 给出的盒子（harness: x=300+idx*10,
+   * y=120+idx*10, w=200）。索引取自 NODES 顺序：lesson=0、ppt=1、report=5。
+   */
+  const STOPS = [
+    { id: 'lesson-workflow', x: 300, y: 120 },
+    { id: 'ppt-workflow', x: 310, y: 130 },
+    { id: 'report-workflow', x: 350, y: 170 },
+  ];
+  const WIDTH = 200;
+  // 期望位移按 brief 给的公式算出，写成**字面量**而不是 import CAPSULE 再算一遍：
+  // 从同一个常量推期望值的话，改常量会同时改变代码与期望，两者永远相等。
+  // x = box.x + WIDTH/2 - 66, y = box.y - 34。
+  const EXPECTED = STOPS.map((s) => `translate(${s.x + WIDTH / 2 - 66}, ${s.y - 34})`);
 
-  it('moves the capsule down the trunk and pulses each node', async () => {
+  /**
+   * 触发"四拍走完"、启动脉冲，返回**脉冲自己排的**定时器（三站 + 收尾）。
+   *
+   * 分界的必要性（评审发现 6）：脉冲第三站也是 2800ms，与 `play()` 排的
+   * "四拍走完"同值。靠 `find(t => t.delay === 2800)` 取站，永远拿到四拍那个，
+   * 第三站从不执行。所以在启动前记下已登记的定时器数量作分界，之后追加的一律
+   * 属于脉冲，不去猜 delay 值。
+   */
+  const beginPulse = (rec: Recorder) => {
+    const fourBeats = rec.timers.find((t) => t.delay === 2800);
+    expect(fourBeats, 'no timer at BEAT_MS * 4 — the pulse never starts').toBeDefined();
+    const mark = rec.timers.length;
+    fourBeats!.run();
+    // 脉冲排的顺序确定：三站（0 / 1400 / 2800）随后是收尾（4200）。
+    return rec.timers.slice(mark);
+  };
+
+  it('moves the capsule to each stop exact box, strictly downward', async () => {
     const rec = await run();
     rec.observers[0]!.fire();
-
-    const start = pulseStart(rec);
-    expect(start, 'no timer at BEAT_MS * 4 — the pulse never starts').toBeDefined();
 
     // 胶囊开演前是透明的（静态终态的一部分），到点才亮起。
     expect(rec.attrsOf('capsule').opacity).toBe('0');
-    start!.run();
+    const pulse = beginPulse(rec);
     expect(rec.attrsOf('capsule').opacity, 'the capsule stays invisible').toBe('1');
 
-    // 三站：lesson（立刻）→ ppt（1400ms）→ report（2800ms）。
-    const stops = [0, 1400, 2800];
-    for (const delay of stops) {
-      expect(
-        rec.timers.some((t) => t.delay === delay),
-        `no stop scheduled at ${delay}ms`,
-      ).toBe(true);
-    }
+    expect(pulse, 'the pulse scheduled the wrong number of timers').toHaveLength(4);
+    const stopTimers = pulse.slice(0, 3);
+    const end = pulse[3]!;
 
-    // 逐个跑完三站，每次节点的 transform 都要指向那个节点自己的盒子。
-    for (const [i, delay] of stops.entries()) {
-      rec.timers.find((t) => t.delay === delay)!.run();
+    // 逐站精确比对，不接受"形状对就行"：`translate(0,0)` 或"三站全同一个坐标"
+    // 都能通过正则 `translate(n, n)`，却什么都没证明。
+    const ys: number[] = [];
+    for (const [i, timer] of stopTimers.entries()) {
+      expect(timer.delay, `stop ${i} fires at the wrong time`).toBe(i * 1400);
+      timer.run();
       const transform = rec.attrsOf('capsule').transform;
-      expect(transform, `stop ${i} never moved the capsule`).toMatch(
-        /^translate\([\d.-]+, [\d.-]+\)$/,
-      );
+      expect(
+        transform,
+        `stop ${i} (${STOPS[i]!.id}) did not land on its own box`,
+      ).toBe(EXPECTED[i]);
+      ys.push(Number(transform!.match(/, ([\d.-]+)\)$/)![1]));
     }
+    // "约束向下流"这件事本身：三站的 y 严格递增。
+    expect(ys[0], 'the capsule does not move downward').toBeLessThan(ys[1]!);
+    expect(ys[1], 'the capsule does not move downward').toBeLessThan(ys[2]!);
 
     // 走完最后一站后收起（`stops.length * CAPSULE_MS` = 4200ms）。
-    const end = rec.timers.find((t) => t.delay === 4200);
-    expect(end, 'the capsule never fades back out').toBeDefined();
-    end!.run();
+    expect(end.delay, 'the capsule never fades back out').toBe(4200);
+    end.run();
     expect(rec.attrsOf('capsule').opacity).toBe('0');
   });
 
-  it('pulses each stop with its own 400ms flash', async () => {
+  it('pulses all three stops, each released by its own 400ms timer', async () => {
+    // 评审发现 7：原断言只验第一站，`if (i === 0)` 这种"只给第一站闪"的变异
+    // 存活。三站逐站验。400ms 的摘除定时器同样用分界法取（启动一个站后新追加
+    // 的那批），不与别处可能同值的 delay 混淆。
     const rec = await run();
     rec.observers[0]!.fire();
-    pulseStart(rec)!.run();
+    const pulse = beginPulse(rec);
 
-    // 第一站立刻脉冲：lesson-workflow 挂上 is-pulsing，并排一个 400ms 的摘除。
-    rec.timers.find((t) => t.delay === 0)!.run();
-    expect(rec.classesOf('lesson-workflow')).toContain('is-pulsing');
+    for (const [i, timer] of pulse.slice(0, 3).entries()) {
+      const { id } = STOPS[i]!;
+      const before = rec.timers.length;
+      timer.run();
 
-    const stopFlash = rec.timers.find((t) => t.delay === 400);
-    expect(stopFlash, 'the pulse never releases').toBeDefined();
-    stopFlash!.run();
-    expect(rec.classesOf('lesson-workflow')).not.toContain('is-pulsing');
+      expect(rec.classesOf(id), `stop ${i} (${id}) never pulsed`).toContain('is-pulsing');
+
+      const releases = rec.timers.slice(before);
+      expect(releases, `stop ${i} (${id}) scheduled no release`).toHaveLength(1);
+      expect(releases[0]!.delay, `stop ${i} (${id}) release delay`).toBe(400);
+      releases[0]!.run();
+      expect(
+        rec.classesOf(id),
+        `stop ${i} (${id}) keeps pulsing forever`,
+      ).not.toContain('is-pulsing');
+    }
   });
 
   it('does not run under prefers-reduced-motion', async () => {

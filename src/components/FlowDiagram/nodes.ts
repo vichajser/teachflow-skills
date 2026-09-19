@@ -5,6 +5,16 @@ import type { TranslationKey } from '@/i18n/t';
 
 export const VIEWBOX = { w: 960, h: 640 } as const;
 
+/**
+ * 约束胶囊（spec §4.2）的尺寸，SVG 用户单位。
+ *
+ * 放在这里而不是两个消费方各写一遍：`FlowDiagram.astro` 用它渲染 `<rect>` 的
+ * 宽高，`flow-diagram.ts` 用半宽把胶囊在节点正上方居中。各自硬编码 132 / 66 时
+ * 只靠注释耦合，改一处忘另一处就会让胶囊偏出半个身位——那是纯视觉的偏移，
+ * 没有断言抓得住。两个消费方本就从本模块取数据，不为此新增文件。
+ */
+export const CAPSULE = { w: 132, h: 26 } as const;
+
 export interface FlowNode {
   id: SkillId;
   stage: SkillStage;
@@ -65,8 +75,8 @@ const outputsOf = (id: SkillId) =>
   SKILLS.find((s) => s.id === id)?.outputs ?? [];
 
 /** 一级节点的产物就是二级节点的输入；四个二级节点的产物汇总成三级节点的输入 */
-const STAGE1_OUTPUT = outputsOf('lesson-workflow');
-const STAGE2_OUTPUTS = STAGE2_ORDER.flatMap(outputsOf);
+const STAGE1_OUTPUT = /* @__PURE__ */ outputsOf('lesson-workflow');
+const STAGE2_OUTPUTS = /* @__PURE__ */ STAGE2_ORDER.flatMap(outputsOf);
 
 /**
  * 侧卡的展示文案键，逐节点写死而不是 `flow.needs.${id}` 拼出来。
@@ -108,7 +118,26 @@ const CARD_KEYS: Record<
   },
 };
 
-export const FLOW_NODES: readonly FlowNode[] = [
+/**
+ * 下面两个数组前的 `@__PURE__` 注解不是装饰，删掉会出事——理由值得写在这里。
+ *
+ * 本模块同时被 Astro 组件（服务端渲染，需要全部数据）和**客户端脚本**
+ * (`flow-diagram.ts`) 导入，而脚本只用到 `CAPSULE` 一个常量。未经标注的顶层
+ * 数组字面量会被 Rollup 当作"可能带副作用"而整段保留：节点坐标、产物后缀、
+ * 12 个 i18n 键全被打进客户端 bundle，脚本从 3.5KB 涨到 4.8KB，越过 Astro 的
+ * 4096 字节内联阈值（`node_modules/astro/.../plugin-scripts.js` 的
+ * `shouldInlineAsset`），首页脚本从内联退化成一次外链请求。
+ *
+ * 注解声明"这个值的求值没有副作用"，用不上时 Rollup 可以整段丢弃。客户端
+ * bundle 因此只剩真正的逻辑，服务端渲染的产物一字不变。删掉注解，
+ * `tests/build/no-js.test.mjs` 的 "ships the diagram script on the home page"
+ * 会红——那条断言守的正是"首页脚本内联"这件事。
+ *
+ * 写成 `(() => [...])()` 立刻执行而不是直接写数组字面量：Rollup 的 `@__PURE__`
+ * 只认函数调用/`new` 表达式（见其 annotatePure），标在裸数组字面量上会被忽略，
+ * 数据照样进 bundle。这一点实测过，别"顺手简化"回去。
+ */
+export const FLOW_NODES: readonly FlowNode[] = /* @__PURE__ */ (() => [
   {
     id: 'lesson-workflow',
     stage: 1,
@@ -142,13 +171,13 @@ export const FLOW_NODES: readonly FlowNode[] = [
     needs: STAGE2_OUTPUTS,
     ...CARD_KEYS['report-workflow'],
   },
-];
+])();
 
-export const FLOW_EDGES: readonly FlowEdge[] = [
+export const FLOW_EDGES: readonly FlowEdge[] = /* @__PURE__ */ (() => [
   { from: 'input', to: 'lesson-workflow' },
   ...STAGE2_ORDER.map((id) => ({ from: 'lesson-workflow' as const, to: id })),
   ...STAGE2_ORDER.map((id) => ({ from: id, to: 'report-workflow' as const })),
-];
+])();
 
 const boxOf = (ref: SkillId | 'input') => {
   if (ref === 'input') return INPUT_NODE;
