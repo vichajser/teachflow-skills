@@ -26,15 +26,47 @@ function visibleText(relPath) {
 }
 
 /**
- * 谚文占非空白字符的比例。阈值不是拍的——2026-09-19 构建实测：
+ * 只取 `<main>` 的文字，**不含站点母版**（header 导航、语言切换器、footer）。
  *
- *   ko/faq     0.811    ko/docs  0.563    ko/samples 0.427    ko/404 0.423
- *   en/faq     0.003    en/docs  0.002    en/samples 0.004    en/404 0.008
+ * 这一步不是洁癖，是修一个实测漏网：母版在韩文页上本来就是韩文，用整页比率
+ * 等于让母版替正文垫底。`ko/404` 整页 293 个非空白字符里正文只占 39 个、
+ * 母版占 85 个，`FLOOR(0.25) × 293 = 73.3 < 85`——正文整段翻成英文后整页
+ * 比率仍有 0.29，测试照绿。改用 `<main>` 后 `ko/404` 是 0.9512，离阈值极远。
  *
- * 韩文页最低 0.423，英文页最高 0.008，中间隔着五十个百分点。取
- * FLOOR = 0.25：整页变英文（比率塌到 0.005 上下）必红，而 `.pptx`、
- * `Claude Code`、`outputs/` 这些必然英文的词掺进来也远够不着 0.25。
- * CEIL = 0.05 反向守 `lang` 取反：英文页混进大段韩文（0.42+）必红。
+ * 同样的道理，整页比率也发现不了任何**局部**塌陷：一段 `<ol>`、一张卡标题、
+ * 一条 FAQ 答案单独变语言都压不动整页数字。所以下面既有 `<main>` 级断言，
+ * 也有逐个渲染单元（卡片标题 / 有序列表 / FAQ 条目）的断言。
+ */
+function mainText(relPath) {
+  const root = parse(read(relPath));
+  for (const el of root.querySelectorAll('script, style')) el.remove();
+  const main = root.querySelector('main');
+  if (!main) throw new Error(`no <main> on ${relPath}`);
+  return main.structuredText;
+}
+
+/** 某个 CSS 选择器选中的每个渲染单元，各自的文字。 */
+function unitTexts(relPath, selector) {
+  const root = parse(read(relPath));
+  for (const el of root.querySelectorAll('script, style')) el.remove();
+  return root.querySelectorAll(selector).map((el) => el.structuredText);
+}
+
+/**
+ * 谚文占非空白字符的比例。阈值不是拍的——2026-09-19 构建实测（`<main>` 范围）：
+ *
+ *   ko/faq  0.892   ko/docs  0.619   ko/samples 0.510   ko/404 0.951
+ *   en/faq  0.003   en/docs  0.000   en/samples 0.000   en/404 0.000
+ *
+ * 逐单元的实测区间（同一批构建）：
+ *
+ *   /samples 每张卡标题 h3   ko 0.44–0.53   en 0.00
+ *   /docs 每个 <ol>          ko 0.617,0.710 en 0.000,0.000
+ *   /faq 每条 <details>      ko 0.82–0.94   en 0.00–0.02
+ *
+ * 两侧间隔极大：ko 侧最小 0.44，en 侧最大 0.028。FLOOR = 0.25 让"某个单元
+ * 整段变英文"必红，而 `.pptx`、`Claude Code`、`outputs/` 这些必然英文的词
+ * 掺进来也远够不着 0.25；CEIL = 0.05 反向守 `lang` 取反。
  */
 const FLOOR = 0.25;
 const CEIL = 0.05;
@@ -64,24 +96,24 @@ describe('localized pages render their own language', () => {
   const KOREAN = LOCALIZED.filter((p) => p.lang === 'ko');
   const ENGLISH = LOCALIZED.filter((p) => p.lang === 'en');
 
-  it('renders real Korean on every ko/ page', () => {
+  it('renders real Korean in the body of every ko/ page', () => {
     for (const { file } of KOREAN) {
-      const ratio = hangulRatio(visibleText(file));
+      const ratio = hangulRatio(mainText(file));
       expect(
         ratio,
-        `${file} is not Korean enough (${ratio.toFixed(3)} ≤ ${FLOOR}) — did the ` +
-          `page start reading the en side?`,
+        `${file} <main> is not Korean enough (${ratio.toFixed(3)} ≤ ${FLOOR}) — did ` +
+          `the page start reading the en side?`,
       ).toBeGreaterThan(FLOOR);
     }
   });
 
-  it('keeps the en/ pages English, with no pasted Korean body', () => {
+  it('keeps the body of every en/ page English', () => {
     for (const { file } of ENGLISH) {
-      const ratio = hangulRatio(visibleText(file));
+      const ratio = hangulRatio(mainText(file));
       expect(
         ratio,
-        `${file} carries a Korean body (${ratio.toFixed(3)} ≥ ${CEIL}) — did the ` +
-          `page stop reading the ${'{lang}'} side?`,
+        `${file} <main> carries a Korean body (${ratio.toFixed(3)} ≥ ${CEIL}) — did ` +
+          `the page stop reading the ${'{lang}'} side?`,
       ).toBeLessThan(CEIL);
     }
   });
@@ -168,6 +200,27 @@ describe('/faq renders the right question set, in order, per locale', () => {
     }
   });
 
+  it('holds each answer to the reader’s language on its own', () => {
+    // 八条答案各占全页一小部分。实测把 /ko/faq 的答案逐段换成英文，`<main>`
+    // 比率随之为：5 段 0.282（仍 > FLOOR，绿）→ 6 段 0.217（才变红）。
+    // 也就是说只坏一到五段时，`<main>` 级断言一声不吭。逐 `<details>` 才能在
+    // 第一段开始渗英文时就报出来。
+    for (const lang of ['en', 'ko']) {
+      const entries = unitTexts(`${lang}/faq/index.html`, 'main details');
+      expect(entries, `${lang}/faq ships the wrong number of answers`)
+        .toHaveLength(faqRows(lang).length);
+      entries.forEach((text, i) => {
+        const ratio = hangulRatio(text);
+        const ok = lang === 'ko' ? ratio > FLOOR : ratio < CEIL;
+        expect(
+          ok,
+          `${lang}/faq answer ${i} has Hangul ratio ${ratio.toFixed(3)}, expected ` +
+            `${lang === 'ko' ? '>' : '<'} ${lang === 'ko' ? FLOOR : CEIL}`,
+        ).toBe(true);
+      });
+    }
+  });
+
   it('describes itself with a real lead, not its own title', () => {
     // F-11：`description={t('faq.title')}` 让两页都"用标题描述自己"。
     for (const lang of ['en', 'ko']) {
@@ -233,12 +286,32 @@ describe('/samples states each card honestly', () => {
       expect(root.querySelectorAll('article')).toHaveLength(SAMPLES.length);
     }
   });
+
+  it('writes each card title in the reader’s language', () => {
+    // 五张卡的标题各占全页一小部分：把五张全换成英文，`ko/samples` 的
+    // `<main>` 比率实测只从 0.510 塌到 0.306（仍 > FLOOR），`<main>` 级断言
+    // 照样绿。逐标题才守得住。
+    for (const lang of ['en', 'ko']) {
+      const titles = unitTexts(`${lang}/samples/index.html`, 'article h3');
+      expect(titles, `${lang}/samples has the wrong number of card titles`)
+        .toHaveLength(SAMPLES.length);
+      titles.forEach((text, i) => {
+        const ratio = hangulRatio(text);
+        const ok = lang === 'ko' ? ratio > FLOOR : ratio < CEIL;
+        expect(
+          ok,
+          `${lang}/samples card ${i} title has Hangul ratio ${ratio.toFixed(3)} ` +
+            `(“${text.trim()}”)`,
+        ).toBe(true);
+      });
+    }
+  });
 });
 
 describe('/docs keeps its step lists in the reader’s language', () => {
   it('does not fall back to the English steps on /ko/docs', () => {
-    // 变异：`{step[lang]}` → `{step.en}` 让两段有序列表整段变英文。
-    // 比率是主判据；下面两条具体串是"哪一段塌了"的定位器。
+    // 变异：`{step[lang]}` → `{step.en}` 让某段有序列表整段变英文。
+    // 下面两条具体串是"哪一段塌了"的定位器。
     const ko = visibleText('ko/docs/index.html');
     const en = visibleText('en/docs/index.html');
 
@@ -247,7 +320,27 @@ describe('/docs keeps its step lists in the reader’s language', () => {
       'ko/docs leans on the English install steps',
     ).toContain('압축을 풉니다');
     expect(en, 'en/docs lost its install steps').toContain('Unzip the package');
+  });
 
-    expect(hangulRatio(ko), 'ko/docs is not Korean enough').toBeGreaterThan(FLOOR);
+  it('holds each ordered list to the reader’s language on its own', () => {
+    // 两个 `<ol>`（安装步骤、首个单元步骤）各自过阈值。整页或 `<main>` 级的
+    // 一对多覆盖挡不住单点变异：只把 docs.astro:158 一处 `{step[lang]}` 改成
+    // `{step.en}`（首个单元那段全英），`ko/docs` 的 `<main>` 比率实测仍有
+    // 0.427（安装步骤那段还是韩文，两条定位串里 `압축을 풉니다` 也还在）。
+    // 0.427 远高于 FLOOR，`<main>` 级断言绿。逐 `<ol>` 才守得住。
+    const MIN = { ko: FLOOR, en: CEIL };
+    for (const lang of ['en', 'ko']) {
+      const lists = unitTexts(`${lang}/docs/index.html`, 'main ol');
+      expect(lists.length, `${lang}/docs ships ${lists.length} ordered lists`).toBe(2);
+      lists.forEach((text, i) => {
+        const ratio = hangulRatio(text);
+        const ok = lang === 'ko' ? ratio > MIN.ko : ratio < MIN.en;
+        expect(
+          ok,
+          `${lang}/docs <ol>[${i}] has Hangul ratio ${ratio.toFixed(3)}, expected ` +
+            `${lang === 'ko' ? '>' : '<'} ${lang === 'ko' ? MIN.ko : MIN.en}`,
+        ).toBe(true);
+      });
+    }
   });
 });
