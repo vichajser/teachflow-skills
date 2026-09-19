@@ -15,13 +15,28 @@ describe('FLOW_NODES', () => {
     );
   });
 
-  it('keeps every node inside the viewBox', () => {
-    for (const node of FLOW_NODES) {
-      expect(node.x, `${node.id} left edge`).toBeGreaterThanOrEqual(0);
-      expect(node.y, `${node.id} top edge`).toBeGreaterThanOrEqual(0);
-      expect(node.x + node.w, `${node.id} right edge`).toBeLessThanOrEqual(VIEWBOX.w);
-      expect(node.y + node.h, `${node.id} bottom edge`).toBeLessThanOrEqual(VIEWBOX.h);
+  it('keeps every box inside the viewBox, INPUT_NODE included', () => {
+    // INPUT_NODE 不在 FLOW_NODES 里，只循环 FLOW_NODES 就把它整个漏掉了：
+    // 把 x 改成 900（右边缘 1140 > 960）照样全绿，而渲染出来的输入框
+    // 已经被 viewBox 裁掉一半。它和六个节点画在同一张图上，就得受同一条约束。
+    const boxes: { label: string; x: number; y: number; w: number; h: number }[] = [
+      { label: 'input', ...INPUT_NODE },
+      ...FLOW_NODES.map((n) => ({ label: n.id, x: n.x, y: n.y, w: n.w, h: n.h })),
+    ];
+
+    for (const box of boxes) {
+      expect(box.x, `${box.label} left edge`).toBeGreaterThanOrEqual(0);
+      expect(box.y, `${box.label} top edge`).toBeGreaterThanOrEqual(0);
+      expect(box.x + box.w, `${box.label} right edge`).toBeLessThanOrEqual(VIEWBOX.w);
+      expect(box.y + box.h, `${box.label} bottom edge`).toBeLessThanOrEqual(VIEWBOX.h);
     }
+  });
+
+  it('places the input box above the first stage without overlapping it', () => {
+    const stage1Top = Math.min(
+      ...FLOW_NODES.filter((n) => n.stage === 1).map((n) => n.y),
+    );
+    expect(INPUT_NODE.y + INPUT_NODE.h).toBeLessThan(stage1Top);
   });
 
   it('stacks the three stages top to bottom without overlap', () => {
@@ -80,6 +95,27 @@ describe('FLOW_EDGES', () => {
       expect(ids.has(edge.from), `unknown edge source ${edge.from}`).toBe(true);
       expect(ids.has(edge.to), `unknown edge target ${edge.to}`).toBe(true);
     }
+  });
+
+  it('is exactly these nine edges — no extras, no duplicates', () => {
+    // 上面三条只各自钉住自己那一段子图：fan-out 查 from==='lesson-workflow'，
+    // funnel 查 to==='report-workflow'，存在性检查只问 id 在不在集合里。
+    // 三条合起来仍然容得下一条 ppt→word 的横穿边——图上多画一条对角线，
+    // 测试全绿。整张图的边集必须整体断言一次。
+    const key = (e: { from: string; to: string }) => `${e.from}->${e.to}`;
+    expect(FLOW_EDGES.map(key).sort()).toEqual(
+      [
+        'input->lesson-workflow',
+        'lesson-workflow->ppt-workflow',
+        'lesson-workflow->audio-workflow',
+        'lesson-workflow->word-workflow',
+        'lesson-workflow->worksheet-workflow',
+        'ppt-workflow->report-workflow',
+        'audio-workflow->report-workflow',
+        'word-workflow->report-workflow',
+        'worksheet-workflow->report-workflow',
+      ].sort(),
+    );
   });
 });
 
