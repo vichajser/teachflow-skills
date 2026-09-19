@@ -26,5 +26,21 @@
   "security.col.scan": "Agensi security scan",
   "security.col.practice": "What we do",
   "security.col.verify": "How you can check",
-  "security.facts": "Two things you can verify yourself"
+  "security.facts": "Two things you can verify yourself",
+  "pricing.title": "Pricing",
+  "pricing.product": "TeachFlow-KR Complete Bundle",
+  "pricing.oneTime": "One-time purchase. No subscription, no auto-renewal.",
+  "pricing.includes": "What you get",
+  "pricing.includesLead": "All six skills, delivered as a zip of SKILL.md files and their references.",
+  "pricing.howToBuy": "Two ways to buy",
+  "pricing.viaMarketplace": "Buy on Agensi",
+  "pricing.viaMarketplaceBody": "Pay on the Agensi marketplace and download immediately. Agensi is the merchant of record and handles invoicing and refunds for that purchase.",
+  "pricing.viaDirect": "Buy directly from us",
+  "pricing.viaDirectBody": "Email us and we invoice you directly. We send your download link within 2 business days of payment.",
+  "pricing.contact": "Contact & support",
+  "pricing.contactBody": "Email is our direct support channel. We reply within 2 business days.",
+  "pricing.refundLink": "Refund & cancellation policy",
+  "pricing.deliveryLink": "How digital delivery works",
+  "pricing.requirements": "What you need to run it",
+  "pricing.requirementsBody": "Claude with skill support, and a desktop computer. Everything runs locally; no internet connection is required while the skills run."
 }

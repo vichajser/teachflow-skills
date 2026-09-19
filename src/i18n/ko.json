@@ -26,5 +26,21 @@
   "security.col.scan": "Agensi 보안 검사 항목",
   "security.col.practice": "저희가 하는 것",
   "security.col.verify": "직접 확인하는 방법",
-  "security.facts": "직접 확인할 수 있는 두 가지"
+  "security.facts": "직접 확인할 수 있는 두 가지",
+  "pricing.title": "가격",
+  "pricing.product": "TeachFlow-KR 전체 패키지",
+  "pricing.oneTime": "1회 구매. 구독도, 자동 갱신도 없습니다.",
+  "pricing.includes": "포함된 것",
+  "pricing.includesLead": "6개 스킬 전부. SKILL.md 파일과 참고 문서가 담긴 zip으로 제공됩니다.",
+  "pricing.howToBuy": "구매 방법 두 가지",
+  "pricing.viaMarketplace": "Agensi에서 구매",
+  "pricing.viaMarketplaceBody": "Agensi 마켓플레이스에서 결제하고 바로 내려받습니다. 해당 구매의 판매 주체는 Agensi이며 청구와 환불도 Agensi가 처리합니다.",
+  "pricing.viaDirect": "저희에게 직접 구매",
+  "pricing.viaDirectBody": "이메일로 문의하시면 직접 청구서를 보내 드립니다. 결제 확인 후 영업일 기준 2일 이내에 다운로드 링크를 보내 드립니다.",
+  "pricing.contact": "문의와 지원",
+  "pricing.contactBody": "이메일이 직접 지원 창구입니다. 영업일 기준 2일 이내에 답변드립니다.",
+  "pricing.refundLink": "환불 및 취소 정책",
+  "pricing.deliveryLink": "디지털 상품 전달 방식",
+  "pricing.requirements": "실행에 필요한 것",
+  "pricing.requirementsBody": "스킬을 지원하는 Claude와 데스크톱 컴퓨터. 모든 작업은 로컬에서 이루어지며, 스킬 실행 중에는 인터넷 연결이 필요하지 않습니다."
 }
