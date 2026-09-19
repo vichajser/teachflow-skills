@@ -56,7 +56,6 @@
   "flow.node.worksheet-workflow": "Worksheets",
   "flow.node.report-workflow": "Parent notice",
   "flow.constraint.core": "core flow",
-  "flow.constraint.order": "stage order",
   "flow.card.needs": "Needs",
   "flow.card.makes": "Produces",
   "flow.card.sample": "See the sample",

@@ -56,7 +56,6 @@
   "flow.node.worksheet-workflow": "수준별 학습지",
   "flow.node.report-workflow": "학부모 안내문",
   "flow.constraint.core": "핵심 흐름",
-  "flow.constraint.order": "단계 순서",
   "flow.card.needs": "필요한 것",
   "flow.card.makes": "만들어 내는 것",
   "flow.card.sample": "샘플 보기",
