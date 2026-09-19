@@ -23,11 +23,14 @@ describe('build output', () => {
   // 而不是断言 Astro 选了哪种机制——后者是实现细节，前者才是要求。
   it('delivers the compiled Tailwind theme to the page', () => {
     const html = readFileSync(dist('en/index.html'), 'utf8');
-    const link = html.match(/<link[^>]+rel=["']stylesheet["'][^>]*>/i);
+    const href = html.match(/<link[^>]+rel=["'][^"']*stylesheet[^"']*["'][^>]*href=["']([^"']+)["']/i)
+      ?? html.match(/<link[^>]+href=["']([^"']+)["'][^>]*rel=["'][^"']*stylesheet[^"']*["']/i);
 
-    const css = link
-      ? readFileSync(dist(link[0].match(/href=["']([^"']+)["']/i)[1].replace(/^\//, '')), 'utf8')
-      : html;
+    // 外链就读那个文件；否则只取 <style> 的内容——不是整份 HTML，
+    // 否则标记里一个 `.text-text-hi` 字样就能让零 CSS 的构建通过。
+    const css = href
+      ? readFileSync(dist(href[1].replace(/^\//, '')), 'utf8')
+      : [...html.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/gi)].map((m) => m[1]).join('\n');
 
     // .text-text-hi 只有在扫描器读到 index.astro 且 @theme 定义了
     // --color-text-hi 时才会生成，所以它同时覆盖"插件没接上"与"@theme 丢了"。
