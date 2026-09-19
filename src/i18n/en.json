@@ -20,5 +20,11 @@
   "footer.delivery": "Digital Delivery",
   "footer.support": "Support",
   "footer.supportLine": "Email us — we reply within 2 business days.",
-  "footer.registered": "Registered in England and Wales"
+  "footer.registered": "Registered in England and Wales",
+  "security.title": "Security & privacy",
+  "security.lead": "Student names and scanned textbook pages never leave your computer.",
+  "security.col.scan": "Agensi security scan",
+  "security.col.practice": "What we do",
+  "security.col.verify": "How you can check",
+  "security.facts": "Two things you can verify yourself"
 }
