@@ -8,7 +8,13 @@ export function isLocale(value: string): value is Locale {
   return (LOCALES as readonly string[]).includes(value);
 }
 
-/** '/pricing' + 'ko' → '/ko/pricing'；'/' + 'en' → '/en' */
+/**
+ * '/pricing' + 'ko' → '/ko/pricing'；'/' + 'en' → '/en'
+ *
+ * 只加前缀，**不剥离已有前缀**：`localizePath('/en/pricing', 'ko')` 得到
+ * `/ko/en/pricing`。语言切换器这类拿 `Astro.url.pathname` 的调用方，
+ * 必须写成 `localizePath(stripLocale(pathname), locale)`。
+ */
 export function localizePath(path: string, locale: Locale): string {
   const clean = path.replace(/^\/+/, '').replace(/\/+$/, '');
   return clean === '' ? `/${locale}` : `/${locale}/${clean}`;
