@@ -233,9 +233,18 @@ for (const file of allHtml) {
 }
 
 // ---- 5. 站点必须公开可访问（spec §9.3）------------------------------------
-const robots = existsSync(join(DIST, 'robots.txt'))
-  ? readFileSync(join(DIST, 'robots.txt'), 'utf8')
-  : '';
+// 缺文件必须失败，不能落回空串静默通过。原先 `: ''` 的写法让
+// `rm dist/robots.txt` 之后闸门照样 exit 0 并打印 "✓ 26 HTML files verified"
+// ——下面那个循环对空串跑零次，于是"没有 robots.txt"与"robots.txt 完全合格"
+// 在输出上一模一样。审核员要能匿名抓取整站，缺这个文件是实打实的风险，
+// 一个给出虚假安心的检查比没有这项检查更糟。
+const ROBOTS = join(DIST, 'robots.txt');
+let robots = '';
+if (existsSync(ROBOTS)) {
+  robots = readFileSync(ROBOTS, 'utf8');
+} else {
+  fail('public-access', 'robots.txt is missing from dist/ — crawlers get no directive at all');
+}
 // 任何**非空** Disallow 值都失败。原先只认整站形态 `Disallow: /`，于是
 // `Disallow: /en/` 能整段屏蔽默认语言而不被发现。`Disallow:`（空值 = 允许全部）
 // 应当放行。

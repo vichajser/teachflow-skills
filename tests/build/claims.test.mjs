@@ -28,6 +28,24 @@ function htmlFiles(dir = DIST) {
   return out;
 }
 
+/**
+ * HTML 注释的**内容**（不含 `<!--` / `-->` 本身），按文件拼成一段文本。
+ *
+ * 为什么要单独扫：`visibleText()` 走 `structuredText`，注释**不在其中**。
+ * 实测过——在 `PriceBlock.astro` 顶层插一条
+ * `<!-- MUT7B: SOC 2 certified and penetration-tested by a third party. -->`，
+ * 它进入 4 个生产页面，而全部测试仍然全绿、`verify-build.mjs` 仍然 exit 0。
+ * 注释对读者不可见，但 `view-source` 与爬虫都能看到，Stripe / Agensi 审核员
+ * 恰恰会看源码；"绝不声称第三方审计"这条纪律不能靠注释绕过去。
+ *
+ * 本轮已把 `src/**` 的 `<!-- -->` 全部改成 `{/* *\/}`（后者不进产物），
+ * 但那只是清空了当下的存量，**挡不住将来有人重新写**。这条断言才是常驻的网。
+ */
+function htmlComments(file) {
+  const raw = readFileSync(file, 'utf8');
+  return [...raw.matchAll(/<!--([\s\S]*?)-->/g)].map((m) => m[1]);
+}
+
 /** 页面上读者真正看得到的文字。 */
 function visibleText(file) {
   const root = parse(readFileSync(file, 'utf8'));
@@ -43,7 +61,6 @@ function visibleText(file) {
  * 后三组是凭空数字：运行时间百分比、省下多少小时、多少老师在用。
  *
  * 刻意**没有**收进来的几类（都是产品事实，不是营销数字，逐条验过）：
- *   - `24 hours`（下载链接有效期，/legal/delivery）
  *   - `30 days`（日志留存期，/legal/privacy）
  *   - `45분 × 3차시` / `1분 분량` / `30초` （音频与课时设置，/skills）
  *   - 我们自己的 14 天退款窗口与 2 个工作日响应（/legal/refund，已由
@@ -60,8 +77,10 @@ const UNSUPPORTED = [
     re: /uptime|guaranteed availability|가동률/i,
   },
   {
-    // `[^.!?\n]{0,40}` 限定在同一个句子内：跨句子匹配会把 /legal/delivery 的
-    // "saved to your computer … valid for 24 hours" 打成误报。
+    // `[^.!?\n]{0,40}` 限定在同一个句子内：跨句子匹配会把 "saved to your
+    // computer …" 与邻句里任何一个时长数字凑成一条并不存在的"省时"宣称。
+    // （曾经的实例是 /legal/delivery 的 "valid for 24 hours"；那句话已按
+    // §6.8 改成指向 Agensi 条款，但句内限定这个设计本身仍然必要。）
     name: 'invented time-saved figures',
     re: /\bsaves?\b[^.!?\n]{0,40}?\d+\s*(?:hours?|minutes?)|\d+\s*(?:hours?|시간)[^.!?\n]{0,12}?(?:saved|절약)/i,
   },
@@ -86,6 +105,23 @@ describe('site-wide wording discipline', () => {
         expect(re.test(text), `${where} makes an unsupported ${name}`).toBe(
           false,
         );
+      }
+    }
+  });
+
+  it('makes no unsupported claim inside an HTML comment, on any page', () => {
+    // 与上面那条正文断言共用同一份 UNSUPPORTED 清单——两套词表会各自漂移，
+    // 而"注释里可以说的话"与"正文里可以说的话"从来不该有差别。
+    for (const file of files) {
+      const where = relative(DIST, file);
+      for (const comment of htmlComments(file)) {
+        for (const { name, re } of UNSUPPORTED) {
+          const hit = comment.match(re);
+          expect(
+            hit === null,
+            `${where} makes an unsupported ${name} inside an HTML comment: ${JSON.stringify(hit?.[0])}`,
+          ).toBe(true);
+        }
       }
     }
   });

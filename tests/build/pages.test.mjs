@@ -183,7 +183,15 @@ describe('/faq renders the right question set, in order, per locale', () => {
       const rows = faqRows(lang);
       const text = visibleText(`${lang}/faq/index.html`);
       const root = parse(read(`${lang}/faq/index.html`));
-      const details = root.querySelectorAll('details');
+      // `main details`，不是全页 `details`：§9.1 给 `SiteHeader` 加了一个纯 CSS
+      // 的移动端菜单，它也是 `<details>`，出现在**每一页**上。全页选择器因此
+      // 数到 9 而不是 8。
+      //
+      // 这不是放宽——恰恰相反，限定到 `<main>` 之后这条断言变严格了：
+      // 原先若有人在页面上多塞一个与 FAQ 无关的 `<details>`，计数会同时变化、
+      // 需要有人去核对差值；现在它只数 FAQ 自己的那几条，母版怎么变都不影响。
+      // 反过来，FAQ 少一条仍然立刻红。
+      const details = root.querySelectorAll('main details');
       expect(details, `${lang}/faq does not ship one <details> per row`).toHaveLength(
         rows.length,
       );
@@ -291,8 +299,15 @@ describe('/samples states each card honestly', () => {
     // 五张卡的标题各占全页一小部分：把五张全换成英文，`ko/samples` 的
     // `<main>` 比率实测只从 0.510 塌到 0.306（仍 > FLOOR），`<main>` 级断言
     // 照样绿。逐标题才守得住。
+    //
+    // 选择器从 `article h3` 改成 `article :is(h2, h3)`：§9.5 给 `SampleCard`
+    // 加了 `headingLevel` prop，`/samples` 传 2（这些卡是 h1 之下的第一层内容，
+    // 中间没有 h2，写死 h3 就是 h1→h3 跳级，WCAG 1.3.1）。卡标题因此是 `<h2>`。
+    // 两级都收，是因为这条断言要测的是"卡标题写的是哪国语言"，不是"标题是
+    // 第几级"——后者由 §9.5 自己的结构负责，不该塞进语言断言里连坐。
+    // 计数仍然钉死 `SAMPLES.length`，少一张卡照红。
     for (const lang of ['en', 'ko']) {
-      const titles = unitTexts(`${lang}/samples/index.html`, 'article h3');
+      const titles = unitTexts(`${lang}/samples/index.html`, 'article :is(h2, h3)');
       expect(titles, `${lang}/samples has the wrong number of card titles`)
         .toHaveLength(SAMPLES.length);
       titles.forEach((text, i) => {
@@ -315,11 +330,16 @@ describe('/docs keeps its step lists in the reader’s language', () => {
     const ko = visibleText('ko/docs/index.html');
     const en = visibleText('en/docs/index.html');
 
+    // 两条定位串随 §3.1/§6.5 的安装步骤改写同步更新：那一步从"解压这个包"
+    // 改成了"六个 zip 各自解压成一个同名文件夹"。断言的意图一字未变——
+    // 指向安装步骤里那句只可能出现在本语言版本中的话——只是句子本身换了。
+    // （旧串 `압축을 풉니다` / `Unzip the package` 今天在产物里已经不存在，
+    // 留着就是一条永红的断言，不是一条守卫。）
     expect(
       ko,
       'ko/docs leans on the English install steps',
-    ).toContain('압축을 풉니다');
-    expect(en, 'en/docs lost its install steps').toContain('Unzip the package');
+    ).toContain('각각 압축을 풀면');
+    expect(en, 'en/docs lost its install steps').toContain('Unzip each of them');
   });
 
   it('holds each ordered list to the reader’s language on its own', () => {

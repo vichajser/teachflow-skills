@@ -31,7 +31,21 @@ const t = useTranslations(lang);
   </section>
 
   <section class="mt-12 pb-16">
-    <div class="overflow-x-auto rounded-xl border border-border">
+    {/*
+      tabindex="0" + role="region" + aria-label：这个 div 实测在 390px 下真的
+      在横滚（/en/security/ 溢出 30px、/ko/security/ 8px），而它内部**一个可
+      聚焦元素都没有**——鼠标用户能拖，键盘用户永远看不到被截掉的列
+      （axe scrollable-region-focusable，WCAG 2.1.1）。tabindex 让它进入 Tab
+      序列并可用方向键滚动；role+label 让读屏器报出这是什么区域，否则 Tab
+      停在一个无名 group 上。label 走 i18n，不硬编码。
+      焦点圈由 `focus-visible:` 变体给（键盘聚焦才描边，鼠标点击不闪框）。
+    */}
+    <div
+      tabindex="0"
+      role="region"
+      aria-label={t('a11y.scrollableTable')}
+      class="overflow-x-auto rounded-xl border border-border focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+    >
       <table class="w-full border-collapse text-left text-sm">
         <thead class="bg-raised text-text-hi">
           <tr>

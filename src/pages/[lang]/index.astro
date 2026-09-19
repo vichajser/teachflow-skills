@@ -17,12 +17,22 @@ const t = useTranslations(lang);
 
 const entries = await getCollection('skills', (e) => e.data.lang === lang);
 const byId = new Map(entries.map((e) => [e.data.id, e.data]));
+
+/*
+ * description 用**独立的** `home.metaDescription`，不复用下面那段 hero 正文。
+ * 复用时实测 `dist/en/index.html` 的 meta description 是 233 字符（解码实体后），
+ * 而搜索结果摘要在 ~160 处截断——hero 正文是为版面写的，长度天然不受这个约束。
+ * 韩文的 hero 正文本来就是 111 字符，但仍然给它自己的键：两份字典键集必须相等，
+ * 且「首页 meta 文案」与「首页 hero 文案」是两件可以各自演进的事。
+ * 上界由 `tests/build/seo.test.mjs` 守着。
+ */
+const metaDescription = t('home.metaDescription');
 ---
 
 <BaseLayout
   lang={lang}
   title="TeachFlow-KR"
-  description={t('home.heroBody')}
+  description={metaDescription}
   path="/"
 >
   <section class="grid items-center gap-8 pt-20 pb-8 md:grid-cols-[minmax(0,1fr)_280px]">
@@ -35,7 +45,7 @@ const byId = new Map(entries.map((e) => [e.data.id, e.data]));
       <div class="mt-8 flex flex-wrap gap-3">
         <a
           href={localizePath('/pricing', lang)}
-          class="rounded-lg bg-accent px-5 py-3 font-medium text-white shadow-[0_0_40px_rgba(46,125,255,0.35)] transition-transform hover:-translate-y-0.5"
+          class="rounded-lg bg-accent px-5 py-3 font-medium text-void shadow-[0_0_40px_rgba(46,125,255,0.35)] transition-transform hover:-translate-y-0.5 motion-reduce:hover:translate-y-0"
         >{t('home.ctaPricing')}</a>
         <a
           href={localizePath('/samples', lang)}
@@ -67,11 +77,11 @@ const byId = new Map(entries.map((e) => [e.data.id, e.data]));
     </div>
   </section>
 
-  <!--
+  {/*
     spec 第 59 行把首页定为"叙事 + 关系主动画 + **成品预览** + CTA"。
     /samples 本身由 Task 11 建（导航栏已经链过去了），这里只做入口与说明，
     不预先渲染文件列表——那属于 Task 11 的数据。
-  -->
+  */}
   <section class="py-12">
     <h2 class="mb-2 text-2xl font-semibold text-text-hi">{t('home.samplesTitle')}</h2>
     <p class="max-w-2xl text-text-body">{t('home.samplesBody')}</p>

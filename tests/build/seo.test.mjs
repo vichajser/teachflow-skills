@@ -71,13 +71,30 @@ describe('SEO head', () => {
     }
   });
 
-  it('gives every content page a non-empty description', async () => {
+  it('gives every content page a description that fits in a search result', async () => {
+    // 下界守"有没有"，上界守"看不看得完"。
+    //
+    // 上界是这一轮补的：首页原先把 hero 正文直接当 description 复用，
+    // 实测 `dist/en/index.html` 解码实体后 **233 字符**，而搜索结果摘要在
+    // ~160 处截断——买家看到的是一句被切断的话。hero 正文是为版面写的，
+    // 长度天然不受这个约束，所以首页改用独立的 `home.metaDescription`。
+    // 160 不是某个规范里的硬数字（各引擎按像素宽度截断，且随时会变），
+    // 是通行的保守上界；写在这里是为了让"下次有人再把长正文接过来"当场变红。
+    //
+    // 注意读的是 `getAttribute` 的**解码后**值：HTML 原文里 `'` 会是
+    // `&#39;`（5 个字符），按原文数会把英文缩写句虚报成超长。
+    const MAX = 160;
     const pages = (await allPages()).filter((p) => p !== REDIRECT_SHELL);
     expect(pages.length, 'dist looks empty — did the build run?').toBeGreaterThan(10);
     for (const page of pages) {
       const desc = read(page).querySelector('meta[name="description"]');
-      expect((desc?.getAttribute('content') ?? '').length, `${page} has no description`)
-        .toBeGreaterThan(0);
+      const content = desc?.getAttribute('content') ?? '';
+      expect(content.length, `${page} has no description`).toBeGreaterThan(0);
+      expect(
+        content.length,
+        `${page}: description is ${content.length} chars, over ${MAX} — ` +
+          `search results will cut it off mid-sentence`,
+      ).toBeLessThanOrEqual(MAX);
     }
   });
 });

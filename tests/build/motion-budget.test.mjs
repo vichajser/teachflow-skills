@@ -75,16 +75,54 @@ function declaration(block, prop) {
   return m ? m[1].trim() : null;
 }
 
+/**
+ * 页面里**含 `.hero-fan__leaf` 规则的那个** reduced-motion 块，找不到返回 null。
+ *
+ * 取代原先的 `blockAfter(css, '@media(prefers-reduced-motion:reduce)')`——那个写法
+ * 取的是**第一个** RM 块。今天首页恰好只有 1 处（偏移 1160），**余量为零**：
+ * 任何人在它之前再加一个 RM 块（另一个组件的内联样式、一条新的兜底），
+ * 这条断言要么去校验错块、要么报出"HeroFan 没有 reduced-motion 块"这种
+ * **误导性**失败信息，而真正的块好端端地在后面。按选择器定位没有这个问题。
+ */
+function heroLeafRmBlock(css) {
+  const NEEDLE = '@media(prefers-reduced-motion:reduce)';
+  let from = 0;
+  for (;;) {
+    const at = css.indexOf(NEEDLE, from);
+    if (at === -1) return null;
+    const media = blockAfter(css.slice(at), NEEDLE);
+    if (media !== null && media.includes('.hero-fan__leaf')) return media;
+    from = at + NEEDLE.length;
+  }
+}
+
 const norm = (s) => (s ?? '').replace(/\s+/g, '');
 const classTokens = (el) => (el.getAttribute('class') ?? '').split(/\s+/).filter(Boolean);
 
 describe('motion budget', () => {
   it('runs no animation on the compliance pages', async () => {
+    // 读 `<body>` 的**属性**，不是在 HTML 原文里找子串。原先的
+    // `expect(html).toContain('data-quiet')` 是永真的：PriceBlock 的注释里就写着
+    // "/pricing is a `data-quiet` page"，于是 /pricing 即便丢掉属性也照样绿，
+    // 而 /legal/* 没有这个词，同一行断言对一个页面有效、对另一个完全失明。
+    //
+    // 断言的是**属性存在**，不是等于某个值：`BaseLayout.astro` 写的是
+    // `data-quiet={variant === 'legal' ? '' : undefined}`，产物里是裸属性
+    // `<body data-quiet class=…>`（实测 dist/en/pricing/index.html）。
+    // 这与 global.css 的 `body[data-quiet]` 选择器同形——存在即生效，值无关。
     const files = await fg(COMPLIANCE);
     expect(files.length).toBeGreaterThan(0);
     for (const file of files) {
-      const html = readFileSync(resolve(file), 'utf8');
-      expect(html, `${file} should be quiet`).toContain('data-quiet');
+      const body = parse(readFromCwd(file)).querySelector('body');
+      expect(body, `${file} has no <body>`).not.toBeNull();
+      expect(body.hasAttribute('data-quiet'), `${file} should be quiet`).toBe(true);
+    }
+
+    // 反向对照：营销页**必须没有**这个属性。少了这一半，一个"给所有 <body>
+    // 都加 data-quiet"的改动会让上面那组断言全绿却把静音区扩散到全站。
+    for (const file of HOME) {
+      const body = parse(read(file)).querySelector('body');
+      expect(body.hasAttribute('data-quiet'), `${file} should not be quiet`).toBe(false);
     }
   });
 
@@ -135,7 +173,7 @@ describe('hero fan reduced-motion end state (M3)', () => {
     // keyframe 的 to 完全一致（零位移）。M3 删掉整块 → blockAfter 得 null，红。
     for (const file of HOME) {
       const css = heroCss(file);
-      const media = blockAfter(css, '@media(prefers-reduced-motion:reduce)');
+      const media = heroLeafRmBlock(css);
       expect(media, `${file}: HeroFan has no prefers-reduced-motion block (M3)`).not.toBeNull();
 
       const rmRule = blockAfter(media, '.hero-fan__leaf');

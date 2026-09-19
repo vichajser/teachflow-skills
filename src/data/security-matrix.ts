@@ -108,14 +108,22 @@ export const SECURITY_MATRIX: readonly SecurityRow[] = [
 ] as const;
 
 /**
- * README §8 的两条可验证事实——比任何断言都强，因为读者能自己走一遍。
+ * 两条可验证事实——比任何断言都强，因为读者能自己走一遍。
  *
- * 措辞收紧了 brief 的两处过头话：
- * 1. **"无可执行代码" 必须限定在 skills/ 内**。包根目录确实有 verify.py
- *    （`file` 显示 "Python script text executable"），所以"整个包没有可执行
- *    代码"是假的。成立的说法是那 6 个 skill 本身是 32 个 Markdown 文档。
- * 2. **verify.py 只能证明"没检出它检查的那些模式"**，不能证明"没被篡改"——
- *    模式扫描器证明不了后者，而 Agensi 与 Stripe 都会读这句话。
+ * **两条都必须是买家拿到的 zip 里真实存在的东西。** 早先的第二条写着
+ * "The package ships verify.py"，那是照着 `TeachFlow-KR/` 仓库的结构写的，
+ * 不是照着交付物写的：`unzip -l` 六个 zip，里面只有 `SKILL.md`、
+ * `references/*.md`、`README.md`、`SECURITY.md`、`LICENSE`——
+ * **没有 verify.py，也没有 skills/ 或 docs/ 目录**。承诺一个随包不存在的
+ * 检查工具，是买家打开压缩包第一眼就会发现的不实陈述。
+ *
+ * 替换的这条只复述 `_SPEC.md` 已经约束住的东西（零网络访问），
+ * 并且与上面 `External fetch` 那行的 verify 列是同一个检查。
+ * **不新造任何可验证性声明**：本站从不声称通过了第三方审计、渗透测试
+ * 或任何形式的安全认证——那些我们拿不出证据，而 Agensi 与 Stripe 会去查。
+ *
+ * 第一条的"32 个 Markdown 文档"已按六个 zip 核对：6 份 SKILL.md +
+ * 26 份 references/*.md = 32，属实。
  */
 export const VERIFIABLE_FACTS = [
   {
@@ -126,10 +134,10 @@ export const VERIFIABLE_FACTS = [
     },
   },
   {
-    id: 'verify-script',
+    id: 'runs-offline',
     text: {
-      en: 'The package ships verify.py, a check you run yourself. It scans for dangerous-command and home-directory patterns, external URLs, hardcoded secrets, base64 and invisible characters. [PASS] means it found none of them.',
-      ko: '패키지에 직접 실행하는 검사 도구 verify.py가 들어 있습니다. 위험 명령과 홈 디렉터리 경로 패턴, 외부 URL, 하드코딩된 시크릿, base64와 보이지 않는 문자를 검사합니다. [PASS]가 나오면 검출된 항목이 없다는 뜻입니다.',
+      en: 'You can disconnect from the internet before you run them. The skills make no network request of any kind, so nothing you feed them can leave your machine — and the check costs you one click.',
+      ko: '실행하기 전에 인터넷을 끊어 보셔도 됩니다. 스킬은 어떤 네트워크 요청도 하지 않으므로 입력하신 자료가 컴퓨터 밖으로 나갈 수 없습니다. 확인에 드는 수고는 클릭 한 번뿐입니다.',
     },
   },
 ] as const;

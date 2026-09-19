@@ -161,6 +161,15 @@ const CAPSULE_MS = 1400;
  *
  * 胶囊初始 opacity 为 0，本函数开始时才亮起，结束时回到 0——它表达的是过程，
  * 无 JS 时静态帧里不存在这个元素（见 FlowDiagram.astro 的注释）。
+ *
+ * **关于下面这串 `setTimeout` 没有取消路径**：本站是纯静态站，没有客户端路由
+ * （没有 `<ViewTransitions />`，也没有任何 SPA 导航）。离开页面就是一次真正的
+ * 文档卸载，计时器随 window 一起销毁，不存在泄漏或“回到旧页面时胶囊乱跳”。
+ * 浏览器实测确认过这一点。**若将来引入 `<ViewTransitions />` 或任何客户端路由，
+ * 这里必须补取消路径**：届时 DOM 会在不卸载 window 的情况下被换掉，这些回调
+ * 会在已经离开的页面上继续跑，并抓着一棵脱离文档的 `root` 子树。
+ * 具体做法是持有 timeout id 并在 `astro:before-swap` 里逐个 clearTimeout。
+ * 今天不加，是因为加了就是为一个不存在的场景写一段无人执行、无人测试的代码。
  */
 function runConstraintPulse(root: Element): void {
   const capsule = root.querySelector<SVGGElement>('[data-flow-capsule]');

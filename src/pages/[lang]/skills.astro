@@ -37,12 +37,18 @@ const sections = await Promise.all(
   <ul class="grid gap-4 pb-12 sm:grid-cols-2 lg:grid-cols-3">
     {sections.map(({ skill, data }) => (
       <li>
+        {/*
+          headingLevel={2}：这些卡直接跟在 `<h1>` 后面，中间没有 h2，
+          用组件默认的 h3 就是 h1→h3 跳级。下面详述区的 `<h2>` 是同一层级，
+          两处对应，读屏器听到的目录与视觉顺序一致。
+        */}
         <SkillCard
           lang={lang}
           skill={skill}
           title={data.title}
           tagline={data.tagline}
           href={`/skills#${skill.id}`}
+          headingLevel={2}
         />
       </li>
     ))}

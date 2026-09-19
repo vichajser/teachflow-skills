@@ -74,23 +74,29 @@ const t = useTranslations(lang);
       />
     )}
   </head>
-  <!--
-    NO opaque background class here (no `bg-void`). The grid texture and the
-    gradient border are pseudo-elements at `z-index: -1` in the *root* stacking
-    context — nothing on this ancestor chain creates one — so by CSS 2.1 App. E
-    they are painted in step 3, before the body background in step 4. An opaque
-    body background therefore paints straight over them and both textures
-    silently vanish. `html` already paints the same `--color-void`
-    (global.css), so the visual baseline is identical without it. Guarded by
-    tests/build/motion-budget.test.mjs.
-  -->
   <body
     data-quiet={variant === 'legal' ? '' : undefined}
     class="min-h-screen text-text-body antialiased"
   >
+    {/*
+      About the `class` on the `<body>` tag directly above — the comment sits
+      *inside* `<body>` rather than above it because Astro only evaluates
+      `{/* … *\/}` where an expression is legal, and the slot between `</head>`
+      and `<body>` is not: a comment placed there is emitted into the document
+      as literal text. Verified against dist/.
+
+      NO opaque background class here (no `bg-void`). The grid texture and the
+      gradient border are pseudo-elements at `z-index: -1` in the *root* stacking
+      context — nothing on this ancestor chain creates one — so by CSS 2.1 App. E
+      they are painted in step 3, before the body background in step 4. An opaque
+      body background therefore paints straight over them and both textures
+      silently vanish. `html` already paints the same `--color-void`
+      (global.css), so the visual baseline is identical without it. Guarded by
+      tests/build/motion-budget.test.mjs.
+    */}
     <a
       href="#main"
-      class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-raised focus:px-3 focus:py-2 focus:text-text-hi"
+      class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[60] focus:rounded focus:bg-raised focus:px-3 focus:py-2 focus:text-text-hi"
     >{t('a11y.skipToContent')}</a>
 
     <SiteHeader lang={lang} path={path} />

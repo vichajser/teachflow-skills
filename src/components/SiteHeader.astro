@@ -45,6 +45,42 @@ const links = [
       ))}
     </nav>
 
+    {/*
+      移动端导航（修复轮 1 / §9.1）。md 以上整块隐藏，桌面仍由上面那条 <nav>
+      承担；md 以下反过来。两份菜单渲染**同一个 `links` 数组**、同一套
+      `aria-current` 判据，所以两个断点的内容与"当前页"标记不会各自漂移。
+
+      用 `<details>/<summary>` 而不是按钮 + JS：`tests/build/no-js.test.mjs`
+      断言「首页之外零 <script>」，一个 JS 汉堡会直接让它变红，而导航在窄屏
+      可用是 WCAG 2.1.1 / 2.4.5 的硬要求，不是可以用脚本换掉的增强。
+      `<summary>` 原生可聚焦、可用 Enter/Space 开合，无需 tabindex 或
+      aria-expanded——UA 已经在 AX 树上给出 expanded 状态。
+
+      面板用**不透明**的 `bg-raised`，不是 header 那层 `bg-void/70`：
+      header 带 `backdrop-blur-md`，半透明面板会被它合成成一块糊斑
+      （skip link 就是这么变成 1.04:1 的，见 §9.2）。
+    */}
+    <details class="relative md:hidden">
+      <summary
+        class="inline-flex min-h-10 min-w-10 cursor-pointer list-none items-center rounded-lg border border-border px-3 py-2 text-sm text-text-body [&::-webkit-details-marker]:hidden"
+      >{t('nav.menu')}</summary>
+      <nav
+        aria-label={t('nav.menu')}
+        class="absolute left-0 top-full z-10 mt-2 flex w-56 flex-col rounded-lg border border-border bg-raised p-2 text-sm shadow-lg"
+      >
+        {links.map((link) => (
+          <a
+            href={localizePath(link.href, lang)}
+            aria-current={path === link.href ? 'page' : undefined}
+            class:list={[
+              'rounded px-3 py-2 transition-colors',
+              path === link.href ? 'text-text-hi' : 'text-text-body hover:text-text-hi',
+            ]}
+          >{link.label}</a>
+        ))}
+      </nav>
+    </details>
+
     <div class="ml-auto"><LanguageSwitcher lang={lang} path={path} /></div>
   </div>
 </header>

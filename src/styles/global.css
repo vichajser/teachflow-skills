@@ -112,8 +112,27 @@ body[data-quiet]::before {
   margin-top: 0.25rem;
 }
 
+/* 表格的滚动容器由 astro.config.mjs 的 rehypeScrollableTables 生成（带
+   tabindex/role/aria-label）。这里只负责样式：容器自己横滚，表格按内容取
+   宽度而不是被挤扁。
+   `width:max-content` + `min-width:100%`：窄屏下表格保持可读的自然列宽、
+   多出来的部分在容器内滚动（整页不再溢出）；宽屏下仍撑满一行，观感不变。
+   不用 `.md-body table { display:block; overflow-x:auto }`——那会把 table
+   的表格布局也一起丢掉，且无处可挂 tabindex。 */
+.md-body .table-scroll {
+  overflow-x: auto;
+}
+
+/* 键盘聚焦到滚动容器时要看得见（WCAG 2.4.7）。这个容器本身不是控件，
+   所以只在键盘聚焦（:focus-visible）时描边，鼠标点击不闪框。 */
+.md-body .table-scroll:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
 .md-body table {
-  width: 100%;
+  width: max-content;
+  min-width: 100%;
   border-collapse: collapse;
   font-size: 0.875rem;
 }

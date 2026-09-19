@@ -7,9 +7,16 @@ import type { Locale } from '@/i18n/config';
 interface Props {
   lang: Locale;
   sample: Sample;
+  /**
+   * 卡片标题的层级。默认 3；`/samples` 传 2——那里这些卡是 `<h1>` 之下的
+   * 第一层内容、中间没有 h2，沿用 h3 就是 h1→h3 跳级。与 `SkillCard` 同一套
+   * 理由与同一个默认值，两张卡保持一致以免将来各自漂移。
+   */
+  headingLevel?: 2 | 3;
 }
 
-const { lang, sample } = Astro.props;
+const { lang, sample, headingLevel = 3 } = Astro.props;
+const Heading = `h${headingLevel}` as 'h2' | 'h3';
 const t = useTranslations(lang);
 
 const skill = SKILLS.find((s) => s.id === sample.skillId);
@@ -35,7 +42,10 @@ const ready = isReady(sample);
     // `transition-transform transition-shadow`）——那两条工具类都写
     // `transition-property`，后者覆盖前者，位移会变成硬跳。Tailwind 4 的
     // `transition` 默认属性列表本就含 transform 与 box-shadow。
-    'transition duration-200 hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(46,125,255,0.18)]',
+    // `motion-reduce:hover:translate-y-0` 只取消**位移**，辉光保留：spec §8 要的是
+    // 零位移，不是零反馈。兜底块（global.css:153-162）压时长，这个变体压位移，
+    // 两者互补——单靠兜底，reduced-motion 下这张卡仍然瞬间跳 4px。
+    'transition duration-200 hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(46,125,255,0.18)] motion-reduce:hover:translate-y-0',
     ready ? stageClass(skill.stage) : 'border-border',
   ]}
 >
@@ -56,7 +66,7 @@ const ready = isReady(sample);
     </a>
   )}
 
-  <h3 class="text-lg font-semibold text-text-hi">{sample.title[lang]}</h3>
+  <Heading class="text-lg font-semibold text-text-hi">{sample.title[lang]}</Heading>
   <p class="mt-1 font-mono text-xs text-text-mute">{sample.skillId}</p>
 
   {sample.durationSeconds !== null && (

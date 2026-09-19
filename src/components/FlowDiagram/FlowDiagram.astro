@@ -43,21 +43,21 @@ const STAGES = ([1, 2, 3] as const).map((stage) => ({
 }));
 ---
 
-<!--
+{/*
   `relative` 是侧卡的定位基准（裁决：外层容器需加 relative）。侧卡在 SVG 之外、
   图容器之内，因为它们要在任何断点都能被 JS 开关，而 SVG 在 md 以下是
   `display:none`——把卡塞进 SVG 会让移动端连卡带图一起消失。
--->
+*/}
 <figure class="relative my-16" data-flow-diagram>
   <figcaption class="mb-6 text-2xl font-semibold text-text-hi">
     {t('flow.title')}
   </figcaption>
 
-  <!--
+  {/*
     SVG 对读屏器是装饰：<text> 之间的连接关系读不出来，
     role="img" + 单个 aria-label 也只能念出标题。结构由下面那份
     列表承担，它在任何断点都留在无障碍树里。
-  -->
+  */}
   <svg
     viewBox={`0 0 ${VIEWBOX.w} ${VIEWBOX.h}`}
     aria-hidden="true"
@@ -127,7 +127,7 @@ const STAGES = ([1, 2, 3] as const).map((stage) => ({
       </g>
     ))}
 
-    <!--
+    {/*
       约束胶囊（spec §4.2）。初始 opacity="0"：它表达的是"约束沿流程向下传递"
       这一**过程**，静态帧没有意义。所以无 JS 时它静默隐藏，而不是像节点/连线
       那样渲染终态——终态的画法是"约束已经流完了"，那是错的，会让人以为
@@ -135,7 +135,7 @@ const STAGES = ([1, 2, 3] as const).map((stage) => ({
 
       宽高取自 `CAPSULE`（nodes.ts），`runConstraintPulse()` 用同一个常量的
       半宽做居中偏移——两处不再各自硬编码 132 / 66，改尺寸只需改一个地方。
-    -->
+    */}
     <g data-flow-capsule opacity="0">
       <rect
         rx="12"
@@ -156,14 +156,14 @@ const STAGES = ([1, 2, 3] as const).map((stage) => ({
     </g>
   </svg>
 
-  <!--
+  {/*
     悬停 / 聚焦侧卡（spec §4.3）。每节点一张，默认 `hidden` —— 无 JS 时它们
     全部不可见，因为"悬停看详情"这个行为本身就没发生。
 
     放在 SVG 之外、图容器之内：SVG 在 md 以下是 `display:none`，卡若放进去会
     连图带卡一起消失，而文字版列表才是窄屏的唯一呈现。`pointer-events-none`
     的外壳保证不做交互时侧卡不拦截图上任何点击；卡自身恢复 `pointer-events-auto`。
-  -->
+  */}
   <div class="pointer-events-none absolute inset-y-0 right-0 hidden w-64 md:block">
     {FLOW_NODES.map((node) => {
       const needs = textOf(node.needsKey);
@@ -178,7 +178,7 @@ const STAGES = ([1, 2, 3] as const).map((stage) => ({
           class="pointer-events-auto rounded-xl border border-border bg-surface p-4 text-sm"
         >
           <h3 class="font-semibold text-text-hi">{label(node.id)}</h3>
-          <!--
+          {/*
             裁决 2：内容为空时连同它的标题一起不渲染。今天六个节点两条都有值，
             这是对未来加节点的防御——漏配一个键就会露出一行没有下文的标题。
 
@@ -189,7 +189,7 @@ const STAGES = ([1, 2, 3] as const).map((stage) => ({
 
             空值守卫本身只能靠源码断言守：六个节点两条都有值，产物里根本不出现
             空行分支——删掉守卫与留着守卫构建出的 HTML 逐字节相同（与 N2 同形）。
-          -->
+          */}
           {needs.length > 0 && (
             <>
               <p class="mt-2 text-text-mute">{t('flow.card.needs')}</p>
@@ -212,11 +212,11 @@ const STAGES = ([1, 2, 3] as const).map((stage) => ({
     })}
   </div>
 
-  <!--
+  {/*
     md 以下这是唯一的呈现（SVG 缩到手机宽度就看不清了）；md 以上它对读屏器
     仍然存在，只是视觉上让位给 SVG —— 用 sr-only 而不是 hidden，因为
     `display:none` 会把它从无障碍树里一并摘掉，读屏用户在桌面端就什么都听不到了。
-  -->
+  */}
   <ol data-flow-list class="mt-6 space-y-6 md:sr-only">
     {STAGES.map(({ stage, title, nodes }) => (
       <li>
@@ -272,12 +272,12 @@ const STAGES = ([1, 2, 3] as const).map((stage) => ({
 
   <p class="mt-6 text-sm text-text-mute">{t('flow.constraint')}</p>
 
-  <!--
+  {/*
     这三个类由 flow-diagram.ts 在运行时 add/remove，静态标记里一个都没有。
     Astro 会把它们编译成带作用域属性的选择器，而 `<g>`/`<path>` 本身在模板里
     就带着该属性，所以运行时挂上的类照样命中。`transition` 与动效预算的
     其余四项互不冲突：这一项是 spec §4.2 明列的"约束胶囊"。
-  -->
+  */}
   <style>
     /*
       SVG 元素上的 opacity 走 CSS 而非属性，才能过渡。连线本来就有
@@ -322,7 +322,7 @@ const STAGES = ([1, 2, 3] as const).map((stage) => ({
     }
 
     /*
-      spec §8 要求 reduced-motion 下无位移动效，此处**刻意不写**自己的
+      spec §8 要求 reduced-motion 下无位移动效，此处**不需要**自己的
       `@media (prefers-reduced-motion: reduce)` 块。两条理由：
 
       1. 这两条过渡只动 opacity 与 filter，本来就没有位移；reduced-motion 下
@@ -330,18 +330,20 @@ const STAGES = ([1, 2, 3] as const).map((stage) => ({
       2. global.css 的全局兜底已把 `transition-duration` 压到 .01ms，
          悬停高亮因此是瞬时的，没有需要额外取消的过渡。
 
-      写一块自己的 media 查询会把 HeroFan 的同类规则在合并后的 `<style>` 里
-      推到第二位，而 `tests/build/motion-budget.test.mjs` 按"第一块
-      prefers-reduced-motion"定位 HeroFan 那条——那是 Task 12 验过的断言，
-      不该因为一块多余的规则而失效。
+      （这里原先还挂着第三条「禁止写自己的 media 块」的**硬约束**，理由是
+      `motion-budget.test.mjs` 当时按"**第一块** prefers-reduced-motion"定位
+      HeroFan 的规则，本组件多写一块就会把它挤到第二位、让断言去校验错块。
+      那是测试的脆弱性倒过来污染源码。该测试已改为按 `.hero-fan__leaf`
+      选择器定位，约束随之失效，故删去——将来若本组件真的需要一块自己的
+      media 查询，照写即可，上面两条只是说明今天不需要。）
     */
   </style>
 
-  <!--
+  {/*
     渐进增强：脚本只在图进入视口时把 SVG 从静态终态"藏起再放出"。
     关 JS、prefers-reduced-motion 或 md 以下（SVG 未渲染）时，HTML 本身就是终态。
     目前只有首页引用本组件，所以这段 JS 也只随首页输出。
-  -->
+  */}
   <script>
     import './flow-diagram.ts';
   </script>

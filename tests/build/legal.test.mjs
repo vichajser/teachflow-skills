@@ -136,9 +136,49 @@ describe('/legal/refund', () => {
 describe('/legal/delivery', () => {
   it('explains both delivery paths', () => {
     const html = read('en/legal/delivery/index.html');
-    expect(html).toMatch(/24 hours/i);        // Agensi 签名链接有效期
+    expect(html).toMatch(/download link/i);   // Agensi 路径：签名链接
     expect(html).toMatch(/2 business days/i); // 直销路径承诺
     expect(html).toMatch(/no physical/i);     // 无实体配送
+  });
+
+  it('does not restate Agensi’s link validity window, only points at their terms', () => {
+    // 这一条**取代**了原先的 `expect(html).toMatch(/24 hours/i)`，不是放宽它。
+    //
+    // 原断言钉的是"页面上写着 24 hours"。那个数字本身有依据
+    // （`PUBLISHING.md:21`），不是编造——但它复述的是**第三方的条款**，
+    // 而 `/legal/refund` 自己立过纪律："We do not restate their refund window
+    // here: their terms can change, and the version on their site is always the
+    // one that governs your purchase." 同一个理由对链接有效期同样成立，
+    // 而这写在**合同性页面**上：Agensi 哪天把 24 小时改成 1 小时，我们的
+    // 合同页就在对买家陈述一个不成立的事实。
+    //
+    // 所以断言方向反了过来：不再要求某个具体数字在场，而是要求**任何**
+    // 挂在 Agensi 链接上的时长数字**不在场**，同时必须给出他们条款的出处。
+    // 这比原断言更严——原断言只要有 "24 hours" 就绿，改成 "48 hours" 才红；
+    // 现在写任何时长都红。
+    //
+    // 韩文页一并守：合规纪律不分语言。
+    for (const page of ['en/legal/delivery/index.html', 'ko/legal/delivery/index.html']) {
+      const html = read(page);
+      expect(
+        html,
+        `${page} restates Agensi’s link validity window — their terms can change`,
+      ).not.toMatch(/\d+\s*(?:hours?|시간)/i);
+      expect(html, `${page} does not point at Agensi’s terms`).toContain(
+        'https://www.agensi.io/terms',
+      );
+    }
+  });
+
+  it('still never restates Agensi’s refund day count, on any page', () => {
+    // 既有的全站纪律：退款天数只说我们自己的 14 天（直销路径），
+    // Agensi 的窗口一个字都不复述。上面那条新纪律不得把这条挤掉。
+    for (const page of ['en/legal/delivery/index.html', 'ko/legal/delivery/index.html']) {
+      const html = read(page);
+      expect(html, `${page} mentions a refund window it should not`).not.toMatch(
+        /\d+\s*(?:days?|일)[^.!?<]{0,40}(?:refund|환불)/i,
+      );
+    }
   });
 
   it('describes six zip packages, one per skill — not one archive of six', () => {

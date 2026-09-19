@@ -17,6 +17,16 @@ const LEAD: Record<Locale, string> = {
   ko: 'TeachFlow-KR는 설치형 프로그램이 아니라 일반 텍스트 설명 파일 32개입니다. 여섯 스킬을 제자리에 넣고, 제대로 불러왔는지 확인하고, 첫 단원을 준비하는 방법을 안내합니다.',
 };
 
+/*
+ * meta description 与 LEAD 分开：LEAD 是为版面写的，英文 168 字符，
+ * 而搜索结果摘要在 ~160 处截断（`seo.test.mjs` 现在有上界断言）。
+ * 两者说的是同一件事，只是长度约束不同。
+ */
+const DESCRIPTION: Record<Locale, string> = {
+  en: 'How to put the six skills where your AI tool looks for them, confirm they loaded, and prepare your first textbook unit.',
+  ko: '여섯 스킬을 AI 도구가 찾는 자리에 넣고, 제대로 불러왔는지 확인하고, 첫 교재 단원을 준비하는 방법을 안내합니다.',
+};
+
 const INSTALL_HEADING: Record<Locale, string> = {
   en: 'Install the six skills',
   ko: '스킬 여섯 개 설치하기',
@@ -28,16 +38,16 @@ const INSTALL_STEPS: { en: string; ko: string }[] = [
     ko: '실행하는 프로그램이 아니라 일반 텍스트 설명 파일 32개이며, 설치는 6개 폴더를 AI 도구가 스킬을 찾는 자리에 넣는 일입니다.',
   },
   {
-    en: 'Use whichever AI tool you already have. Claude Code, Codex CLI and Google Gemini CLI are all supported, and one of them is enough — you do not need all three.',
-    ko: '이미 쓰고 있는 AI 도구를 그대로 쓰면 됩니다. Claude Code, Codex CLI, Google Gemini CLI를 모두 지원하며, 셋 다 필요하지 않고 그중 하나면 충분합니다.',
+    en: 'Use whichever AI tool you already have. Claude Code, Codex CLI, Cursor and Google Gemini CLI are all supported, and one of them is enough — you do not need all four.',
+    ko: '이미 쓰고 있는 AI 도구를 그대로 쓰면 됩니다. Claude Code, Codex CLI, Cursor, Google Gemini CLI를 모두 지원하며, 넷 다 필요하지 않고 그중 하나면 충분합니다.',
   },
   {
-    en: 'Unzip the package you downloaded. Inside TeachFlow-KR/skills/ are six folders — lesson-workflow through report-workflow — alongside docs/, LICENSE and verify.py.',
-    ko: '내려받은 압축을 풉니다. TeachFlow-KR/skills/ 안에 lesson-workflow부터 report-workflow까지 6개 폴더가 있고, 그 옆에 docs/, LICENSE, verify.py가 있습니다.',
+    en: 'You download six zip files, one per skill. Unzip each of them: every zip opens into a single folder named after its skill — lesson-workflow, worksheet-workflow, ppt-workflow, word-workflow, audio-workflow and report-workflow.',
+    ko: '스킬마다 하나씩, zip 파일 6개를 내려받습니다. 각각 압축을 풀면 스킬 이름을 딴 폴더 하나가 나옵니다 — lesson-workflow, worksheet-workflow, ppt-workflow, word-workflow, audio-workflow, report-workflow.',
   },
   {
-    en: 'Copy those six folders themselves, not the outer skills/ folder. Dragging the whole skills folder in is the most common mistake.',
-    ko: '바깥의 skills/ 폴더가 아니라 그 안의 6개 폴더 자체를 복사합니다. skills 폴더를 통째로 넣는 것이 가장 흔한 실수입니다.',
+    en: 'Copy those six folders into the location for your tool, keeping each one whole — SKILL.md, its references folder, and the README, licence and security notice that sit beside them.',
+    ko: '그 6개 폴더를 쓰는 도구의 위치로 복사합니다. 각 폴더는 통째로 옮기세요 — SKILL.md, references 폴더, 그리고 그 옆의 README와 라이선스, 보안 고지까지 함께 들어 있어야 합니다.',
   },
   {
     en: 'You can also let your agent do it: point it at the unzipped folder and ask it to install the six skills, and it will place them correctly.',
@@ -58,15 +68,21 @@ const LOCATIONS_HEADING: Record<Locale, string> = {
   ko: '6개 폴더를 넣는 위치',
 };
 
+/*
+ * Cursor 是第四条并列项，不是脚注：`/pricing` 与 `/legal/delivery` 都把 Cursor
+ * 列为受支持的 agent，而 `/legal/delivery` 是合同性页面。在那里承诺兼容、
+ * 却在唯一的安装页不给路径，是买家照做后装不上的那一类缺口。
+ */
 const LOCATIONS: { tool: string; path: string }[] = [
   { tool: 'Claude Code', path: '.claude/skills' },
   { tool: 'Codex CLI', path: '.agents/skills' },
+  { tool: 'Cursor', path: '.cursor/skills' },
   { tool: 'Google Gemini CLI', path: '.gemini/skills' },
 ];
 
 const LOCATIONS_NOTE: Record<Locale, string> = {
-  en: 'Those three paths sit in your home directory, and you only need the one for the tool you use. Once the six folders are in place you can delete the unzipped directory entirely — installing changes no system settings.',
-  ko: '세 경로 모두 홈 디렉터리 기준이며, 쓰는 도구에 해당하는 하나만 있으면 됩니다. 6개 폴더를 넣고 나면 압축을 푼 폴더는 통째로 지워도 됩니다. 설치는 어떤 시스템 설정도 바꾸지 않습니다.',
+  en: 'All four paths sit in your home directory, and you only need the one for the tool you use. Cursor also reads .claude/skills, so if you have already put the six folders there you do not need a second copy. Once they are in place you can delete the unzipped folders entirely — installing changes no system settings.',
+  ko: '네 경로 모두 홈 디렉터리 기준이며, 쓰는 도구에 해당하는 하나만 있으면 됩니다. Cursor는 .claude/skills도 함께 읽으므로, 이미 그곳에 6개 폴더를 넣으셨다면 따로 한 벌 더 두실 필요가 없습니다. 폴더를 제자리에 넣고 나면 압축을 푼 폴더는 통째로 지워도 됩니다. 설치는 어떤 시스템 설정도 바꾸지 않습니다.',
 };
 
 const VERIFY_HEADING: Record<Locale, string> = {
@@ -115,7 +131,7 @@ const codeClass = 'font-mono text-accent-glow';
 <BaseLayout
   lang={lang}
   title={`${t('docs.title')} — TeachFlow-KR`}
-  description={LEAD[lang]}
+  description={DESCRIPTION[lang]}
   path="/docs"
 >
   <h1 class="pt-16 text-4xl font-semibold text-text-hi">{t('docs.title')}</h1>
@@ -128,7 +144,7 @@ const codeClass = 'font-mono text-accent-glow';
     </ol>
 
     <h3 class="mt-8 mb-3 text-lg font-semibold text-text-hi">{LOCATIONS_HEADING[lang]}</h3>
-    <ul class="grid max-w-3xl gap-2 sm:grid-cols-3">
+    <ul class="grid max-w-3xl gap-2 sm:grid-cols-2 lg:grid-cols-4">
       {LOCATIONS.map((row) => (
         <li class="rounded-lg border border-border bg-surface px-4 py-3">
           <p class="text-text-hi">{row.tool}</p>

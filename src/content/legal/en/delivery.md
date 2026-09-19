@@ -18,9 +18,11 @@ document you can open and read before you run anything.
 
 ## If you bought on Agensi
 
-Agensi gives you a signed download link immediately after payment. The link is valid
-for **24 hours**, and you can generate a fresh one at any time from your Agensi
-dashboard. When we publish a new version, you can download it again at no extra cost.
+Agensi gives you a signed download link immediately after payment. That link expires
+after a while — the current validity period is stated at checkout and in your Agensi
+dashboard, and their terms at <https://www.agensi.io/terms> are what governs it. You
+can generate a fresh link at any time from the dashboard, so an expired link costs you
+nothing. When we publish a new version, you can download it again at no extra cost.
 
 Agensi does not deliver by email — your downloads live in your dashboard.
 
