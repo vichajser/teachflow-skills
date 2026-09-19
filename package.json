@@ -6,10 +6,11 @@
   "engines": { "node": ">=20.3.0" },
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "build": "ASTRO_TELEMETRY_DISABLED=1 astro build",
     "preview": "astro preview",
     "test": "vitest run",
-    "verify": "npm run build && npm run test && node scripts/verify-build.mjs"
+    "verify": "node scripts/verify-build.mjs",
+    "verify:all": "npm run build && npm run test && node scripts/verify-build.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.2.0",
