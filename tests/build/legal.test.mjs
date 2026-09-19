@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { existsSync, readFileSync, globSync } from 'node:fs';
+// `fs.globSync` 要 Node 22，而 package.json 声明的下限是 20.3.0 ——
+// 在 20.x 上这个具名导入直接抛 SyntaxError，整个文件一条都跑不了。
+// fast-glob 已是声明依赖，tests/build/pricing.test.mjs 也走的它。
+import fg from 'fast-glob';
+import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 const dist = (p) => resolve(process.cwd(), 'dist', p);
@@ -215,19 +219,30 @@ describe('/legal/privacy', () => {
     expect(html).toMatch(/no third-party requests/i);
   });
 
-  it('does not claim fonts are self-hosted while the build ships no font files', () => {
-    // 站点当前一个 woff 都没有，`--font-sans` 退化到系统字体。
-    // 说"字体自托管"描述的是不存在的文件。Task 12 会加 woff2，
-    // 但这句话必须今天也成立——所以只承诺"不向第三方发请求"这个
-    // 对数据主体真正重要的事实，不描述字体文件的存放位置。
-    const fontFiles = globSync('dist/**/*.{woff,woff2,ttf,otf}');
-    if (fontFiles.length > 0) return; // Task 12 落地后本断言自动让位
+  it('keeps the font claim aligned with whether font files actually ship', () => {
+    // 站点当前一个 woff 都没有，`--font-sans` 退化到系统字体，
+    // 所以"字体自托管"描述的是不存在的文件。Task 12 会加 woff2。
+    //
+    // 这里不能写成"有字体就跳过检查"——那样 Task 12 一落地，本断言
+    // 就永久失效，日后任何虚假的自托管声明都无人把关。真正的不变量是
+    // **声明与事实一致**，两个方向都要断言：
+    //   零字体 → 不得声称自托管
+    //   有字体 → 必须全部来自本站，不得出现任何跨域字体引用
+    const fontFiles = fg.sync('dist/**/*.{woff,woff2,ttf,otf}');
+
     for (const lang of ['en', 'ko']) {
       const html = read(`${lang}/legal/privacy/index.html`);
       const article = html.slice(html.indexOf('<article'), html.indexOf('</article>'));
-      expect(article, `${lang} claims self-hosting that does not happen yet`)
-        .not.toMatch(/self-hosted|자체 호스팅/i);
+      if (fontFiles.length === 0) {
+        expect(article, `${lang} claims self-hosting that does not happen yet`)
+          .not.toMatch(/self-hosted|자체 호스팅/i);
+      }
     }
+
+    // 隐私页承诺"字体不从 CDN 取"。字体一旦存在，这条承诺就必须被构建产物证实。
+    const css = fg.sync('dist/**/*.css').map((p) => readFileSync(p, 'utf8')).join('\n');
+    const remoteFontSrc = css.match(/src:[^;}]*https?:\/\/[^;}]*/g) ?? [];
+    expect(remoteFontSrc, 'privacy page promises no CDN-hosted fonts').toEqual([]);
   });
 
   it('does not miscount its own outbound links', () => {
@@ -237,8 +252,11 @@ describe('/legal/privacy', () => {
     for (const lang of ['en', 'ko']) {
       const html = read(`${lang}/legal/privacy/index.html`);
       const article = html.slice(html.indexOf('<article'), html.indexOf('</article>'));
+      // 韩文那一支原先写成 `링크는[^.]{0,20}하나뿐`，但被删掉的原句里两者
+       // 相隔 24 字，正则永不命中——韩文侧等于没有把关。改为直接抓"하나뿐"
+       // 这个数量断言本身：韩文文案里再没有第二处合法用到它的地方。
       expect(article, `${lang} claims a single outbound link`)
-        .not.toMatch(/only outbound link|outbound link[^.]{0,30}is the text link|링크는[^.]{0,20}하나뿐/i);
+        .not.toMatch(/only outbound link|outbound link[^.]{0,40}is the text link|하나뿐|유일한 (?:외부|바깥)/i);
       // 真正该说的那件事必须在场
       expect(article, `${lang} drops the no-third-party-request claim`)
         .toMatch(/no third-party requests|제3자 요청이 없습니다/i);
