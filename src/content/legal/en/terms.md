@@ -44,9 +44,6 @@ You may not:
 - Share your download link or your account with someone who has not bought a licence
 - Strip or alter the licence and attribution notices inside the packages
 
-A school, academy or district that wants to use the package across several teachers needs
-one licence per teacher. Email us and we will arrange it.
-
 You may modify the files for your own teaching. The restriction is on redistribution, not
 on editing your own copy.
 

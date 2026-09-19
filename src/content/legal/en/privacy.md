@@ -23,17 +23,21 @@ from our own server.
 
 - **No analytics.** We run no analytics or measurement product of any kind.
 - **No cookies.** The site sets no cookies and uses no local storage for tracking.
-- **No third-party requests.** Loading a page fetches nothing from any other domain. Fonts
-  are self-hosted; there are no embedded scripts, pixels, iframes or hosted images.
+- **No third-party requests.** Everything a page needs is served from our own domain. There
+  are no embedded scripts, pixels, iframes or hosted images, and no font, stylesheet or
+  script is ever fetched from a CDN or any other company's server. We commit to keeping it
+  that way: if this site ever uses a web font, we will serve it ourselves.
 - **No advertising and no profiling.**
 
-The only outbound link to a third party is the text link to our Agensi listing. Following
-it takes you to their site, where their privacy policy applies. Merely loading our pages
-contacts nobody.
+Some of our pages carry ordinary text links to other organisations — our Agensi listing,
+and the ICO below. A link is not a request: your browser contacts those sites only if you
+click one, and from that point their own privacy policies apply. Simply opening a page on
+this site contacts nobody but us.
 
 Our web server keeps standard request logs — IP address, timestamp, requested path, user
 agent — which exist to keep the server running and secure. Our lawful basis is legitimate
-interest. They are not used to build a profile of you and are deleted within 30 days.
+interest. They are not used to build a profile of you, and our policy is to retain them for
+no longer than 30 days.
 
 ## The skills you buy
 

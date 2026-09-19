@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, globSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 const dist = (p) => resolve(process.cwd(), 'dist', p);
@@ -52,6 +52,20 @@ describe('/legal pages', () => {
       const html = read(page);
       const body = html.slice(html.indexOf('<body'));
       expect(body, page).not.toContain('teachflow-kr.example');
+    }
+  });
+
+  it('renders every bold run — no literal ** survives into the article', () => {
+    // CommonMark 的 right-flanking 规则：结尾的 `**` 若左邻标点、右邻文字，
+    // 就不构成闭合定界符，于是星号原样渲染。韩文里 `**제한(restriction)**과`
+    // 正是这个形状——`)` 是标点，`과` 是文字——粗体永不闭合。
+    // 英文极少踩到，因为闭合 `**` 后面通常是空格或句号。
+    // 只扫 <article> 内部：<head> 的 JSON-LD 与脚本里出现星号是正常的。
+    for (const page of LEGAL_PAGES) {
+      const html = read(page);
+      const article = html.slice(html.indexOf('<article'), html.indexOf('</article>'));
+      const leaked = article.match(/\*\*/g) ?? [];
+      expect(leaked, `${page} ships unrendered ** (bold never closed)`).toHaveLength(0);
     }
   });
 
@@ -148,6 +162,17 @@ describe('/legal/delivery', () => {
 });
 
 describe('/legal/terms', () => {
+  it('invents no volume-licensing rule we do not operate', () => {
+    // "每位教师一份许可"在项目任何文档中都没有依据，且与六个 zip 内的
+    // MIT LICENSE 直接冲突。宁可不说，也不编造一个我们answer不了的销售规则。
+    for (const lang of ['en', 'ko']) {
+      const html = read(`${lang}/legal/terms/index.html`);
+      const article = html.slice(html.indexOf('<article'), html.indexOf('</article>'));
+      expect(article, `${lang} terms invents a per-teacher licence rule`)
+        .not.toMatch(/one licence per teacher|per[- ]teacher licence|선생님 한 분당 라이선스/i);
+    }
+  });
+
   it('identifies the contracting company and the governing law', () => {
     for (const lang of ['en', 'ko']) {
       const html = read(`${lang}/legal/terms/index.html`);
@@ -187,7 +212,37 @@ describe('/legal/privacy', () => {
     const html = read('en/legal/privacy/index.html');
     expect(html).toMatch(/no analytics/i);
     expect(html).toMatch(/no cookies/i);
-    expect(html).toMatch(/self-hosted/i);
+    expect(html).toMatch(/no third-party requests/i);
+  });
+
+  it('does not claim fonts are self-hosted while the build ships no font files', () => {
+    // 站点当前一个 woff 都没有，`--font-sans` 退化到系统字体。
+    // 说"字体自托管"描述的是不存在的文件。Task 12 会加 woff2，
+    // 但这句话必须今天也成立——所以只承诺"不向第三方发请求"这个
+    // 对数据主体真正重要的事实，不描述字体文件的存放位置。
+    const fontFiles = globSync('dist/**/*.{woff,woff2,ttf,otf}');
+    if (fontFiles.length > 0) return; // Task 12 落地后本断言自动让位
+    for (const lang of ['en', 'ko']) {
+      const html = read(`${lang}/legal/privacy/index.html`);
+      const article = html.slice(html.indexOf('<article'), html.indexOf('</article>'));
+      expect(article, `${lang} claims self-hosting that does not happen yet`)
+        .not.toMatch(/self-hosted|자체 호스팅/i);
+    }
+  });
+
+  it('does not miscount its own outbound links', () => {
+    // 该页自身就带 Agensi 与 ICO 两个站外链接。写"唯一的站外链接是 Agensi"
+    // 会被下面一段当场证伪。可辩护的说法是区分「链接」与「请求」：
+    // 页面不向任何第三方发请求，链接则要点了才走。
+    for (const lang of ['en', 'ko']) {
+      const html = read(`${lang}/legal/privacy/index.html`);
+      const article = html.slice(html.indexOf('<article'), html.indexOf('</article>'));
+      expect(article, `${lang} claims a single outbound link`)
+        .not.toMatch(/only outbound link|outbound link[^.]{0,30}is the text link|링크는[^.]{0,20}하나뿐/i);
+      // 真正该说的那件事必须在场
+      expect(article, `${lang} drops the no-third-party-request claim`)
+        .toMatch(/no third-party requests|제3자 요청이 없습니다/i);
+    }
   });
 
   it('agrees with /security that nothing leaves the teacher machine', () => {
