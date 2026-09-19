@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
 import {
   LOCALES,
   DEFAULT_LOCALE,
@@ -112,6 +113,9 @@ describe('useTranslations', () => {
       'nav.docs',
       'nav.faq',
       'nav.home',
+      'skills.inputs',
+      'skills.checks',
+      'skills.outputs',
       'lang.switch',
       'lang.en',
       'lang.ko',
@@ -128,6 +132,42 @@ describe('useTranslations', () => {
     for (const key of keys) {
       expect(en(key).length, `en.${key} is empty`).toBeGreaterThan(0);
       expect(ko(key).length, `ko.${key} is empty`).toBeGreaterThan(0);
+    }
+  });
+});
+
+/**
+ * The hand-maintained list above only proves the keys someone remembered to
+ * add. This proves the two dictionaries carry the *same* key set in both
+ * directions, so a key added to one file and forgotten in the other fails
+ * here instead of silently falling back to English at runtime.
+ */
+describe('dictionary parity', () => {
+  const read = (name: string) =>
+    JSON.parse(readFileSync(new URL(`../../src/i18n/${name}`, import.meta.url), 'utf8')) as Record<
+      string,
+      string
+    >;
+
+  it('has the same keys in en.json and ko.json, in both directions', () => {
+    const en = read('en.json');
+    const ko = read('ko.json');
+    expect(Object.keys(en).sort()).toEqual(Object.keys(ko).sort());
+  });
+
+  it('has no empty values in either dictionary', () => {
+    for (const name of ['en.json', 'ko.json']) {
+      for (const [key, value] of Object.entries(read(name))) {
+        expect(value.trim().length, `${name}: ${key} is empty`).toBeGreaterThan(0);
+      }
+    }
+  });
+
+  it('writes Korean, not an English placeholder, for every ko string', () => {
+    for (const [key, value] of Object.entries(read('ko.json'))) {
+      // lang.en / lang.ko legitimately hold language names in their own script.
+      if (key === 'lang.en') continue;
+      expect(/[가-힣]/.test(value), `ko.json: ${key} has no Hangul`).toBe(true);
     }
   });
 });
