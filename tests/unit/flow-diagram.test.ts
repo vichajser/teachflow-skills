@@ -103,6 +103,34 @@ describe('showtime', () => {
     }
   });
 
+  it('reflows before arming each edge transition, not after', async () => {
+    // R-43：只断言"回流发生过"抓不住写入顺序错乱。transition 若先于回流写入，
+    // 回流本身就带着过渡把 dashoffset 从终态 0 推向 length，紧接着的 `= '0'`
+    // 又就地反转这场过渡——两次抵消，线恒停在 0。浏览器实测：错序时 700ms 内
+    // offset 恒为 0；正序时 345 → 201 → 88 → 15 → 0。DOM 终态两者完全相同，
+    // 所以任何"查最终样式"的断言都抓不住，只有写入顺序能。
+    const rec = await run();
+    rec.observers[0]!.fire();
+
+    const firstIndexOf = (el: string, prop: string) =>
+      rec.writes.findIndex((w) => w.el === el && w.prop === prop);
+
+    for (const key of EDGE_KEYS) {
+      const initial = rec.indexOf(key, 'strokeDashoffset', '123.45');
+      const transition = firstIndexOf(key, 'transition');
+      const final = rec.indexOf(key, 'strokeDashoffset', '0');
+      const reflow = rec.reflowIndex(key);
+
+      expect(transition, `edge ${key} never gets a transition`).toBeGreaterThanOrEqual(0);
+      expect(reflow, `edge ${key} reflows before its initial offset`).toBeGreaterThan(initial);
+      expect(
+        reflow,
+        `edge ${key} arms its transition before the reflow — the draw cancels itself`,
+      ).toBeLessThanOrEqual(transition);
+      expect(final, `edge ${key} never reaches offset 0`).toBeGreaterThan(transition);
+    }
+  });
+
   it('plays the four beats in order, from input to the report node', async () => {
     const rec = await run();
     rec.observers[0]!.fire();

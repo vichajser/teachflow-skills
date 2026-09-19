@@ -55,14 +55,23 @@ function reveal(el: Element, delayMs: number): void {
   style.transform = 'none';
 }
 
-/** 自绘一条连线（沿路径生长）。 */
+/**
+ * 自绘一条连线（沿路径生长）。
+ *
+ * 写入顺序与 `reveal()` 必须一致：**先回流、后写 transition**。反过来写的话，
+ * 回流这一下就带着 transition 开始把 dashoffset 从 0（终态）过渡到 length，
+ * 紧接着的 `= '0'` 又把这场过渡就地反转——两次抵消，线永远停在 0，看起来
+ * 和"根本没动画"一模一样。浏览器里实测：错序时 700ms 内 offset 恒为 0；
+ * 正序时 345 → 201 → 88 → 15 → 0（R-43）。
+ */
 function drawEdge(path: SVGPathElement, delayMs: number): void {
   const length = path.getTotalLength();
   path.style.strokeDasharray = `${length}`;
   path.style.strokeDashoffset = `${length}`;
-  path.style.transition = `stroke-dashoffset ${DRAW_MS}ms ease-out ${delayMs}ms`;
-  // 强制回流，确保初值生效后再改成 0，否则浏览器会合并两次赋值、动画不播。
+  // 强制回流：让 dashoffset=length 成为"变更前样式"。此刻 transition 仍是
+  // 默认值（时长 0），初值只就位、不会自己动。
   void path.getBoundingClientRect();
+  path.style.transition = `stroke-dashoffset ${DRAW_MS}ms ease-out ${delayMs}ms`;
   path.style.strokeDashoffset = '0';
 }
 
