@@ -20,8 +20,15 @@ export interface FlowEdge {
   to: SkillId;
 }
 
-/** 教材 PDF + 학습자 정보 —— 演出第一拍从这里落下 */
-export const INPUT_NODE = { x: 380, y: 16, w: 200, h: 56 } as const;
+/**
+ * 教材 PDF + 학습자 정보 —— 演出第一拍从这里落下。
+ *
+ * 宽度 240 而非 200：英文标签 "Textbook PDF + learner profile" 在 14px 下
+ * 自然宽约 177px，200 宽的盒子扣掉左右留白后只剩 176px，正好压线。
+ * Task 12 换上 Inter 后字宽会变，压线的设计会翻车。中心点仍是 480
+ * （360 + 240/2），所以 edgePath 生成的曲线一条都没动。
+ */
+export const INPUT_NODE = { x: 360, y: 16, w: 240, h: 56 } as const;
 
 const NODE_H = 88;
 const STAGE2_W = 200;

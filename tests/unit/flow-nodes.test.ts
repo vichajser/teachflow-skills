@@ -64,7 +64,14 @@ describe('FLOW_EDGES', () => {
     const sources = FLOW_EDGES.filter((e) => e.to === 'report-workflow').map(
       (e) => e.from,
     );
-    expect(sources).toHaveLength(4);
+    // 只断言 length===4 的话，四条 from 全指向同一个节点也算通过——
+    // 那种图丢了三条汇聚边却依然绿灯。必须逐个点名，和上面的 fan-out 对称。
+    expect(sources.sort()).toEqual([
+      'audio-workflow',
+      'ppt-workflow',
+      'word-workflow',
+      'worksheet-workflow',
+    ]);
   });
 
   it('references only nodes that exist', () => {
@@ -80,6 +87,50 @@ describe('edgePath', () => {
   it('produces a cubic bezier starting at the source and ending at the target', () => {
     const d = edgePath({ from: 'input', to: 'lesson-workflow' });
     expect(d).toMatch(/^M [\d.]+ [\d.]+ C /);
+
+    // 光有前缀正则等于没测端点：把 x2 写死成常数，所有边都会连到同一个位置，
+    // 而正则照样命中。这里把每条边的起点与终点解析出来逐个核对。
+    const lesson = FLOW_NODES.find((n) => n.id === 'lesson-workflow')!;
+    const parse = (path: string) => {
+      const m = path.match(
+        /^M ([\d.-]+) ([\d.-]+) C [\d.-]+ [\d.-]+, [\d.-]+ [\d.-]+, ([\d.-]+) ([\d.-]+)$/,
+      );
+      if (!m) throw new Error(`unparseable path: ${path}`);
+      return {
+        start: [Number(m[1]), Number(m[2])],
+        end: [Number(m[3]), Number(m[4])],
+      };
+    };
+
+    expect(parse(d).start).toEqual([
+      INPUT_NODE.x + INPUT_NODE.w / 2,
+      INPUT_NODE.y + INPUT_NODE.h,
+    ]);
+    expect(parse(d).end).toEqual([lesson.x + lesson.w / 2, lesson.y]);
+  });
+
+  it('anchors every edge at the source bottom-centre and the target top-centre', () => {
+    const box = (ref: string) =>
+      ref === 'input' ? INPUT_NODE : FLOW_NODES.find((n) => n.id === ref)!;
+
+    for (const edge of FLOW_EDGES) {
+      const m = edgePath(edge).match(
+        /^M ([\d.-]+) ([\d.-]+) C [\d.-]+ [\d.-]+, [\d.-]+ [\d.-]+, ([\d.-]+) ([\d.-]+)$/,
+      );
+      expect(m, `${edge.from} → ${edge.to} is not a single cubic bezier`).not.toBeNull();
+
+      const from = box(edge.from);
+      const to = box(edge.to);
+      const label = `${edge.from} → ${edge.to}`;
+      expect([Number(m![1]), Number(m![2])], `${label} start`).toEqual([
+        from.x + from.w / 2,
+        from.y + from.h,
+      ]);
+      expect([Number(m![3]), Number(m![4])], `${label} end`).toEqual([
+        to.x + to.w / 2,
+        to.y,
+      ]);
+    }
   });
 
   it('never returns NaN coordinates', () => {

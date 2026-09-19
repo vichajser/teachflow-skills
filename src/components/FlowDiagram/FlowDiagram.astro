@@ -19,6 +19,14 @@ const { lang } = Astro.props;
 const t = useTranslations(lang);
 
 const label = (id: string) => t(`flow.node.${id}` as TranslationKey);
+
+// 三个阶段的文字版分组。SVG 只画得出"谁连着谁"，读屏器读不出来；
+// 这份分组把同一件事说成话，并且用上 flow.stage1/2/3 这三个键。
+const STAGES = ([1, 2, 3] as const).map((stage) => ({
+  stage,
+  title: t(`flow.stage${stage}` as TranslationKey),
+  nodes: FLOW_NODES.filter((n) => n.stage === stage),
+}));
 ---
 
 <figure class="my-16" data-flow-diagram>
@@ -26,11 +34,16 @@ const label = (id: string) => t(`flow.node.${id}` as TranslationKey);
     {t('flow.title')}
   </figcaption>
 
+  <!--
+    SVG 对读屏器是装饰：<text> 之间的连接关系读不出来，
+    role="img" + 单个 aria-label 也只能念出标题。结构由下面那份
+    列表承担，它在任何断点都留在无障碍树里。
+  -->
   <svg
     viewBox={`0 0 ${VIEWBOX.w} ${VIEWBOX.h}`}
-    role="img"
-    aria-label={t('flow.title')}
-    class="w-full"
+    aria-hidden="true"
+    focusable="false"
+    class="hidden w-full md:block"
   >
     <g data-flow-edges fill="none" stroke-width="2" stroke-linecap="round">
       {FLOW_EDGES.map((edge) => (
@@ -59,8 +72,6 @@ const label = (id: string) => t(`flow.node.${id}` as TranslationKey);
         text-anchor="middle"
         fill="#C3CFE4"
         font-size="14"
-        textLength={INPUT_NODE.w - 24}
-        lengthAdjust="spacingAndGlyphs"
       >{t('flow.input')}</text>
     </g>
 
@@ -83,34 +94,50 @@ const label = (id: string) => t(`flow.node.${id}` as TranslationKey);
           fill="#F2F6FF"
           font-size="16"
           font-weight="600"
-          textLength={node.w - 32}
-          lengthAdjust="spacingAndGlyphs"
         >{label(node.id)}</text>
-        <text
-          x={node.x + node.w / 2}
-          y={node.y + 60}
-          text-anchor="middle"
-          fill="#7C8AA6"
-          font-size="12"
-          font-family="ui-monospace, monospace"
-        >{node.outputs.join('  ')}</text>
+        {node.outputs.length > 0 && (
+          <text
+            x={node.x + node.w / 2}
+            y={node.y + 60}
+            text-anchor="middle"
+            fill="#7C8AA6"
+            font-size="12"
+            font-family="ui-monospace, monospace"
+          >{node.outputs.join('  ')}</text>
+        )}
       </g>
     ))}
   </svg>
 
   <!--
-    SVG 图形在移动端会缩得看不清，且屏幕阅读器读不出 <text> 的结构关系。
-    这份列表两者都兼顾：md 以上隐藏，md 以下作为主呈现。
+    md 以下这是唯一的呈现（SVG 缩到手机宽度就看不清了）；md 以上它对读屏器
+    仍然存在，只是视觉上让位给 SVG —— 用 sr-only 而不是 hidden，因为
+    `display:none` 会把它从无障碍树里一并摘掉，读屏用户在桌面端就什么都听不到了。
   -->
-  <ol class="mt-6 space-y-2 md:hidden">
-    {FLOW_NODES.map((node) => (
-      <li
-        class="rounded-lg border-l-2 bg-surface px-4 py-3"
-        style={`border-color: ${nodeColor(node.stage)}`}
-      >
-        <p class="text-text-hi">{label(node.id)}</p>
-        <p class="font-mono text-xs text-text-mute">{node.outputs.join('  ')}</p>
+  <ol data-flow-list class="mt-6 space-y-6 md:sr-only">
+    {STAGES.map(({ stage, title, nodes }) => (
+      <li>
+        <p class="text-sm font-semibold tracking-wide text-text-mute uppercase">
+          {title}
+        </p>
+        <ul class="mt-2 space-y-2">
+          {nodes.map((node) => (
+            <li
+              class="rounded-lg border-l-2 bg-surface px-4 py-3"
+              style={`border-color: ${nodeColor(stage)}`}
+            >
+              <p class="text-text-hi">{label(node.id)}</p>
+              {node.outputs.length > 0 && (
+                <p class="font-mono text-xs text-text-mute">
+                  {node.outputs.join('  ')}
+                </p>
+              )}
+            </li>
+          ))}
+        </ul>
       </li>
     ))}
   </ol>
+
+  <p class="mt-6 text-sm text-text-mute">{t('flow.constraint')}</p>
 </figure>
