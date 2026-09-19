@@ -35,8 +35,8 @@ export const SECURITY_MATRIX: readonly SecurityRow[] = [
       ko: '파일 읽기와 쓰기는 현재 작업 폴더 안으로 제한되며 산출물은 outputs/에 저장됩니다. ~, /etc, /usr는 건드리지 않습니다.',
     },
     verify: {
-      en: 'Search the skill files for a path outside the working directory. The only matches are the prohibition lines that forbid those paths.',
-      ko: '스킬 파일에서 작업 폴더 밖의 경로를 검색해 보세요. 나오는 것은 그것을 금지하는 문장뿐입니다.',
+      en: 'Search the package for a path outside the working directory. The only matches are the lines that forbid those paths.',
+      ko: '패키지에서 작업 폴더 밖의 경로를 검색해 보세요. 나오는 것은 그 경로를 금지하는 문장뿐입니다.',
     },
   },
   {
@@ -101,8 +101,8 @@ export const SECURITY_MATRIX: readonly SecurityRow[] = [
       ko: 'sudo, chmod 777, rm -rf, curl | sh, eval을 사용하지 않습니다.',
     },
     verify: {
-      en: 'Search for these strings. sudo and rm -rf appear only in the prohibition lines that forbid them; chmod 777, curl | sh and eval appear nowhere at all.',
-      ko: '이 문자열들을 검색해 보세요. sudo와 rm -rf는 그것을 금지하는 문장에만 나오고, chmod 777, curl | sh, eval은 아예 나오지 않습니다.',
+      en: 'Search the package for these commands. None is ever invoked. Every occurrence sits inside a line that forbids it, except the letters "eval" inside the English words "evaluate" and "Evaluation" in teacher-language word lists.',
+      ko: '패키지에서 이 명령들을 검색해 보세요. 실제로 실행되는 곳은 없습니다. 나오는 것은 모두 그것을 금지하는 문장 안이고, 예외는 교사용 어휘 목록의 영어 단어 "evaluate", "Evaluation" 안에 들어간 "eval" 철자뿐입니다.',
     },
   },
 ] as const;
@@ -128,8 +128,8 @@ export const VERIFIABLE_FACTS = [
   {
     id: 'verify-script',
     text: {
-      en: 'The package ships verify.py, a check you run yourself. It scans the skill files for the red flags in this table, plus hardcoded secrets and invisible characters. [PASS] means it found none of them.',
-      ko: '패키지에 직접 실행하는 검사 도구 verify.py가 들어 있습니다. 이 표의 항목과 하드코딩된 시크릿·보이지 않는 문자를 스킬 파일에서 검사합니다. [PASS]가 나오면 검출된 항목이 없다는 뜻입니다.',
+      en: 'The package ships verify.py, a check you run yourself. It scans for dangerous-command and home-directory patterns, external URLs, hardcoded secrets, base64 and invisible characters. [PASS] means it found none of them.',
+      ko: '패키지에 직접 실행하는 검사 도구 verify.py가 들어 있습니다. 위험 명령과 홈 디렉터리 경로 패턴, 외부 URL, 하드코딩된 시크릿, base64와 보이지 않는 문자를 검사합니다. [PASS]가 나오면 검출된 항목이 없다는 뜻입니다.',
     },
   },
 ] as const;
