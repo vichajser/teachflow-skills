@@ -1,0 +1,48 @@
+---
+slug: delivery
+lang: en
+title: Digital Delivery
+description: How TeachFlow-KR reaches you after purchase, and what you need to run it.
+updated: '2026-09-19'
+---
+
+TeachFlow-KR is digital. There is **no physical shipment** and nothing is posted to you.
+
+## What you receive
+
+All six skills, delivered as **six zip packages — one per skill**. Each zip holds the
+skill file, its reference documents, a licence and a security notice.
+
+The zips you download contain **no executable code**. Every file inside them is a text
+document you can open and read before you run anything.
+
+## If you bought on Agensi
+
+Agensi gives you a signed download link immediately after payment. The link is valid
+for **24 hours**, and you can generate a fresh one at any time from your Agensi
+dashboard. When we publish a new version, you can download it again at no extra cost.
+
+Agensi does not deliver by email — your downloads live in your dashboard.
+
+## If you bought directly from us
+
+We email your download link within **2 business days** of confirming payment, to the
+address you paid from. If it has not arrived, email <vichajser@gmail.com> and we will
+resend it.
+
+## What you need to run it
+
+- A coding agent that reads the `SKILL.md` format — Claude Code, Codex CLI, Cursor and
+  Gemini CLI all do
+- A desktop computer (macOS or Windows)
+- Your textbook pages as PDF or images
+
+The skills run entirely on your own machine. **No internet connection is required while
+they run**, and nothing you feed them is sent anywhere. See our
+[security page](/en/security) for the detail.
+
+## If something is wrong with the files
+
+Email <vichajser@gmail.com>. We reply within 2 business days. If a package is
+defective, we will replace it or refund you — see our
+[refund policy](/en/legal/refund).

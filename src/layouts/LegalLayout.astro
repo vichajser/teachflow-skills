@@ -1,0 +1,48 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import type { Locale } from '@/i18n/config';
+
+interface Props {
+  lang: Locale;
+  slug: 'terms' | 'privacy' | 'refund' | 'delivery';
+}
+
+const { lang, slug } = Astro.props;
+
+const entries = await getCollection(
+  'legal',
+  (e) => e.data.lang === lang && e.data.slug === slug,
+);
+const entry = entries[0];
+if (!entry) throw new Error(`Missing ${lang} legal content for "${slug}"`);
+
+const { Content } = await render(entry);
+---
+
+<BaseLayout
+  lang={lang}
+  title={`${entry.data.title} — TeachFlow-KR`}
+  description={entry.data.description}
+  path={`/legal/${slug}`}
+  variant="legal"
+>
+  <article class="mx-auto max-w-3xl pt-16 pb-24">
+    <h1 class="text-3xl font-semibold text-text-hi">{entry.data.title}</h1>
+    <p class="mt-2 text-sm text-text-mute">
+      <time datetime={entry.data.updated}>{entry.data.updated}</time>
+    </p>
+    {/*
+      brief 给的任意变体串只覆盖 a / h2 / li / strong 四种元素。合规页正文还用到
+      h3、ol、hr 与 code —— Preflight 把 ol 的编号和缩进、hr 的边框一并清掉了，
+      只靠这串类会渲染成无编号的段落流。所以同时挂上 `.md-body`（global.css 里
+      已有、/skills 页在用的那一块）补齐 ol/ul/table/code，再单独补 h3 与 hr。
+      两者的 margin 规则重叠时以更高特异度的 [&_h2] 等变体为准。
+    */}
+    <div
+      class="md-body mt-8 space-y-4 leading-relaxed text-text-body [&_a]:text-accent [&_a:hover]:underline [&_h2]:mt-10 [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:text-text-hi [&_h3]:mt-6 [&_h3]:text-base [&_h3]:font-semibold [&_h3]:text-text-hi [&_hr]:my-8 [&_hr]:border-border [&_li]:ml-5 [&_li]:list-disc [&_strong]:text-text-hi"
+    >
+      <Content />
+    </div>
+  </article>
+</BaseLayout>

@@ -32,7 +32,20 @@ const skills = defineCollection({
 });
 
 const legal = defineCollection({
-  loader: glob({ pattern: '**/*.md', base: './src/content/legal' }),
+  // `generateId` 是必需的，不是风格选择。glob loader 的 `generateIdDefault`
+  // （node_modules/astro/dist/content/loaders/glob.js:9-12）对名为 `slug` 的
+  // frontmatter 字段有特判：存在就**直接拿它当 entry id，完全忽略文件路径**。
+  // 本集合的字段恰好叫 slug，于是 en/terms.md 与 ko/terms.md 同得 id "terms"，
+  // 后读到的那份静默覆盖前一份 —— 八个文件只剩四个条目，且全是同一种语言，
+  // 构建随即在 `Missing en legal content for "delivery"` 处失败。
+  // skills 集合没踩到是因为它的字段叫 `id` 而不是 `slug`，走的是路径派生分支。
+  // 这里显式按路径生成 id（'en/terms'），与 skills 集合的行为对齐。
+  // schema 一字未改：slug 仍是必填的 z.enum，页面仍按 slug + lang 查询。
+  loader: glob({
+    pattern: '**/*.md',
+    base: './src/content/legal',
+    generateId: ({ entry }) => entry.replace(/\.md$/, ''),
+  }),
   schema: z.object({
     slug: z.enum(['terms', 'privacy', 'refund', 'delivery']),
     lang: LOCALE,
