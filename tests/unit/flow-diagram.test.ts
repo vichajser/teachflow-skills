@@ -191,6 +191,187 @@ describe('showtime', () => {
   });
 });
 
+/**
+ * Task 13：悬停高亮与约束胶囊。
+ *
+ * 这些是**行为**断言，构建产物里查不到——`bindHover` 的监听器、`is-dimmed`
+ * 类的增减、侧卡的 `hidden` 全发生在运行时。变异 N3（把 `bindHover` 从
+ * reduced-motion 的早退分支之后调用）只有在这里才可能被杀掉。
+ */
+describe('hover binding (Task 13)', () => {
+  it('binds hover, focus and click on every node', async () => {
+    const rec = await run();
+    for (const id of NODES) {
+      expect(rec.listeners, `${id} has no mouseenter handler`).toContainEqual({
+        el: id,
+        type: 'mouseenter',
+      });
+      expect(rec.listeners, `${id} cannot be reached by keyboard`).toContainEqual({
+        el: id,
+        type: 'focus',
+      });
+      expect(rec.listeners, `${id} cannot be opened on a touch screen`).toContainEqual({
+        el: id,
+        type: 'click',
+      });
+    }
+  });
+
+  it('keeps the hover binding under prefers-reduced-motion (N3)', async () => {
+    // 悬停高亮是信息获取手段，不是装饰（brief Step 5）。把 bindHover 挪到
+    // reduced-motion 早退分支**之后**，这条即红——而构建产物完全看不出差别：
+    // 静态标记与正常模式逐字节相同，只有运行时是否绑上监听器不同。
+    const rec = await run({ reducedMotion: true });
+
+    // 先确认这确实是早退分支：四拍演出一点都没跑（没有隐藏、没有定时器）。
+    expect(rec.writes, 'reduced motion should skip the show').toEqual([]);
+    expect(rec.timers, 'reduced motion should skip the show').toEqual([]);
+
+    // 但悬停照样绑上了。
+    for (const id of NODES) {
+      expect(
+        rec.listeners.some((l) => l.el === id && l.type === 'mouseenter'),
+        `${id} loses hover when reduced motion is on`,
+      ).toBe(true);
+    }
+  });
+
+  it('dims the other nodes and shows only the hovered card', async () => {
+    const rec = await run();
+    rec.fire('ppt-workflow', 'mouseenter');
+
+    expect(rec.classesOf('ppt-workflow')).toContain('is-focused');
+    expect(rec.classesOf('ppt-workflow')).not.toContain('is-dimmed');
+    for (const id of NODES.filter((n) => n !== 'ppt-workflow')) {
+      expect(rec.classesOf(id), `${id} should dim`).toContain('is-dimmed');
+      expect(rec.classesOf(id), `${id} should not focus`).not.toContain('is-focused');
+    }
+
+    // 六张卡里只有被悬停的那张可见。`hidden` 判反或整批 toggle 都会红。
+    for (const id of NODES) {
+      expect(rec.cardVisible(id), `card ${id} visibility`).toBe(id === 'ppt-workflow');
+    }
+  });
+
+  it('highlights exactly the edges that touch the hovered node', async () => {
+    const rec = await run();
+    rec.fire('ppt-workflow', 'mouseenter');
+
+    // 与 ppt-workflow 相连的只有两条：lesson→ppt 与 ppt→report。
+    // 前后缀两条判据缺一不可——只写 startsWith 的话汇聚边永远不亮，
+    // 只写 endsWith 的话分叉边永远不亮。
+    const touching = ['lesson-workflow->ppt-workflow', 'ppt-workflow->report-workflow'];
+    for (const key of EDGE_KEYS) {
+      const cls = rec.classesOf(key);
+      const expected = touching.includes(key);
+      expect(cls.includes('is-focused'), `edge ${key} focus`).toBe(expected);
+      expect(cls.includes('is-dimmed'), `edge ${key} dim`).toBe(!expected);
+    }
+  });
+
+  it('clears every highlight when the pointer leaves the figure', async () => {
+    const rec = await run();
+    rec.fire('word-workflow', 'mouseenter');
+    rec.fire('root', 'mouseleave');
+
+    for (const id of NODES) {
+      expect(rec.classesOf(id), `${id} stays dimmed`).toEqual([]);
+    }
+    for (const key of EDGE_KEYS) {
+      expect(rec.classesOf(key), `edge ${key} stays dimmed`).toEqual([]);
+    }
+    for (const id of NODES) {
+      expect(rec.cardVisible(id), `card ${id} stays visible`).toBe(false);
+    }
+  });
+
+  it('clears the highlight on Escape', async () => {
+    const rec = await run();
+    rec.fire('audio-workflow', 'mouseenter');
+    // 非 Escape 键不得复位：写成 `!== 'Enter'` 一类的反向判断会让任意按键
+    // 都清空，键盘用户在节点间 Tab 时高亮一闪即逝。
+    rec.fire('root', 'keydown', { key: 'Tab' });
+    expect(rec.classesOf('audio-workflow'), 'Tab must not clear').toContain('is-focused');
+
+    rec.fire('root', 'keydown', { key: 'Escape' });
+    expect(rec.classesOf('audio-workflow'), 'Escape must clear').toEqual([]);
+    expect(rec.cardVisible('audio-workflow')).toBe(false);
+  });
+
+  it('marks the nodes interactive only from script, never in the markup', async () => {
+    // 静态标记里没有 tabindex/role（那由构建测试守着）；这里确认 JS 确实加上了，
+    // 否则"只在 JS 里加"会退化成"哪都没加"，键盘用户永远够不到节点。
+    const rec = await run();
+    for (const id of NODES) {
+      expect(rec.attrsOf(id).tabindex, `${id} is not focusable`).toBe('0');
+      expect(rec.attrsOf(id).role, `${id} has no role`).toBe('button');
+    }
+  });
+});
+
+describe('constraint pulse (Task 13)', () => {
+  /** 找出 `play()` 排的那个 `BEAT_MS * 4` 定时器（四拍走完的时刻）。 */
+  const pulseStart = (rec: Recorder) => rec.timers.find((t) => t.delay === 2800);
+
+  it('moves the capsule down the trunk and pulses each node', async () => {
+    const rec = await run();
+    rec.observers[0]!.fire();
+
+    const start = pulseStart(rec);
+    expect(start, 'no timer at BEAT_MS * 4 — the pulse never starts').toBeDefined();
+
+    // 胶囊开演前是透明的（静态终态的一部分），到点才亮起。
+    expect(rec.attrsOf('capsule').opacity).toBe('0');
+    start!.run();
+    expect(rec.attrsOf('capsule').opacity, 'the capsule stays invisible').toBe('1');
+
+    // 三站：lesson（立刻）→ ppt（1400ms）→ report（2800ms）。
+    const stops = [0, 1400, 2800];
+    for (const delay of stops) {
+      expect(
+        rec.timers.some((t) => t.delay === delay),
+        `no stop scheduled at ${delay}ms`,
+      ).toBe(true);
+    }
+
+    // 逐个跑完三站，每次节点的 transform 都要指向那个节点自己的盒子。
+    for (const [i, delay] of stops.entries()) {
+      rec.timers.find((t) => t.delay === delay)!.run();
+      const transform = rec.attrsOf('capsule').transform;
+      expect(transform, `stop ${i} never moved the capsule`).toMatch(
+        /^translate\([\d.-]+, [\d.-]+\)$/,
+      );
+    }
+
+    // 走完最后一站后收起（`stops.length * CAPSULE_MS` = 4200ms）。
+    const end = rec.timers.find((t) => t.delay === 4200);
+    expect(end, 'the capsule never fades back out').toBeDefined();
+    end!.run();
+    expect(rec.attrsOf('capsule').opacity).toBe('0');
+  });
+
+  it('pulses each stop with its own 400ms flash', async () => {
+    const rec = await run();
+    rec.observers[0]!.fire();
+    pulseStart(rec)!.run();
+
+    // 第一站立刻脉冲：lesson-workflow 挂上 is-pulsing，并排一个 400ms 的摘除。
+    rec.timers.find((t) => t.delay === 0)!.run();
+    expect(rec.classesOf('lesson-workflow')).toContain('is-pulsing');
+
+    const stopFlash = rec.timers.find((t) => t.delay === 400);
+    expect(stopFlash, 'the pulse never releases').toBeDefined();
+    stopFlash!.run();
+    expect(rec.classesOf('lesson-workflow')).not.toContain('is-pulsing');
+  });
+
+  it('does not run under prefers-reduced-motion', async () => {
+    // 整段演出在 reduced-motion 下不执行，脉冲自然也不该有：它是位移动效。
+    const rec = await run({ reducedMotion: true });
+    expect(rec.timers).toEqual([]);
+  });
+});
+
 describe('the 4s fallback', () => {
   it('reveals the nodes when the figure is never scrolled into view', async () => {
     const rec = await run();

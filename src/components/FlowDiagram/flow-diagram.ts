@@ -1,11 +1,15 @@
 /**
- * 六 skill 关系图的四拍演出（spec §4.1）。
+ * 六 skill 关系图的四拍演出（spec §4.1）与悬停交互（spec §4.3）。
  *
  * 设计前提：SVG 在 HTML 里已经是终态。本脚本做的是**先把元素藏起来，再按拍放出来**。
  * 因此脚本失败、被拦截或未加载时，页面自然停在终态——这是想要的结果，不是降级。
  *
  * 本模块是叶子节点（R-2）：不导出任何符号，也没有 export 语句。`play` / `BEAT_MS`
  * 及全部助手函数都留在模块作用域内；Astro 把它当 ES 模块打包，顶层声明不会外泄。
+ *
+ * Task 13 的 `runConstraintPulse` / `bindHover` 同在本模块内、同样不导出（R-2 的
+ * 续用）：T9 的接口块声明"不导出任何供其他模块使用的符号"，本任务的两个新函数
+ * 只被本文件的 `init()` 调用。测试经由 `init()` 观察它们的行为，而不是直接调用。
  */
 
 const BEAT_MS = 700;
@@ -116,6 +120,11 @@ function play(root: Element): void {
   const report = node('report-workflow');
   if (report) reveal(report, BEAT_MS * 3 + 200);
 
+  // 四拍走完（BEAT_MS * 4）之后，约束胶囊沿主干下滑（spec §4.2）。
+  // 排在四拍之后而不是同时：胶囊表达的是"约束从上位阶段流向下一阶段"，
+  // 图自己都还没搭起来就滑过一遍，读起来是两件无关的事。
+  window.setTimeout(() => runConstraintPulse(root), BEAT_MS * 4);
+
   // 演出结束后清掉内联样式，让 DOM 回到"零内联样式"的静态终态：
   // 后续 hover 交互不受残留 transition 影响，动画后的 DOM 与无 JS 时逐字节一致。
   window.setTimeout(() => {
@@ -130,6 +139,102 @@ function play(root: Element): void {
       style.strokeDashoffset = '';
     }
   }, BEAT_MS * 4 + 800);
+}
+
+/** 胶囊在每一站停留的间隔，也是整段脉冲的总时长除数。 */
+const CAPSULE_MS = 1400;
+
+/**
+ * 约束向下流动的发光胶囊（spec §4.2）。
+ *
+ * 每站：把胶囊移到该节点正上方居中（`box.x + box.width/2 - 66`，66 是胶囊半宽），
+ * 给节点挂上 `.is-pulsing` 让它的描边闪一下，400ms 后摘掉。
+ *
+ * 用 `getBBox()` 而不是 `getBoundingClientRect()`：前者的坐标系是 SVG 用户单位，
+ * 与 `<g transform>` 同一套；后者是 CSS 像素，要再乘一遍缩放比。节点坐标本就是
+ * 用户单位，直接相加即可。
+ *
+ * 胶囊初始 opacity 为 0，本函数开始时才亮起，结束时回到 0——它表达的是过程，
+ * 无 JS 时静态帧里不存在这个元素（见 FlowDiagram.astro 的注释）。
+ */
+function runConstraintPulse(root: Element): void {
+  const capsule = root.querySelector<SVGGElement>('[data-flow-capsule]');
+  if (!capsule) return;
+
+  const stops = ['lesson-workflow', 'ppt-workflow', 'report-workflow'];
+  capsule.setAttribute('opacity', '1');
+
+  stops.forEach((id, i) => {
+    window.setTimeout(() => {
+      const node = root.querySelector<SVGGElement>(`[data-flow-node="${id}"]`);
+      if (!node) return;
+      const box = node.getBBox();
+      capsule.setAttribute(
+        'transform',
+        `translate(${box.x + box.width / 2 - 66}, ${box.y - 34})`,
+      );
+      node.classList.add('is-pulsing');
+      window.setTimeout(() => node.classList.remove('is-pulsing'), 400);
+    }, i * CAPSULE_MS);
+  });
+
+  window.setTimeout(() => capsule.setAttribute('opacity', '0'), stops.length * CAPSULE_MS);
+}
+
+/**
+ * 悬停 / 聚焦 / 点击节点时的连线与侧卡高亮（spec §4.3）。
+ *
+ * `tabindex` 与 `role="button"` 在 JS 里加，不写进 SVG 静态标记：无 JS 时这些
+ * 节点根本不可交互，标成 `role="button"` 是向屏幕阅读器承诺一个不存在的行为。
+ * `tests/build/flow-hooks.test.mjs` 有一条断言守着静态产物里零个
+ * `[data-flow-node][role="button"]`。
+ *
+ * 点击也走同一条 focus：移动端没有 hover，点击是唯一的开卡方式。
+ */
+function bindHover(root: Element): void {
+  const nodes = Array.from(root.querySelectorAll<SVGGElement>('[data-flow-node]'));
+  const edges = Array.from(root.querySelectorAll<SVGPathElement>('[data-edge]'));
+  const cards = Array.from(root.querySelectorAll<HTMLElement>('[data-flow-card]'));
+
+  const clear = (): void => {
+    nodes.forEach((n) => n.classList.remove('is-dimmed', 'is-focused'));
+    edges.forEach((e) => e.classList.remove('is-dimmed', 'is-focused'));
+    cards.forEach((c) => {
+      c.hidden = true;
+    });
+  };
+
+  const focus = (id: string): void => {
+    nodes.forEach((n) => {
+      const self = n.dataset.flowNode === id;
+      n.classList.toggle('is-focused', self);
+      n.classList.toggle('is-dimmed', !self);
+    });
+    edges.forEach((e) => {
+      const key = e.dataset.edge ?? '';
+      const touches = key.startsWith(`${id}->`) || key.endsWith(`->${id}`);
+      e.classList.toggle('is-focused', touches);
+      e.classList.toggle('is-dimmed', !touches);
+    });
+    cards.forEach((c) => {
+      c.hidden = c.dataset.flowCard !== id;
+    });
+  };
+
+  for (const node of nodes) {
+    const id = node.dataset.flowNode;
+    if (!id) continue;
+    node.setAttribute('tabindex', '0');
+    node.setAttribute('role', 'button');
+    node.addEventListener('mouseenter', () => focus(id));
+    node.addEventListener('focus', () => focus(id));
+    node.addEventListener('click', () => focus(id));
+  }
+
+  root.addEventListener('mouseleave', clear);
+  root.addEventListener('keydown', (e) => {
+    if ((e as KeyboardEvent).key === 'Escape') clear();
+  });
 }
 
 /** SVG 是否真的被渲染（R-31）。`display:none` 子树下 getClientRects 为空。 */
@@ -151,6 +256,15 @@ function init(): void {
   // 定义，这里靠"是否真的被渲染"判断，不复制断点常量。）
   const svg = root.querySelector('svg');
   if (!svg || !isRendered(svg)) return;
+
+  // 悬停高亮是**信息获取手段**，不是装饰：减少动态效果的用户同样需要它。
+  // 所以它在 reduced-motion 的早退分支之前绑定——放到之后，开减少动态效果
+  // 的读者悬停任何节点都不会有反应，而那不是"减少动效"，是功能消失。
+  //
+  // 仍排在 `isRendered` 之后：SVG 是 `hidden md:block`，窄屏下它整棵子树
+  // `display:none`，此时给节点加 `tabindex`/`role="button"` 既点不到也读不到，
+  // 侧卡本身也是 `hidden md:block`，绑了没有任何一处能触发。
+  bindHover(root);
 
   // spec §8：prefers-reduced-motion 下直接渲染终态，不做任何位移
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;

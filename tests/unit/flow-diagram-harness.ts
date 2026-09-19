@@ -25,6 +25,21 @@ export interface Recorder {
   /** 事件流里的序号，用来断言"回流发生在初值与终值之间" */
   indexOf(el: string, prop: string, value: string): number;
   reflowIndex(el: string): number;
+
+  // —— Task 13 的悬停交互（`bindHover`）观察面 ——
+  // 刻意与 `writes`/`timers` 分开：`bindHover` 不动内联样式也不排定时器，
+  // 若把它的事件注册混进那两个数组，Task 9 那批"reduced-motion 下零写入零
+  // 定时器"的断言就会被无关噪声污染。
+  /** 每一次 addEventListener，按注册顺序 */
+  listeners: { el: string; type: string }[];
+  /** 某元素当前的类集合，按字母序 */
+  classesOf(el: string): string[];
+  /** 侧卡当前是否可见（`hidden === false`） */
+  cardVisible(id: string): boolean;
+  /** 逐个调用某元素上某类型的监听器，返回被调用的个数 */
+  fire(el: string, type: string, event?: unknown): number;
+  /** 元素当前的全部属性 */
+  attrsOf(el: string): Record<string, string>;
 }
 
 interface StubEl {
@@ -34,6 +49,12 @@ interface StubEl {
   style: Record<string, string>;
   children: StubEl[];
 }
+
+/** `data-flow-node` → `flowNode`，与真实 `HTMLElement.dataset` 同一套命名转换。 */
+const datasetKey = (attr: string): string =>
+  attr
+    .slice('data-'.length)
+    .replace(/-([a-z])/g, (_, c: string) => c.toUpperCase());
 
 const NODE_IDS = [
   'lesson-workflow',
@@ -80,11 +101,18 @@ export function install(options: Options = {}): Recorder {
   // 回流点用"此刻已发生多少次写入"定位，便于和 indexOf 的序号直接比较先后
   const reflowAt = new Map<string, number>();
 
+  // 类、属性、监听器、侧卡可见性都挂在 label 上。类用 Set 而不是拼接串，
+  // `classList.toggle(x, false)` 的幂等与 `remove` 的缺失都不需要单独建模。
+  const classes = new Map<string, Set<string>>();
+  const listeners = new Map<string, { type: string; fn: (e: unknown) => void }[]>();
+  const cards = new Map<string, { hidden: boolean }>();
+
   const rec: Recorder = {
     writes: [],
     reflows: [],
     timers: [],
     observers: [],
+    listeners: [],
     valuesOf(el, prop) {
       return rec.writes.filter((w) => w.el === el && w.prop === prop).map((w) => w.value);
     },
@@ -96,7 +124,26 @@ export function install(options: Options = {}): Recorder {
     reflowIndex(el) {
       return reflowAt.get(el) ?? -1;
     },
+    classesOf(el) {
+      return [...(classes.get(el) ?? [])].sort();
+    },
+    cardVisible(id) {
+      const card = cards.get(id);
+      if (!card) throw new Error(`no card for ${id}`);
+      return !card.hidden;
+    },
+    attrsOf(el) {
+      return { ...(attrsOf.get(el) ?? {}) };
+    },
+    fire(el, type, event) {
+      const own = (listeners.get(el) ?? []).filter((l) => l.type === type);
+      for (const l of own) l.fn(event);
+      return own.length;
+    },
   };
+
+  // 每个 label 的"当前属性"副本，供 `attrsOf` 读取 setAttribute 的结果
+  const attrsOf = new Map<string, Record<string, string>>();
 
   const make = (label: string, tag: string, attrs: Record<string, string>): StubEl => {
     const el: StubEl = { label, tag, attrs, style: {}, children: [] };
@@ -108,6 +155,8 @@ export function install(options: Options = {}): Recorder {
       },
     });
     el.style = proxy;
+    attrsOf.set(label, { ...attrs });
+    classes.set(label, new Set());
     return el;
   };
 
@@ -119,9 +168,23 @@ export function install(options: Options = {}): Recorder {
   for (const key of EDGES) {
     svg.children.push(make(key, 'path', { 'data-edge': key }));
   }
+  // opacity="0" 是静态标记自带的初值（无 JS 时胶囊不可见），桩里照抄：
+  // 缺了它，"开演前是透明的"这条断言在桩上永远拿不到 '0'。
+  svg.children.push(
+    make('capsule', 'g', { 'data-flow-capsule': '', opacity: '0' }),
+  );
 
   const root = make('root', 'figure', { 'data-flow-diagram': '' });
   root.children.push(svg);
+
+  // 侧卡在真实产物里是 root 的子元素、SVG 之外（md 以下 SVG 整棵 display:none，
+  // 卡必须在它外面才点得到）。桩 DOM 照此摆放，否则 `bindHover` 的
+  // `root.querySelectorAll('[data-flow-card]')` 一张都找不到。
+  for (const id of NODE_IDS) {
+    const card = make(`card:${id}`, 'article', { 'data-flow-card': id });
+    cards.set(id, { hidden: true });
+    root.children.push(card);
+  }
 
   const all = (el: StubEl): StubEl[] => [el, ...el.children.flatMap(all)];
 
@@ -156,9 +219,80 @@ export function install(options: Options = {}): Recorder {
       all(el).slice(1).find((c) => matches(c, sel)) ?? null;
     host.querySelectorAll = (sel: string) =>
       all(el).slice(1).filter((c) => matches(c, sel));
+
+    // —— Task 13：真实的 SVG 元素有这些成员，跨过去的都是它们 ——
+    // `dataset` 由 `data-*` 属性派生，与浏览器同一套命名转换（`data-flow-node`
+    // → `flowNode`）。写成静态对象会让 `n.dataset.flowNode` 恒为 undefined，
+    // 于是 `bindHover` 在第一个节点就 `continue`，而所有断言仍然绿。
+    host.dataset = new Proxy(
+      {},
+      {
+        get: (_t, prop: string) => {
+          const attr = `data-${prop.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`)}`;
+          return el.attrs[attr];
+        },
+      },
+    );
+
+    host.setAttribute = (name: string, value: string) => {
+      el.attrs[name] = value;
+      const own = attrsOf.get(el.label);
+      if (own) own[name] = value;
+    };
+    host.getAttribute = (name: string) => el.attrs[name] ?? null;
+
+    host.classList = {
+      add: (name: string) => classes.get(el.label)!.add(name),
+      remove: (...names: string[]) =>
+        names.forEach((n) => classes.get(el.label)!.delete(n)),
+      toggle: (name: string, force?: boolean) => {
+        const set = classes.get(el.label)!;
+        const on = force ?? !set.has(name);
+        if (on) set.add(name);
+        else set.delete(name);
+        return on;
+      },
+      contains: (name: string) => classes.get(el.label)!.has(name),
+    };
+
+    host.addEventListener = (type: string, fn: (e: unknown) => void) => {
+      const list = listeners.get(el.label) ?? [];
+      list.push({ type, fn });
+      listeners.set(el.label, list);
+      rec.listeners.push({ el: el.label, type });
+    };
+
+    // 用户单位坐标，与 <g transform> 同一套；节点盒子的真实值在这份桩里
+    // 不重要，重要的是"每个节点拿到的是自己的盒子"，所以按索引给不同值。
+    const nodeIndex = NODE_IDS.indexOf(el.label);
+    host.getBBox = () => ({
+      x: 300 + (nodeIndex < 0 ? 0 : nodeIndex) * 10,
+      y: 120 + (nodeIndex < 0 ? 0 : nodeIndex) * 10,
+      width: 200,
+      height: 88,
+    });
+
+    // 侧卡的 `hidden` 是 `bindHover` 唯一的输出通道，必须可读可写。
+    if (el.label.startsWith('card:')) {
+      const id = el.label.slice('card:'.length);
+      Object.defineProperty(el, 'hidden', {
+        get: () => cards.get(id)!.hidden,
+        set: (v: boolean) => {
+          cards.get(id)!.hidden = v;
+        },
+      });
+    }
   };
+
+  // 每个元素都要装饰：侧卡虽然在 SVG 之外，`bindHover` 照样要读 `dataset`、
+  // 写 `hidden`。漏掉它们的话 `c.dataset.flowCard` 直接抛 TypeError，而
+  // 报错位置在 bindHover 内部，看起来像源码坏了。
+  const inSvg = new Set(all(svg));
   decorate(root, false);
-  for (const el of all(svg)) decorate(el, true);
+  for (const el of all(root)) {
+    if (el === root) continue;
+    decorate(el, inSvg.has(el));
+  }
 
   const g = globalThis as unknown as Record<string, unknown>;
 

@@ -6,6 +6,7 @@ import {
   INPUT_NODE,
   edgePath,
   nodeColor,
+  sampleHref,
 } from './nodes';
 import { useTranslations } from '@/i18n/t';
 import type { TranslationKey } from '@/i18n/t';
@@ -20,6 +21,18 @@ const t = useTranslations(lang);
 
 const label = (id: string) => t(`flow.node.${id}` as TranslationKey);
 
+/**
+ * `t()` 的返回类型是 string，但运行时对字典里不存在的键会给出 undefined
+ * （`DICTIONARIES[locale][key] ?? en[key]`）。裁决 2 要求空行连同标题一起不渲染，
+ * 这里把"取不到"与"取到空串"归并成同一种空，模板便只需判一次 length。
+ */
+const textOf = (key: TranslationKey): string => t(key) ?? '';
+
+// 样例链接规则住在 nodes.ts（`sampleHref`），这样它的"就绪时给什么链接、
+// 未就绪时不给"两条分支都能被直接测到——五个样例今天全是未就绪状态，
+// 光看构建产物看不出链接渲染被删掉。
+const sampleHrefFor = (id: (typeof FLOW_NODES)[number]['id']) => sampleHref(id, lang);
+
 // 三个阶段的文字版分组。SVG 只画得出"谁连着谁"，读屏器读不出来；
 // 这份分组把同一件事说成话，并且用上 flow.stage1/2/3 这三个键。
 const STAGES = ([1, 2, 3] as const).map((stage) => ({
@@ -29,7 +42,12 @@ const STAGES = ([1, 2, 3] as const).map((stage) => ({
 }));
 ---
 
-<figure class="my-16" data-flow-diagram>
+<!--
+  `relative` 是侧卡的定位基准（裁决：外层容器需加 relative）。侧卡在 SVG 之外、
+  图容器之内，因为它们要在任何断点都能被 JS 开关，而 SVG 在 md 以下是
+  `display:none`——把卡塞进 SVG 会让移动端连卡带图一起消失。
+-->
+<figure class="relative my-16" data-flow-diagram>
   <figcaption class="mb-6 text-2xl font-semibold text-text-hi">
     {t('flow.title')}
   </figcaption>
@@ -107,7 +125,81 @@ const STAGES = ([1, 2, 3] as const).map((stage) => ({
         )}
       </g>
     ))}
+
+    <!--
+      约束胶囊（spec §4.2）。初始 opacity="0"：它表达的是"约束沿流程向下传递"
+      这一**过程**，静态帧没有意义。所以无 JS 时它静默隐藏，而不是像节点/连线
+      那样渲染终态——终态的画法是"约束已经流完了"，那是错的，会让人以为
+      图上本来就有个飘着的胶囊。这是它与其余元素唯一的处理差别。
+
+      宽高与居中偏移跟着 runConstraintPulse() 里的 66 走：132/2 = 66，
+      改这里就得同步改那里。
+    -->
+    <g data-flow-capsule opacity="0">
+      <rect
+        rx="12"
+        width="132"
+        height="26"
+        fill="var(--color-raised)"
+        stroke="var(--color-accent-glow)"
+        stroke-width="1"
+      />
+      <text
+        x="66"
+        y="17"
+        text-anchor="middle"
+        font-size="12"
+        fill="var(--color-accent-glow)"
+        data-flow-capsule-label
+      >{t('flow.constraint.core')}</text>
+    </g>
   </svg>
+
+  <!--
+    悬停 / 聚焦侧卡（spec §4.3）。每节点一张，默认 `hidden` —— 无 JS 时它们
+    全部不可见，因为"悬停看详情"这个行为本身就没发生。
+
+    放在 SVG 之外、图容器之内：SVG 在 md 以下是 `display:none`，卡若放进去会
+    连图带卡一起消失，而文字版列表才是窄屏的唯一呈现。`pointer-events-none`
+    的外壳保证不做交互时侧卡不拦截图上任何点击；卡自身恢复 `pointer-events-auto`。
+  -->
+  <div class="pointer-events-none absolute inset-y-0 right-0 hidden w-64 md:block">
+    {FLOW_NODES.map((node) => {
+      const needs = textOf(node.needsKey);
+      const makes = textOf(node.makesKey);
+      const sampleHref = sampleHrefFor(node.id);
+      return (
+        <article
+          data-flow-card={node.id}
+          hidden
+          class="pointer-events-auto rounded-xl border border-border bg-surface p-4 text-sm"
+        >
+          <h3 class="font-semibold text-text-hi">{label(node.id)}</h3>
+          <!--
+            裁决 2：内容为空时连同它的标题一起不渲染。今天六个节点两条都有值，
+            这是对未来加节点的防御——漏配一个键就会露出一行没有下文的标题。
+          -->
+          {needs.length > 0 && (
+            <>
+              <p class="mt-2 text-text-mute">{t('flow.card.needs')}</p>
+              <p class="font-mono text-xs text-text-body">{needs}</p>
+            </>
+          )}
+          {makes.length > 0 && (
+            <>
+              <p class="mt-2 text-text-mute">{t('flow.card.makes')}</p>
+              <p class="font-mono text-xs text-text-body">{makes}</p>
+            </>
+          )}
+          {sampleHref && (
+            <a href={sampleHref} class="mt-3 inline-block text-accent hover:underline">
+              {t('flow.card.sample')}
+            </a>
+          )}
+        </article>
+      );
+    })}
+  </div>
 
   <!--
     md 以下这是唯一的呈现（SVG 缩到手机宽度就看不清了）；md 以上它对读屏器
@@ -140,6 +232,71 @@ const STAGES = ([1, 2, 3] as const).map((stage) => ({
   </ol>
 
   <p class="mt-6 text-sm text-text-mute">{t('flow.constraint')}</p>
+
+  <!--
+    这三个类由 flow-diagram.ts 在运行时 add/remove，静态标记里一个都没有。
+    Astro 会把它们编译成带作用域属性的选择器，而 `<g>`/`<path>` 本身在模板里
+    就带着该属性，所以运行时挂上的类照样命中。`transition` 与动效预算的
+    其余四项互不冲突：这一项是 spec §4.2 明列的"约束胶囊"。
+  -->
+  <style>
+    /*
+      SVG 元素上的 opacity 走 CSS 而非属性，才能过渡。连线本来就有
+      `opacity="0.55"` 属性，CSS 的 opacity 会覆盖它——这不是意外：悬停时
+      非相关元素一律降到 0.35，与它原先的 0.55 之争没有意义。
+    */
+    [data-flow-node],
+    [data-edge] {
+      transition:
+        opacity 200ms ease-out,
+        filter 200ms ease-out;
+    }
+
+    .is-dimmed {
+      opacity: 0.35;
+    }
+
+    /*
+      辉光只加在描边上（spec §5.1：霓虹色不进正文），所以是 drop-shadow
+      而不是给 <text> 上色。filter 在 SVG <g> 上按整棵子树统一绘制。
+    */
+    .is-focused,
+    .is-pulsing {
+      filter: drop-shadow(0 0 12px var(--color-accent-glow));
+    }
+
+    /*
+      spec §4.2 要的是"沿连线向下**滑动**的发光胶囊"，而 `runConstraintPulse`
+      用 `setAttribute('transform', …)` 更新位置——属性改动本身是瞬时的。这条
+      transition 让它在支持把 transform 当作可过渡 CSS 属性的浏览器上滑过去。
+
+      若某个浏览器不把该属性纳入过渡，退化成"每站跳一下"——仍能读出约束在
+      向下传递，不是坏掉。写在这里而不是 `style.transform`：brief 逐字给的是
+      `setAttribute`，且 SVG 用户单位与 CSS px 在这个 `<g>` 上恰好同刻度。
+
+      减少动态效果时整段不执行（`init()` 提前返回），无需额外取消。
+    */
+    [data-flow-capsule] {
+      transition:
+        transform 500ms ease-out,
+        opacity 200ms ease-out;
+    }
+
+    /*
+      spec §8 要求 reduced-motion 下无位移动效，此处**刻意不写**自己的
+      `@media (prefers-reduced-motion: reduce)` 块。两条理由：
+
+      1. 这两条过渡只动 opacity 与 filter，本来就没有位移；reduced-motion 下
+         真正会动的胶囊脉冲由 `init()` 提前返回，整段不执行。
+      2. global.css 的全局兜底已把 `transition-duration` 压到 .01ms，
+         悬停高亮因此是瞬时的，没有需要额外取消的过渡。
+
+      写一块自己的 media 查询会把 HeroFan 的同类规则在合并后的 `<style>` 里
+      推到第二位，而 `tests/build/motion-budget.test.mjs` 按"第一块
+      prefers-reduced-motion"定位 HeroFan 那条——那是 Task 12 验过的断言，
+      不该因为一块多余的规则而失效。
+    */
+  </style>
 
   <!--
     渐进增强：脚本只在图进入视口时把 SVG 从静态终态"藏起再放出"。
