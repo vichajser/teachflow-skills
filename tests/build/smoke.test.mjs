@@ -17,4 +17,14 @@ describe('build output', () => {
     expect(readFileSync(dist('en/index.html'), 'utf8')).toContain('lang="en"');
     expect(readFileSync(dist('ko/index.html'), 'utf8')).toContain('lang="ko"');
   });
+
+  it('links a stylesheet that contains the compiled Tailwind theme', () => {
+    const html = readFileSync(dist('en/index.html'), 'utf8');
+    const link = html.match(/<link[^>]+rel=["']stylesheet["'][^>]*>/i);
+    expect(link, 'dist/en/index.html has no <link rel="stylesheet">').not.toBeNull();
+
+    const href = link[0].match(/href=["']([^"']+)["']/i)[1];
+    const css = readFileSync(dist(href.replace(/^\//, '')), 'utf8');
+    expect(css).toContain('.text-text-hi');
+  });
 });
