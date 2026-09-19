@@ -31,7 +31,7 @@
   "pricing.product": "TeachFlow-KR Complete Bundle",
   "pricing.oneTime": "One-time purchase. No subscription, no auto-renewal.",
   "pricing.includes": "What you get",
-  "pricing.includesLead": "All six skills, delivered as a zip of SKILL.md files and their references.",
+  "pricing.includesLead": "All six skills, delivered as six zip packages — one per skill. Each holds the skill file, its reference documents, a licence and a security notice.",
   "pricing.howToBuy": "Two ways to buy",
   "pricing.viaMarketplace": "Buy on Agensi",
   "pricing.viaMarketplaceBody": "Pay on the Agensi marketplace and download immediately. Agensi is the merchant of record and handles invoicing and refunds for that purchase.",
@@ -42,5 +42,5 @@
   "pricing.refundLink": "Refund & cancellation policy",
   "pricing.deliveryLink": "How digital delivery works",
   "pricing.requirements": "What you need to run it",
-  "pricing.requirementsBody": "Claude with skill support, and a desktop computer. Everything runs locally; no internet connection is required while the skills run."
+  "pricing.requirementsBody": "A desktop computer and a coding agent that reads the SKILL.md format — Claude Code, Codex CLI, Cursor and Gemini CLI all do. Everything runs locally; no internet connection is required while the skills run."
 }

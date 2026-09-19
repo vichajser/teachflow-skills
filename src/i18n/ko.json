@@ -31,7 +31,7 @@
   "pricing.product": "TeachFlow-KR 전체 패키지",
   "pricing.oneTime": "1회 구매. 구독도, 자동 갱신도 없습니다.",
   "pricing.includes": "포함된 것",
-  "pricing.includesLead": "6개 스킬 전부. SKILL.md 파일과 참고 문서가 담긴 zip으로 제공됩니다.",
+  "pricing.includesLead": "6개 스킬 전부. 스킬마다 zip 하나씩, 총 6개로 전달됩니다. 각 zip에는 스킬 파일과 참고 문서, 라이선스, 보안 고지가 들어 있습니다.",
   "pricing.howToBuy": "구매 방법 두 가지",
   "pricing.viaMarketplace": "Agensi에서 구매",
   "pricing.viaMarketplaceBody": "Agensi 마켓플레이스에서 결제하고 바로 내려받습니다. 해당 구매의 판매 주체는 Agensi이며 청구와 환불도 Agensi가 처리합니다.",
@@ -42,5 +42,5 @@
   "pricing.refundLink": "환불 및 취소 정책",
   "pricing.deliveryLink": "디지털 상품 전달 방식",
   "pricing.requirements": "실행에 필요한 것",
-  "pricing.requirementsBody": "스킬을 지원하는 Claude와 데스크톱 컴퓨터. 모든 작업은 로컬에서 이루어지며, 스킬 실행 중에는 인터넷 연결이 필요하지 않습니다."
+  "pricing.requirementsBody": "데스크톱 컴퓨터와 SKILL.md 형식을 읽는 코딩 에이전트. Claude Code, Codex CLI, Cursor, Gemini CLI 모두 해당합니다. 모든 작업은 로컬에서 이루어지며, 스킬 실행 중에는 인터넷 연결이 필요하지 않습니다."
 }
