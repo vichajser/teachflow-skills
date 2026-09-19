@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { SITE } from '@/config/site';
 
 const dist = (p) => resolve(process.cwd(), 'dist', p);
 
@@ -37,5 +38,25 @@ describe('build output', () => {
     expect(css, 'compiled Tailwind theme reached neither a stylesheet nor the inline <style>').toContain(
       '.text-text-hi',
     );
+  });
+});
+
+// R-7：robots.txt 曾是硬编码占位域名的第三处静态文件。现在它是读取
+// SITE.domain 的路由，必须仍落在 dist/robots.txt。
+// 断言完整正文（而非"含 Sitemap 字样"）：少了尾换行、多一行 Disallow
+// 之类的回归都会被抓到。这是构建产物的检查，故归 tests/build/。
+// 域名的"只此两处"纪律另由 tests/unit/site.test.ts 在源码层面无需构建地钉死。
+describe('robots.txt', () => {
+  it('lands at dist/robots.txt with the exact body, domain taken from SITE', () => {
+    const txt = readFileSync(dist('robots.txt'), 'utf8');
+    expect(txt).toBe(
+      `User-agent: *\nAllow: /\n\nSitemap: ${SITE.domain}/sitemap-index.xml\n`,
+    );
+  });
+
+  it('stays publicly crawlable — no Disallow, no noindex', () => {
+    const txt = readFileSync(dist('robots.txt'), 'utf8');
+    expect(txt).not.toMatch(/disallow/i);
+    expect(txt).not.toMatch(/noindex/i);
   });
 });
