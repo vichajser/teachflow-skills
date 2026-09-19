@@ -1,0 +1,161 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { useTranslations } from '@/i18n/t';
+import type { Locale } from '@/i18n/config';
+
+export { localeStaticPaths as getStaticPaths } from '@/i18n/paths';
+
+const lang = Astro.params.lang as Locale;
+const t = useTranslations(lang);
+
+/*
+ * 每条事实都写成 { en, ko } 成对出现，渲染时只取其中一版。
+ * 这样"不得只在一种语言里写出某条事实"由结构保证，而不是靠人肉对照。
+ */
+const LEAD: Record<Locale, string> = {
+  en: 'TeachFlow-KR is 32 plain-text instruction files, not an installed program. Here is how to put the six skills in place, confirm they loaded, and prepare your first unit.',
+  ko: 'TeachFlow-KR는 설치형 프로그램이 아니라 일반 텍스트 설명 파일 32개입니다. 여섯 스킬을 제자리에 넣고, 제대로 불러왔는지 확인하고, 첫 단원을 준비하는 방법을 안내합니다.',
+};
+
+const INSTALL_HEADING: Record<Locale, string> = {
+  en: 'Install the six skills',
+  ko: '스킬 여섯 개 설치하기',
+};
+
+const INSTALL_STEPS: { en: string; ko: string }[] = [
+  {
+    en: 'The package is not a program you run: it is 32 plain-text instruction files, and installing means putting six folders where your AI tool looks for skills.',
+    ko: '실행하는 프로그램이 아니라 일반 텍스트 설명 파일 32개이며, 설치는 6개 폴더를 AI 도구가 스킬을 찾는 자리에 넣는 일입니다.',
+  },
+  {
+    en: 'Use whichever AI tool you already have. Claude Code, Codex CLI and Google Gemini CLI are all supported, and one of them is enough — you do not need all three.',
+    ko: '이미 쓰고 있는 AI 도구를 그대로 쓰면 됩니다. Claude Code, Codex CLI, Google Gemini CLI를 모두 지원하며, 셋 다 필요하지 않고 그중 하나면 충분합니다.',
+  },
+  {
+    en: 'Unzip the package you downloaded. Inside TeachFlow-KR/skills/ are six folders — lesson-workflow through report-workflow — alongside docs/, LICENSE and verify.py.',
+    ko: '내려받은 압축을 풉니다. TeachFlow-KR/skills/ 안에 lesson-workflow부터 report-workflow까지 6개 폴더가 있고, 그 옆에 docs/, LICENSE, verify.py가 있습니다.',
+  },
+  {
+    en: 'Copy those six folders themselves, not the outer skills/ folder. Dragging the whole skills folder in is the most common mistake.',
+    ko: '바깥의 skills/ 폴더가 아니라 그 안의 6개 폴더 자체를 복사합니다. skills 폴더를 통째로 넣는 것이 가장 흔한 실수입니다.',
+  },
+  {
+    en: 'You can also let your agent do it: point it at the unzipped folder and ask it to install the six skills, and it will place them correctly.',
+    ko: '직접 복사하는 대신 AI에게 맡길 수도 있습니다. 압축을 푼 폴더 위치를 알려 주고 6개 스킬 설치를 부탁하면 알맞은 자리에 넣어 줍니다.',
+  },
+  {
+    en: 'Fully quit the AI tool and start it again. New skills do not appear until you restart, and forgetting this is the most common reason people ask for help.',
+    ko: 'AI 도구를 완전히 종료했다가 다시 실행합니다. 재실행하기 전에는 새 스킬이 나타나지 않으며, 이 점을 놓치는 것이 문의가 가장 많은 원인입니다.',
+  },
+  {
+    en: 'On Google Gemini CLI you can run /skills reload instead of restarting.',
+    ko: 'Google Gemini CLI에서는 다시 실행하는 대신 /skills reload를 쓰면 됩니다.',
+  },
+];
+
+const LOCATIONS_HEADING: Record<Locale, string> = {
+  en: 'Where the six folders go',
+  ko: '6개 폴더를 넣는 위치',
+};
+
+const LOCATIONS: { tool: string; path: string }[] = [
+  { tool: 'Claude Code', path: '.claude/skills' },
+  { tool: 'Codex CLI', path: '.agents/skills' },
+  { tool: 'Google Gemini CLI', path: '.gemini/skills' },
+];
+
+const LOCATIONS_NOTE: Record<Locale, string> = {
+  en: 'Those three paths sit in your home directory, and you only need the one for the tool you use. Once the six folders are in place you can delete the unzipped directory entirely — installing changes no system settings.',
+  ko: '세 경로 모두 홈 디렉터리 기준이며, 쓰는 도구에 해당하는 하나만 있으면 됩니다. 6개 폴더를 넣고 나면 압축을 푼 폴더는 통째로 지워도 됩니다. 설치는 어떤 시스템 설정도 바꾸지 않습니다.',
+};
+
+const VERIFY_HEADING: Record<Locale, string> = {
+  en: 'Check that they loaded',
+  ko: '제대로 불러왔는지 확인하기',
+};
+
+const VERIFY_LEAD: Record<Locale, string> = {
+  en: 'After the restart, open the skill list in your tool. You should see six entries:',
+  ko: '다시 실행한 뒤 도구에서 스킬 목록을 엽니다. 여섯 항목이 보이면 정상입니다.',
+};
+
+const VERIFY_COMMANDS: { tool: string; command: string }[] = [
+  { tool: 'Claude Code', command: '/' },
+  { tool: 'Codex CLI', command: '/skills' },
+  { tool: 'Google Gemini CLI', command: '/skills list' },
+];
+
+const FIRST_USE_HEADING: Record<Locale, string> = {
+  en: 'Prepare your first unit',
+  ko: '첫 단원 준비하기',
+};
+
+const FIRST_USE_STEPS: { en: string; ko: string }[] = [
+  {
+    en: 'Create a folder for one textbook unit.',
+    ko: '교재 단원 하나를 위한 폴더를 만듭니다.',
+  },
+  {
+    en: 'Put the textbook files in it. PDF, photos, HWP and Word all work.',
+    ko: '그 안에 교재 파일을 넣습니다. PDF, 사진, HWP, Word 모두 됩니다.',
+  },
+  {
+    en: 'Ask for what you want in plain language. For example: "Prepare a lesson from the attached Unit 5 textbook — 2nd-year middle school, 45-minute periods, split into 3 periods, students at roughly A2."',
+    ko: '원하는 것을 자연어로 요청합니다. 예: "첨부한 중2 5단원 교재로 수업을 준비해 줘. 45분 수업, 3차시로 나눠서, 학생 수준은 대략 A2야."',
+  },
+  {
+    en: 'You do not need to name a skill. lesson-workflow picks the request up on its own and the other five follow it.',
+    ko: '스킬 이름을 부를 필요는 없습니다. lesson-workflow가 요청을 알아서 맡고, 나머지 다섯이 그것을 따라갑니다.',
+  },
+];
+
+const codeClass = 'font-mono text-accent-glow';
+---
+
+<BaseLayout
+  lang={lang}
+  title={`${t('docs.title')} — TeachFlow-KR`}
+  description={LEAD[lang]}
+  path="/docs"
+>
+  <h1 class="pt-16 text-4xl font-semibold text-text-hi">{t('docs.title')}</h1>
+  <p class="mt-3 max-w-2xl text-lg text-text-body">{LEAD[lang]}</p>
+
+  <section class="mt-12"
+    ><h2 class="mb-4 text-2xl font-semibold text-text-hi">{INSTALL_HEADING[lang]}</h2>
+    <ol class="max-w-3xl list-decimal space-y-3 pl-5 text-text-body">
+      {INSTALL_STEPS.map((step) => <li>{step[lang]}</li>)}
+    </ol>
+
+    <h3 class="mt-8 mb-3 text-lg font-semibold text-text-hi">{LOCATIONS_HEADING[lang]}</h3>
+    <ul class="grid max-w-3xl gap-2 sm:grid-cols-3">
+      {LOCATIONS.map((row) => (
+        <li class="rounded-lg border border-border bg-surface px-4 py-3">
+          <p class="text-text-hi">{row.tool}</p>
+          <code class={codeClass}>{row.path}</code>
+        </li>
+      ))}
+    </ul>
+    <p class="mt-3 max-w-3xl text-sm text-text-mute">{LOCATIONS_NOTE[lang]}</p>
+  </section>
+
+  <section class="mt-12"
+    ><h2 class="mb-4 text-2xl font-semibold text-text-hi">{VERIFY_HEADING[lang]}</h2>
+    <p class="max-w-2xl text-text-body">{VERIFY_LEAD[lang]}</p>
+    <ul class="mt-3 grid max-w-3xl gap-2 sm:grid-cols-3">
+      {VERIFY_COMMANDS.map((row) => (
+        <li class="rounded-lg border border-border bg-surface px-4 py-3">
+          <p class="text-text-hi">{row.tool}</p>
+          <code class={codeClass}>{row.command}</code>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <section class="mt-12 pb-16"
+    ><h2 class="mb-4 text-2xl font-semibold text-text-hi">{FIRST_USE_HEADING[lang]}</h2>
+    <ol class="max-w-3xl list-decimal space-y-3 pl-5 text-text-body">
+      {FIRST_USE_STEPS.map((step) => <li>{step[lang]}</li>)}
+    </ol>
+  </section>
+</BaseLayout>

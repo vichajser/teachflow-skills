@@ -66,5 +66,16 @@
   "home.privacyBody": "The skills make no network requests — run them offline and they work the same. Your agent and its model are a separate product with its own data policy.",
   "home.privacyLink": "How you can verify that",
   "home.buyTitle": "TeachFlow-KR Complete Bundle",
-  "home.buyBody": "All six skills, one payment, no subscription."
+  "home.buyBody": "All six skills, one payment, no subscription.",
+  "samples.title": "Real output",
+  "samples.lead": "Files produced from an actual textbook unit. No student names appear in any of them.",
+  "samples.pending": "Sample in preparation",
+  "samples.download": "Download",
+  "samples.generatedIn": "Generated in",
+  "samples.seconds": "seconds",
+  "docs.title": "Install & get started",
+  "faq.title": "Frequently asked questions",
+  "notFound.title": "Page not found",
+  "notFound.body": "That page does not exist. Try the home page.",
+  "notFound.home": "Go to the home page"
 }

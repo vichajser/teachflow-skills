@@ -1,0 +1,54 @@
+---
+import { SKILLS, stageClass } from '@/data/skills';
+import { isReady, type Sample } from '@/data/samples';
+import { useTranslations } from '@/i18n/t';
+import type { Locale } from '@/i18n/config';
+
+interface Props {
+  lang: Locale;
+  sample: Sample;
+}
+
+const { lang, sample } = Astro.props;
+const t = useTranslations(lang);
+
+const skill = SKILLS.find((s) => s.id === sample.skillId);
+if (!skill) throw new Error(`Sample ${sample.id} references unknown skill`);
+
+const ready = isReady(sample);
+---
+
+<article
+  class:list={[
+    'rounded-xl border bg-surface p-5',
+    ready ? stageClass(skill.stage) : 'border-border opacity-70',
+  ]}
+>
+  {sample.previewImage && (
+    <img
+      src={sample.previewImage}
+      alt={sample.title[lang]}
+      loading="lazy"
+      class="mb-4 w-full rounded-lg border border-border"
+    />
+  )}
+
+  <h3 class="text-lg font-semibold text-text-hi">{sample.title[lang]}</h3>
+  <p class="mt-1 font-mono text-xs text-text-mute">{sample.skillId}</p>
+
+  {sample.durationSeconds !== null && (
+    <p class="mt-2 text-sm text-text-body">
+      {t('samples.generatedIn')} {sample.durationSeconds} {t('samples.seconds')}
+    </p>
+  )}
+
+  {ready ? (
+    <a
+      href={sample.file!}
+      download
+      class="mt-4 inline-block rounded-lg border border-accent px-4 py-2 text-sm text-text-hi hover:bg-raised"
+    >{t('samples.download')}</a>
+  ) : (
+    <p class="mt-4 text-sm text-text-mute">{t('samples.pending')}</p>
+  )}
+</article>
