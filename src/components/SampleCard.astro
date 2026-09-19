@@ -31,16 +31,29 @@ const ready = isReady(sample);
     // （别把 0.7 只套在文字上、背景仍取原始 #0E1626：那会算出 3.18，但浏览器
     // 不会那样画——group opacity 把背景一起淡化了。3.13 是量出来的。）
     'rounded-xl border bg-surface p-5',
+    // 质感 2 / spec §4.5 第 2 项：hover 升起。单个 `transition`（不是
+    // `transition-transform transition-shadow`）——那两条工具类都写
+    // `transition-property`，后者覆盖前者，位移会变成硬跳。Tailwind 4 的
+    // `transition` 默认属性列表本就含 transform 与 box-shadow。
+    'transition duration-200 hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(46,125,255,0.18)]',
     ready ? stageClass(skill.stage) : 'border-border',
   ]}
 >
+  {/*
+    spec §4.5 第 2 项写的是"点击开灯箱"。本实现有意改为**缩略图直接链接原图**：
+    灯箱要 JS，而零 JS 是 /samples 的硬约束（tests/build/no-js.test.mjs 枚举
+    dist 下全部 index.html 直接判失败）。点开原图在新标签页是同等有效的"看大图"
+    路径，对键盘与屏幕阅读器也更友好。这是一处有意偏离，记在此以免后来者误判为漏做。
+  */}
   {sample.previewImage && (
-    <img
-      src={sample.previewImage}
-      alt={sample.title[lang]}
-      loading="lazy"
-      class="mb-4 w-full rounded-lg border border-border"
-    />
+    <a href={sample.previewImage} target="_blank" rel="noopener">
+      <img
+        src={sample.previewImage}
+        alt={sample.title[lang]}
+        loading="lazy"
+        class="mb-4 w-full rounded-lg border border-border"
+      />
+    </a>
   )}
 
   <h3 class="text-lg font-semibold text-text-hi">{sample.title[lang]}</h3>

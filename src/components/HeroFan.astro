@@ -1,0 +1,88 @@
+---
+import { SKILLS } from '@/data/skills';
+import type { Locale } from '@/i18n/config';
+
+interface Props {
+  lang: Locale;
+}
+
+const { lang } = Astro.props;
+
+// Six artifact labels spread evenly across -50°..50°.
+const ANGLE_SPAN = 100;
+const fanned = SKILLS.map((skill, i) => ({
+  skill,
+  angle: -ANGLE_SPAN / 2 + (ANGLE_SPAN / (SKILLS.length - 1)) * i,
+  delay: 200 + i * 90,
+}));
+---
+
+<!--
+  Spec §4.5 item 1: the textbook icon fans out into six artifact thumbnails,
+  plays once and stops. Pure CSS `animation` + `animation-fill-mode: forwards`,
+  no JS — so it does not touch the home page JS budget, and the whole site's
+  four-animation ceiling stays intact.
+
+  `aria-hidden="true"`: these file extensions already have a semantic rendering
+  in the /skills section below; reading them out again adds nothing.
+-->
+<div class="hero-fan" aria-hidden="true" lang={lang}>
+  <span class="hero-fan__source">PDF</span>
+  {fanned.map(({ skill, angle, delay }) => (
+    <span
+      class="hero-fan__leaf font-mono"
+      style={`--angle: ${angle}deg; --delay: ${delay}ms;`}
+    >{skill.outputs[0] ?? '.md'}</span>
+  ))}
+</div>
+
+<style>
+  .hero-fan {
+    position: relative;
+    height: 180px;
+    display: grid;
+    place-items: center;
+  }
+
+  .hero-fan__source {
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    color: var(--color-text-mute);
+    border: 1px solid var(--color-border);
+    border-radius: 0.5rem;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .hero-fan__leaf {
+    position: absolute;
+    font-size: 0.7rem;
+    color: var(--color-text-body);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    padding: 0.25rem 0.6rem;
+    opacity: 0;
+    transform: rotate(var(--angle)) translateY(0) rotate(calc(-1 * var(--angle)));
+    animation: fan-out 600ms ease-out var(--delay) forwards;
+  }
+
+  @keyframes fan-out {
+    to {
+      opacity: 1;
+      transform: rotate(var(--angle)) translateY(-88px) rotate(calc(-1 * var(--angle)));
+    }
+  }
+
+  /*
+    The global reduced-motion backstop in global.css collapses every animation
+    to 0.01ms; this component rule is the real "don't move" — no animation at
+    all, straight to the end state at full opacity.
+  */
+  @media (prefers-reduced-motion: reduce) {
+    .hero-fan__leaf {
+      animation: none;
+      opacity: 1;
+      transform: rotate(var(--angle)) translateY(-88px) rotate(calc(-1 * var(--angle)));
+    }
+  }
+</style>

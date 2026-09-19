@@ -78,5 +78,6 @@
   "faq.lead": "Common questions about what the six skills do, what they need to run, and how your material is handled.",
   "notFound.title": "Page not found",
   "notFound.body": "That page does not exist. Try the home page.",
-  "notFound.home": "Go to the home page"
+  "notFound.home": "Go to the home page",
+  "a11y.skipToContent": "Skip to content"
 }

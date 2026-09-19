@@ -1,0 +1,49 @@
+/*
+  Self-hosted woff2. The binaries live in `public/fonts/` and are supplied by
+  the site owner — the repository ships none. `font-display: swap` means a
+  missing file degrades to the system stack in the `@theme` fallback chains and
+  never blocks first paint, so the build stays green without them.
+
+  Never replace these with a CDN URL: /legal/privacy promises, in both
+  languages, that this site requests no fonts, styles or scripts from any
+  third-party server, and tests/build/legal.test.mjs enforces it by scanning
+  every built stylesheet for an `http(s)://` font source.
+*/
+
+/* Inter — English body and headings */
+@font-face {
+  font-family: 'Inter';
+  src: url('/fonts/inter-latin-400.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+2000-206F, U+2212;
+}
+@font-face {
+  font-family: 'Inter';
+  src: url('/fonts/inter-latin-600.woff2') format('woff2');
+  font-weight: 600;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+2000-206F, U+2212;
+}
+
+/* Pretendard — Korean */
+@font-face {
+  font-family: 'Pretendard';
+  src: url('/fonts/pretendard-korean-400.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Pretendard';
+  src: url('/fonts/pretendard-korean-600.woff2') format('woff2');
+  font-weight: 600;
+  font-display: swap;
+}
+
+/* JetBrains Mono — artifact filenames, shared by both locales */
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('/fonts/jetbrains-mono-400.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}

@@ -3,6 +3,7 @@ import { getCollection } from 'astro:content';
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import FlowDiagram from '@/components/FlowDiagram/FlowDiagram.astro';
 import SkillCard from '@/components/SkillCard.astro';
+import HeroFan from '@/components/HeroFan.astro';
 import PriceBlock from '@/components/PriceBlock.astro';
 import { SITE } from '@/config/site';
 import { SKILLS } from '@/data/skills';
@@ -24,22 +25,25 @@ const byId = new Map(entries.map((e) => [e.data.id, e.data]));
   description={t('home.heroBody')}
   path="/"
 >
-  <section class="pt-20 pb-8">
-    <h1 class="max-w-3xl text-5xl font-semibold leading-tight tracking-tight text-text-hi">
-      {t('home.heroTitle')}
-    </h1>
-    <p class="mt-6 max-w-2xl text-lg text-text-body">{t('home.heroBody')}</p>
+  <section class="grid items-center gap-8 pt-20 pb-8 md:grid-cols-[minmax(0,1fr)_280px]">
+    <div>
+      <h1 class="max-w-3xl text-5xl font-semibold leading-tight tracking-tight text-text-hi">
+        {t('home.heroTitle')}
+      </h1>
+      <p class="mt-6 max-w-2xl text-lg text-text-body">{t('home.heroBody')}</p>
 
-    <div class="mt-8 flex flex-wrap gap-3">
-      <a
-        href={localizePath('/pricing', lang)}
-        class="rounded-lg bg-accent px-5 py-3 font-medium text-white shadow-[0_0_40px_rgba(46,125,255,0.35)] transition-transform hover:-translate-y-0.5"
-      >{t('home.ctaPricing')}</a>
-      <a
-        href={localizePath('/samples', lang)}
-        class="rounded-lg border border-border px-5 py-3 font-medium text-text-hi transition-colors hover:border-accent"
-      >{t('home.ctaSamples')}</a>
+      <div class="mt-8 flex flex-wrap gap-3">
+        <a
+          href={localizePath('/pricing', lang)}
+          class="rounded-lg bg-accent px-5 py-3 font-medium text-white shadow-[0_0_40px_rgba(46,125,255,0.35)] transition-transform hover:-translate-y-0.5"
+        >{t('home.ctaPricing')}</a>
+        <a
+          href={localizePath('/samples', lang)}
+          class="rounded-lg border border-border px-5 py-3 font-medium text-text-hi transition-colors hover:border-accent"
+        >{t('home.ctaSamples')}</a>
+      </div>
     </div>
+    <HeroFan lang={lang} />
   </section>
 
   <FlowDiagram lang={lang} />

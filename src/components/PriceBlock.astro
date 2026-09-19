@@ -19,7 +19,17 @@ const t = useTranslations(lang);
   举例——tests/build/pricing.test.mjs 的最后一例会扫描全部 HTML 抓那种带符号的
   写法，注释里出现示例会让构建自己把自己判失败。要举例请写在测试或文档里。
 -->
-<div class="rounded-xl border border-border bg-surface p-6">
+<!--
+  `edge-gradient` replaces `border-border` outright — the class declares its own
+  `border: 1px solid transparent` and a `border-*` colour utility would paint
+  over the gradient. `bg-surface` sets only `background-color`
+  `background-clip: padding-box` (in global.css) is what keeps it from covering
+  the `::after`. No `overflow: hidden` may be added to the parent.
+
+  /pricing is a `data-quiet` page: `body[data-quiet] * { box-shadow: none }`
+  kills glow but not the gradient border, so the quiet constraint still holds.
+-->
+<div class="edge-gradient rounded-xl bg-surface p-6">
   <p class="text-4xl font-semibold tracking-tight text-text-hi">
     {SITE.price.display}
   </p>
