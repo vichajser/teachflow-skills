@@ -54,5 +54,17 @@
   "flow.node.audio-workflow": "듣기 자료",
   "flow.node.word-workflow": "어휘 학습표",
   "flow.node.worksheet-workflow": "수준별 학습지",
-  "flow.node.report-workflow": "학부모 안내문"
+  "flow.node.report-workflow": "학부모 안내문",
+  "home.heroTitle": "교재 한 단원을 넣으면, 한 주 분량의 수업이 나옵니다.",
+  "home.heroBody": "교재 PDF에서 수업 지도안, 슬라이드, 듣기 음원, 어휘 학습표, 세 수준의 학습지, 학부모 안내문까지 만들어 내는 6개의 Claude Skill. 각 산출물은 원래 쓰여야 할 언어로 나옵니다.",
+  "home.ctaPricing": "가격 보기",
+  "home.ctaSamples": "실제 산출물 보기",
+  "home.skillsTitle": "여섯 개의 스킬",
+  "home.samplesTitle": "실제로 나오는 결과물",
+  "home.samplesBody": "실제 교재 단원으로 만든 진짜 파일입니다. 구매 전에 내려받아 확인해 보세요.",
+  "home.privacyTitle": "학생 정보는 선생님 컴퓨터를 떠나지 않습니다",
+  "home.privacyBody": "스킬은 네트워크 요청을 하지 않습니다. 교재 스캔본과 학생 이름이 밖으로 나가지 않습니다.",
+  "home.privacyLink": "직접 확인하는 방법",
+  "home.buyTitle": "TeachFlow-KR 전체 패키지",
+  "home.buyBody": "6개 스킬 전부, 1회 결제, 구독 없음."
 }

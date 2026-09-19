@@ -1,14 +1,114 @@
 ---
+import { getCollection } from 'astro:content';
 import BaseLayout from '@/layouts/BaseLayout.astro';
+import FlowDiagram from '@/components/FlowDiagram/FlowDiagram.astro';
+import SkillCard from '@/components/SkillCard.astro';
+import PriceBlock from '@/components/PriceBlock.astro';
+import { SITE } from '@/config/site';
+import { SKILLS } from '@/data/skills';
+import { localizePath, type Locale } from '@/i18n/config';
 import { useTranslations } from '@/i18n/t';
-import type { Locale } from '@/i18n/config';
 
 export { localeStaticPaths as getStaticPaths } from '@/i18n/paths';
 
 const lang = Astro.params.lang as Locale;
 const t = useTranslations(lang);
+
+const entries = await getCollection('skills', (e) => e.data.lang === lang);
+const byId = new Map(entries.map((e) => [e.data.id, e.data]));
 ---
 
-<BaseLayout lang={lang} title="TeachFlow-KR" description={t('site.tagline')} path="/">
-  <h1 class="py-24 text-4xl font-semibold text-text-hi">TeachFlow-KR</h1>
+<BaseLayout
+  lang={lang}
+  title="TeachFlow-KR"
+  description={t('home.heroBody')}
+  path="/"
+>
+  <section class="pt-20 pb-8">
+    <h1 class="max-w-3xl text-5xl font-semibold leading-tight tracking-tight text-text-hi">
+      {t('home.heroTitle')}
+    </h1>
+    <p class="mt-6 max-w-2xl text-lg text-text-body">{t('home.heroBody')}</p>
+
+    <div class="mt-8 flex flex-wrap gap-3">
+      <a
+        href={localizePath('/pricing', lang)}
+        class="rounded-lg bg-accent px-5 py-3 font-medium text-white shadow-[0_0_40px_rgba(46,125,255,0.35)] transition-transform hover:-translate-y-0.5"
+      >{t('home.ctaPricing')}</a>
+      <a
+        href={localizePath('/samples', lang)}
+        class="rounded-lg border border-border px-5 py-3 font-medium text-text-hi transition-colors hover:border-accent"
+      >{t('home.ctaSamples')}</a>
+    </div>
+  </section>
+
+  <FlowDiagram lang={lang} />
+
+  <section class="py-12">
+    <h2 class="mb-6 text-2xl font-semibold text-text-hi">{t('home.skillsTitle')}</h2>
+    <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      {SKILLS.map((skill) => {
+        const data = byId.get(skill.id);
+        if (!data) throw new Error(`Missing ${lang} content for skill ${skill.id}`);
+        return (
+          <SkillCard
+            lang={lang}
+            skill={skill}
+            title={data.title}
+            tagline={data.tagline}
+            href={`/skills#${skill.id}`}
+          />
+        );
+      })}
+    </div>
+  </section>
+
+  <!--
+    spec 第 59 行把首页定为"叙事 + 关系主动画 + **成品预览** + CTA"。
+    /samples 本身由 Task 11 建（导航栏已经链过去了），这里只做入口与说明，
+    不预先渲染文件列表——那属于 Task 11 的数据。
+  -->
+  <section class="py-12">
+    <h2 class="mb-2 text-2xl font-semibold text-text-hi">{t('home.samplesTitle')}</h2>
+    <p class="max-w-2xl text-text-body">{t('home.samplesBody')}</p>
+    <a
+      href={localizePath('/samples', lang)}
+      class="mt-3 inline-block text-accent hover:underline"
+    >{t('home.ctaSamples')}</a>
+  </section>
+
+  <section class="py-12">
+    <h2 class="mb-2 text-2xl font-semibold text-text-hi">{t('home.privacyTitle')}</h2>
+    <p class="max-w-2xl text-text-body">{t('home.privacyBody')}</p>
+    <a
+      href={localizePath('/security', lang)}
+      class="mt-3 inline-block text-accent hover:underline"
+    >{t('home.privacyLink')}</a>
+  </section>
+
+  <section class="grid gap-6 py-12 md:grid-cols-[minmax(0,1fr)_320px]">
+    <div>
+      <h2 class="text-2xl font-semibold text-text-hi">{t('home.buyTitle')}</h2>
+      <p class="mt-2 text-text-body">{t('home.buyBody')}</p>
+      <ul class="mt-4 space-y-1 text-sm">
+        <li>
+          <a href={localizePath('/pricing', lang)} class="text-accent hover:underline">
+            {t('home.ctaPricing')}
+          </a>
+        </li>
+        <li>
+          <a href={localizePath('/legal/refund', lang)} class="text-accent hover:underline">
+            {t('footer.refund')}
+          </a>
+        </li>
+        <li>
+          <a
+            href={`mailto:${SITE.supportEmail}`}
+            class="font-mono text-accent hover:underline"
+          >{SITE.supportEmail}</a>
+        </li>
+      </ul>
+    </div>
+    <aside><PriceBlock lang={lang} /></aside>
+  </section>
 </BaseLayout>
