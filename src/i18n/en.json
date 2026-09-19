@@ -42,5 +42,17 @@
   "pricing.refundLink": "Refund & cancellation policy",
   "pricing.deliveryLink": "How digital delivery works",
   "pricing.requirements": "What you need to run it",
-  "pricing.requirementsBody": "A desktop computer and a coding agent that reads the SKILL.md format — Claude Code, Codex CLI, Cursor and Gemini CLI all do. Everything runs locally; no internet connection is required while the skills run."
+  "pricing.requirementsBody": "A desktop computer and a coding agent that reads the SKILL.md format — Claude Code, Codex CLI, Cursor and Gemini CLI all do. Everything runs locally; no internet connection is required while the skills run.",
+  "flow.title": "How the six skills fit together",
+  "flow.input": "Textbook PDF + learner profile",
+  "flow.stage1": "Plan the unit",
+  "flow.stage2": "Build the materials",
+  "flow.stage3": "After class",
+  "flow.constraint": "Constraints flow downward",
+  "flow.node.lesson-workflow": "Lesson plan",
+  "flow.node.ppt-workflow": "Slides",
+  "flow.node.audio-workflow": "Listening",
+  "flow.node.word-workflow": "Vocabulary",
+  "flow.node.worksheet-workflow": "Worksheets",
+  "flow.node.report-workflow": "Parent notice"
 }

@@ -1,0 +1,116 @@
+---
+import {
+  VIEWBOX,
+  FLOW_NODES,
+  FLOW_EDGES,
+  INPUT_NODE,
+  edgePath,
+  nodeColor,
+} from './nodes';
+import { useTranslations } from '@/i18n/t';
+import type { TranslationKey } from '@/i18n/t';
+import type { Locale } from '@/i18n/config';
+
+interface Props {
+  lang: Locale;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+const label = (id: string) => t(`flow.node.${id}` as TranslationKey);
+---
+
+<figure class="my-16" data-flow-diagram>
+  <figcaption class="mb-6 text-2xl font-semibold text-text-hi">
+    {t('flow.title')}
+  </figcaption>
+
+  <svg
+    viewBox={`0 0 ${VIEWBOX.w} ${VIEWBOX.h}`}
+    role="img"
+    aria-label={t('flow.title')}
+    class="w-full"
+  >
+    <g data-flow-edges fill="none" stroke-width="2" stroke-linecap="round">
+      {FLOW_EDGES.map((edge) => (
+        <path
+          d={edgePath(edge)}
+          data-edge={`${edge.from}->${edge.to}`}
+          stroke={edge.to === 'report-workflow' ? nodeColor(3) : nodeColor(2)}
+          opacity="0.55"
+        />
+      ))}
+    </g>
+
+    <g data-flow-input>
+      <rect
+        x={INPUT_NODE.x}
+        y={INPUT_NODE.y}
+        width={INPUT_NODE.w}
+        height={INPUT_NODE.h}
+        rx="10"
+        fill="#0E1626"
+        stroke="#1F2C4A"
+      />
+      <text
+        x={INPUT_NODE.x + INPUT_NODE.w / 2}
+        y={INPUT_NODE.y + INPUT_NODE.h / 2 + 5}
+        text-anchor="middle"
+        fill="#C3CFE4"
+        font-size="14"
+        textLength={INPUT_NODE.w - 24}
+        lengthAdjust="spacingAndGlyphs"
+      >{t('flow.input')}</text>
+    </g>
+
+    {FLOW_NODES.map((node) => (
+      <g data-flow-node={node.id} data-stage={node.stage}>
+        <rect
+          x={node.x}
+          y={node.y}
+          width={node.w}
+          height={node.h}
+          rx="12"
+          fill="#0E1626"
+          stroke={nodeColor(node.stage)}
+          stroke-width="1.5"
+        />
+        <text
+          x={node.x + node.w / 2}
+          y={node.y + 34}
+          text-anchor="middle"
+          fill="#F2F6FF"
+          font-size="16"
+          font-weight="600"
+          textLength={node.w - 32}
+          lengthAdjust="spacingAndGlyphs"
+        >{label(node.id)}</text>
+        <text
+          x={node.x + node.w / 2}
+          y={node.y + 60}
+          text-anchor="middle"
+          fill="#7C8AA6"
+          font-size="12"
+          font-family="ui-monospace, monospace"
+        >{node.outputs.join('  ')}</text>
+      </g>
+    ))}
+  </svg>
+
+  <!--
+    SVG 图形在移动端会缩得看不清，且屏幕阅读器读不出 <text> 的结构关系。
+    这份列表两者都兼顾：md 以上隐藏，md 以下作为主呈现。
+  -->
+  <ol class="mt-6 space-y-2 md:hidden">
+    {FLOW_NODES.map((node) => (
+      <li
+        class="rounded-lg border-l-2 bg-surface px-4 py-3"
+        style={`border-color: ${nodeColor(node.stage)}`}
+      >
+        <p class="text-text-hi">{label(node.id)}</p>
+        <p class="font-mono text-xs text-text-mute">{node.outputs.join('  ')}</p>
+      </li>
+    ))}
+  </ol>
+</figure>
