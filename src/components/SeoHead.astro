@@ -8,9 +8,16 @@ interface Props {
   description: string;
   /** 去掉语言前缀的路径，如 '/pricing'、'/legal/refund'、'/' */
   path: string;
+  /**
+   * 是否声明语言备选（hreflang）。默认 true；错误页传 false。
+   * 404 不是语言的另一种呈现，而是"这个 URL 没有内容"——两语 404 互为
+   * 备选会让搜索引擎把 /en/404 与 /ko/404 当成同一个可索引资源的两个版本。
+   * canonical 保留（每张 404 仍自指）。
+   */
+  alternates?: boolean;
 }
 
-const { lang, title, description, path } = Astro.props;
+const { lang, title, description, path, alternates = true } = Astro.props;
 
 // path 已按 BaseLayout 的契约剥掉语言前缀，故这里直接加前缀即可；
 // 若照抄 Astro.url.pathname（带前缀）会得到 /ko/en/... —— 语言切换器
@@ -21,10 +28,11 @@ const url = (locale: Locale) => `${SITE.domain}${localizePath(path, locale)}`;
 <title>{title}</title>
 <meta name="description" content={description} />
 <link rel="canonical" href={url(lang)} />
-{LOCALES.map((locale) => (
-  <link rel="alternate" hreflang={locale} href={url(locale)} />
-))}
-<link rel="alternate" hreflang="x-default" href={url('en')} />
+{alternates &&
+  LOCALES.map((locale) => (
+    <link rel="alternate" hreflang={locale} href={url(locale)} />
+  ))}
+{alternates && <link rel="alternate" hreflang="x-default" href={url('en')} />}
 
 <meta property="og:type" content="website" />
 <meta property="og:title" content={title} />

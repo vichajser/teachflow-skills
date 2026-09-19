@@ -16,6 +16,11 @@ export interface Sample {
  * 样例产物由独立工作流生成（spec §7），与建站并行。
  * 生成后把 file / previewImage / durationSeconds 填上即可，页面自动从占位切换为真卡片。
  *
+ * `previewImage` 只能是本站路径（`/samples/…`）或 null。指向远程 URL 会在
+ * `/samples` 渲染一张跨源 `<img>`，直接证伪 `/legal/privacy` 的
+ * "no third-party requests"——`tests/unit/samples.test.ts` 与
+ * `tests/build/legal.test.mjs` 各守一侧。
+ *
  * 隐私约束（spec §7.4）：样例文件中不得出现任何真实学生姓名或学校名。
  *
  * `lesson-workflow` 的产物（차시 분할、수업 지도안）是 Markdown 文本而非可下载文件，

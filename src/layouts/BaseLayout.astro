@@ -16,9 +16,21 @@ interface Props {
   path: string;
   /** 'legal' 关闭辉光与动效（spec §5.5 合规区静音） */
   variant?: 'marketing' | 'legal';
+  /**
+   * 是否声明 hreflang 语言备选，透传给 SeoHead。默认 true；错误页传 false
+   * （404 不是语言的另一种呈现，两语 404 互为备选是 SEO 脏数据）。
+   */
+  alternates?: boolean;
 }
 
-const { lang, title, description, path, variant = 'marketing' } = Astro.props;
+const {
+  lang,
+  title,
+  description,
+  path,
+  variant = 'marketing',
+  alternates = true,
+} = Astro.props;
 ---
 
 <!doctype html>
@@ -27,7 +39,13 @@ const { lang, title, description, path, variant = 'marketing' } = Astro.props;
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <SeoHead lang={lang} title={title} description={description} path={path} />
+    <SeoHead
+      lang={lang}
+      title={title}
+      description={description}
+      path={path}
+      alternates={alternates}
+    />
   </head>
   <body
     data-quiet={variant === 'legal' ? '' : undefined}

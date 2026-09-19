@@ -23,9 +23,27 @@ describe('SAMPLES', () => {
     }
   });
 
-  it('points ready samples at a path under /samples/', () => {
-    for (const sample of SAMPLES.filter(isReady)) {
-      expect(sample.file, `${sample.id}`).toMatch(/^\/samples\//);
+  // 断言全部条目，不是 `filter(isReady)`：五个 file 全是 null 时那个子集为空，
+  // 循环体一次都不执行——把正则改成 /^https?:\/\// 都能活（旧版本实测如此）。
+  // 今天的形态是"null 或本站路径"，两种可接受值显式写出来。
+  it('points every sample at null or a path under /samples/', () => {
+    for (const sample of SAMPLES) {
+      const ok = sample.file === null || /^\/samples\//.test(sample.file);
+      expect(ok, `${sample.id}.file is ${JSON.stringify(sample.file)}`).toBe(true);
+    }
+  });
+
+  // `/legal/privacy` 的 "no third-party requests" 在源码侧的守卫：previewImage
+  // 是 Sample 里唯一能打到站外的字段，设成远程 URL 会让 `/samples` 渲染跨源
+  // <img>，而 legal.test.mjs:215-220 正断言那句话在页面上。
+  it('never points a preview image off-site', () => {
+    for (const sample of SAMPLES) {
+      const ok =
+        sample.previewImage === null || /^\/samples\//.test(sample.previewImage);
+      expect(
+        ok,
+        `${sample.id}.previewImage is ${JSON.stringify(sample.previewImage)}`,
+      ).toBe(true);
     }
   });
 

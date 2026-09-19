@@ -20,8 +20,12 @@ const ready = isReady(sample);
 
 <article
   class:list={[
+    // 未就绪用 `border-border` 与就绪卡（阶段色描边+辉光）区分，**不用元素级
+    // `opacity`**：opacity 会按合成传给子文本，`text-text-mute` 叠上 0.7 后在
+    // `bg-surface` 上只有约 3.22:1，而 pending 那行字是唯一说明卡片状态的文字。
+    // 去掉后 text-mute 在 surface 上 5.20:1，skill id 那行一并达标（AA 4.5:1）。
     'rounded-xl border bg-surface p-5',
-    ready ? stageClass(skill.stage) : 'border-border opacity-70',
+    ready ? stageClass(skill.stage) : 'border-border',
   ]}
 >
   {sample.previewImage && (
