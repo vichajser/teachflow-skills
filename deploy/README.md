@@ -18,7 +18,7 @@ npm run verify
 
 ```bash
 npm ci --omit=dev   # 或 npm install --omit=dev
-npm run verify      # ✓ 25 pages verified
+npm run verify      # ✓ 26 HTML files verified (25 index pages)
 ```
 
 退出码 0 才可部署；非 0 会把每条失败连同文件路径打印出来，逐条修**站点**，
@@ -109,13 +109,35 @@ SITE_DOMAIN=<域名> caddy reload --config /etc/caddy/Caddyfile
 ## 6. 无法在本地沙箱验证、需在服务器上确认的项
 
 `scripts/verify-build.mjs` 与单测覆盖的是**静态产物**。以下依赖真实服务器行为，
-本地（无 Caddy 运行时）验不了，上线前请在服务器上过一遍：
+本地（沙箱里**没有 `caddy` 二进制**）验不了，上线前必须在服务器上过一遍。
 
-- `caddy validate --config /etc/caddy/Caddyfile` 通过（语法与 matcher 合法性）。
-- `curl -sI https://<域名>/en` 返回 **200**，且**不**发生到 `/en/` 的额外跳转
-  （R-13：`try_files` 让无尾斜杠 canonical 直接命中文件）。
-- `curl -sI https://<域名>/en/does-not-exist` 返回 **404**（不是 200），
-  且响应体是韩/英对应语言的 404 页（R-50：`handle_errors` 内的 `file_server`
-  保留错误状态码，语言按路径前缀分流）。
-- `curl -sI https://<域名>/` 返回 **302** 到 `/en`。
-- 未知语言前缀（如 `https://<域名>/fr`）302 到 `/en`。
+前两条**不是可选的健全性检查**：`deploy/Caddyfile` 里针对它们的两处改动
+（`try_files` 的候选顺序、`handle_errors` 里 `file_server` 的 `status` 子指令）
+都只有文档依据，**没有经过任何运行时验证**。这两条 `curl` 是它们唯一的验证出口。
+
+```bash
+DOMAIN=<域名>
+
+# 1) 语法与 matcher 合法性——先过这一步再 reload。
+caddy validate --config /etc/caddy/Caddyfile
+
+# 2) 无尾斜杠 canonical 必须直接 200，绝不 308 跳到 /en/。
+#    （R-13。对应 Caddyfile 的 `try_files {path}/index.html {path} {path}.html`：
+#     若候选顺序写回裸 {path} 在前，/en 是真实目录会先在第一个候选命中，
+#     file_server 就会发 308 目录规范化跳。）
+curl -sI "https://$DOMAIN/en" | head -1        # 必须是 200，不是 308/301
+
+# 3) 未命中路由必须返回真 404，不是软 200，且响应体是对应语言的 404 页。
+#    （R-50 后半。对应 handle_errors 里 `file_server { status {err.status_code} }`：
+#     少了 status 子指令，rewrite 后的投递会被当成成功，返回 200。）
+curl -sI "https://$DOMAIN/en/does-not-exist" | head -1   # 必须是 404，不是 200
+curl -s  "https://$DOMAIN/ko/does-not-exist" | grep -q '찾을 수 없' || echo 'ko 404 body wrong'
+```
+
+再顺手确认这几条（同样只能在此处验）：
+
+- `curl -sI https://<域名>/` 返回 **302** 到 `/en`（`redir / /en 302`）。
+- 未知语言前缀（如 `https://<域名>/fr`）302 到 `/en`（`@unknown_locale`）。
+- HTML 页面真的拿到 `Cache-Control: public, max-age=0, must-revalidate`
+  （`@html` 用反向排除写成；`curl -sI https://<域名>/en | grep -i cache-control`），
+  静态资源拿到 `max-age=31536000, immutable`。
