@@ -29,6 +29,61 @@ html:lang(ko) {
   font-family: var(--font-ko);
 }
 
+/*
+  Markdown 正文的排版补偿。Preflight 会把 p/h* 的 margin 归零、把 ol/ul 的
+  list-style 与缩进清空、把 table 的边框去掉，于是内容集合渲染出的有序列表
+  丢编号、表格变成挤在一起的文字流。这里只补这一处，不引入 typography 插件：
+  正文只有表格、有序列表与段落三种元素，插件的默认色板还要反过来迁就 @theme。
+  作用域限定在 .md-body 内，不影响页面自己写的 Tailwind 类。
+*/
+.md-body > * + * {
+  margin-top: 1rem;
+}
+
+.md-body ol {
+  list-style: decimal;
+  padding-left: 1.5rem;
+}
+
+.md-body ul {
+  list-style: disc;
+  padding-left: 1.5rem;
+}
+
+.md-body li + li {
+  margin-top: 0.25rem;
+}
+
+.md-body table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.md-body th,
+.md-body td {
+  border: 1px solid var(--color-border);
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+}
+
+.md-body th {
+  background-color: var(--color-raised);
+  color: var(--color-text-hi);
+  font-weight: 600;
+}
+
+.md-body strong {
+  color: var(--color-text-hi);
+  font-weight: 600;
+}
+
+.md-body code {
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+  color: var(--color-accent-glow);
+}
+
 /* spec §5.5：合规区静音——/pricing 与 /legal/* 取消辉光与动效 */
 body[data-quiet] * {
   box-shadow: none !important;

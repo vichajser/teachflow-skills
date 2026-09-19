@@ -47,7 +47,16 @@ function parseFrontmatter(source: string, file: string): Frontmatter {
       data[key!] = [];
       currentList = key!;
     } else {
-      data[key!] = value.trim();
+      const scalarValue = value!.trim();
+      // 同样的陷阱在顶层标量上也成立：`title: 수업: 슬라이드` 会被真 YAML
+      // 读成嵌套映射，而这个手写解析器会当成普通字符串放行。今天 12 份文件
+      // 里没有这种写法，但守卫要对称，否则将来第一次写出来时是静默通过。
+      if (/: /.test(scalarValue) && !/^["'].*["']$/.test(scalarValue)) {
+        throw new Error(
+          `${file}: scalar contains an unquoted ": " and would parse as a mapping: ${raw.trim()}`,
+        );
+      }
+      data[key!] = scalarValue.replace(/^["']|["']$/g, '');
       currentList = null;
     }
   }
