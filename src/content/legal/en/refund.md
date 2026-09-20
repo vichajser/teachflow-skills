@@ -69,16 +69,21 @@ on the National Law Information Center:
 
 The statutory period is **7 days** from the day you receive the written statement of
 contract terms required by Article 13(2). If the files are supplied later than that
-statement, the 7 days run from the day supply starts.
+statement, the 7 days run from the day you receive them or the day supply starts.
 
 Article 17(1) says that if the parties agree a longer period, that longer period applies.
 For a direct purchase from us, the 14-day term above is that longer period.
 
 Once supply of digital content has begun, Article 17(2)5 says you cannot withdraw against
-the seller's will. That limit applies only if the seller has taken the Article 17(6)
-steps: stating clearly that withdrawal is then unavailable, and providing a trial or
-information as set out in Enforcement Decree Article 21-2. If those steps are missing,
-the 7-day right still applies.
+the seller's will. Under the proviso to Article 17(2), that limit applies only if the
+seller has taken the measures required by Article 17(6): for digital content, both
+stating clearly that withdrawal is then unavailable **and** providing a trial — a preview,
+time-limited access, or a trial version — as set out in Enforcement Decree Article 21-2.
+Where a trial is impracticable, information about the content may be supplied instead.
+If those measures are missing, the 7-day right still applies.
+
+Where a contract is made up of divisible digital content, the proviso to Article 17(2)5
+preserves your right to withdraw from any part whose supply has not begun.
 
 「문화산업진흥 기본법」 Article 2(5) is the definition of digital content that Article
 17(2)5 incorporates. TeachFlow is supplied as downloadable files, so supply begins when
@@ -93,12 +98,13 @@ right: within **3 months** of supply, and within **30 days** of the day you knew
 have known of the mismatch. We will replace or refund in that case, as stated above,
 whether or not you have already downloaded the files.
 
-After a valid withdrawal of digital content, Article 18(2) requires a refund within 3
-business days of the withdrawal. Article 18(9) forbids a cancellation fee or damages
-claim for an ordinary Article 17(1) withdrawal.
+After a valid withdrawal, Article 18(2) requires a refund within 3 business days. For
+digital content the 3 days run from the day you withdraw, under Article 18(2)2 — there is
+nothing to send back, so no return date applies. Article 18(9) forbids a cancellation fee
+or damages claim for an ordinary Article 17(1) withdrawal.
 
-If a dispute is not resolved, you may apply to the Korea Consumer Agency under the
-「소비자기본법」 (Framework Act on Consumers).
+If a dispute is not resolved, you may apply to the Korea Consumer Agency for remedy under
+Article 55 of the 「소비자기본법」 (Framework Act on Consumers).
 
 This is your statutory right. Nothing above limits it.
 
