@@ -52,4 +52,4 @@ difficulty is written and flagged as such.
 
 > Make levelled worksheets for this lesson — it's for a performance assessment.
 
-It does not stop to ask about the learners. Where the profile is missing it assumes from the lesson plan and the textbook, and states those assumptions in the output. Naming an exam type routes the tasks through that exam's item formats and marking criteria. Three editable `.docx` files come out, with PDF on request.
+It does not stop to ask about the learners. Where the profile is missing it assumes from the lesson plan and the textbook, and states those assumptions in the output — it asks back only when it cannot even tell what school level the class is. Naming an exam type routes the tasks through that exam's item formats and marking criteria. Three editable `.docx` files come out, with PDF on request.

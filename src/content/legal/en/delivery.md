@@ -37,7 +37,7 @@ resend it.
 - A coding agent that reads the `SKILL.md` format — Claude Code, Codex CLI, Cursor and
   Gemini CLI all do
 - A desktop computer (macOS or Windows)
-- Your textbook pages as PDF or images
+- The pages of the textbook unit you are teaching, in a form your agent can read
 
 The skills run entirely on your own machine. **No internet connection is required while
 they run**, and nothing you feed them is sent anywhere. See our

@@ -44,6 +44,6 @@ guidance.
 
 ### What to type
 
-> Make a vocabulary sheet from this unit and export it to Google Sheets.
+> Make a vocabulary sheet for this unit.
 
 No question comes back. The table is built from the textbook text, with the lesson plan as secondary support — it will not build the table from the lesson plan alone. Where a vocabulary list page exists, that list is used first. Two files come out: `.xlsx` and `.csv` for Google Sheets.

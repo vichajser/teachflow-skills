@@ -190,31 +190,42 @@ body[data-quiet]::after {
   font-weight: 600;
 }
 
-/* 内容集合的正文里现在有 h3（skill 的「무엇을 첨부하나 / 어떻게 말하나」两节）。
-   Preflight 把 h* 的字号与字重都归成正文，于是小标题和它下面的段落长得一模一样，
-   读者看不出分节。字号对齐页面自己手写的 h3（text-sm font-semibold text-text-hi），
-   上边距比 `> * + *` 的 1rem 大一档，让标题贴住它统领的那段而不是浮在中间。 */
-.md-body h3 {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--color-text-hi);
-}
+/*
+  以下两组放进 `@layer components`，而这个文件里其余的 `.md-body` 规则都是无层的。
+  差别是有意的：无层声明压过**所有** layer，包括 `@layer utilities`。
+  LegalLayout 给同一个 `.md-body` 容器挂了 `[&_h3]:text-base` 这类工具类，
+  无层的 `.md-body h3` 会把它们静默吃掉——今天合规页正文里恰好没有 h3，
+  所以看不出来；哪天加一个就成了一处找不到原因的字号回归。
+  components 层压得过 Preflight（base 层）、又让位给页面自己写的工具类，
+  正是这两条规则需要的位置。
+*/
+@layer components {
+  /* 内容集合的正文里现在有 h3（skill 的「무엇을 첨부하나 / 어떻게 말하나」两节）。
+     Preflight 把 h* 的字号与字重都归成正文，于是小标题和它下面的段落长得一模一样，
+     读者看不出分节。字号对齐页面自己手写的 h3（text-sm font-semibold text-text-hi），
+     上边距比 `> * + *` 的 1rem 大一档，让标题贴住它统领的那段而不是浮在中间。 */
+  .md-body h3 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-text-hi);
+  }
 
-.md-body > h3 + * {
-  margin-top: 0.5rem;
-}
+  .md-body > h3 + * {
+    margin-top: 0.5rem;
+  }
 
-.md-body > * + h3 {
-  margin-top: 1.5rem;
-}
+  .md-body > * + h3 {
+    margin-top: 1.5rem;
+  }
 
-/* 「어떻게 말하나」整节的设计就建立在那句话被一眼认出是「教师说的原话」上。
-   Preflight 清掉 blockquote 的缩进后它退化成普通段落，这一节就没了意义。
-   用左边线而不是引号字符：引号在英韩两种排版里形状不同，边线两边一致。 */
-.md-body blockquote {
-  border-left: 2px solid var(--color-accent);
-  padding-left: 0.875rem;
-  color: var(--color-text-hi);
+  /* 「어떻게 말하나」整节的设计就建立在那句话被一眼认出是「教师说的原话」上。
+     Preflight 清掉 blockquote 的缩进后它退化成普通段落，这一节就没了意义。
+     用左边线而不是引号字符：引号在英韩两种排版里形状不同，边线两边一致。 */
+  .md-body blockquote {
+    border-left: 2px solid var(--color-accent);
+    padding-left: 0.875rem;
+    color: var(--color-text-hi);
+  }
 }
 
 .md-body strong {

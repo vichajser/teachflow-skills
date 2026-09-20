@@ -56,8 +56,8 @@ const INSTALL_STEPS: { en: string; ko: string }[] = [
     ko: '직접 복사하는 대신 AI에게 맡길 수도 있습니다. 압축을 푼 폴더 위치를 알려 주고 6개 스킬 설치를 부탁하면 알맞은 자리에 넣어 줍니다.',
   },
   {
-    en: 'Fully quit the AI tool and start it again. New skills do not appear until you restart, and forgetting this is the most common reason people ask for help.',
-    ko: 'AI 도구를 완전히 종료했다가 다시 실행합니다. 재실행하기 전에는 새 스킬이 나타나지 않으며, 이 점을 놓치는 것이 문의가 가장 많은 원인입니다.',
+    en: 'If the six do not show up, fully quit the AI tool and start it again. Claude Code and Codex normally pick up new skills on their own; a restart is the fix when they do not.',
+    ko: '여섯 개가 보이지 않으면 AI 도구를 완전히 종료했다가 다시 실행합니다. Claude Code와 Codex는 보통 새 스킬을 알아서 인식하며, 그렇지 않을 때 다시 실행하면 해결됩니다.',
   },
   {
     en: 'On Google Gemini CLI you can run /skills reload instead of restarting.',
@@ -93,13 +93,13 @@ const VERIFY_HEADING: Record<Locale, string> = {
 };
 
 const VERIFY_LEAD: Record<Locale, string> = {
-  en: 'After the restart, open the skill list in your tool. You should see six entries:',
-  ko: '다시 실행한 뒤 도구에서 스킬 목록을 엽니다. 여섯 항목이 보이면 정상입니다.',
+  en: 'Open the skill list in your tool. You should see six entries:',
+  ko: '도구에서 스킬 목록을 엽니다. 여섯 항목이 보이면 정상입니다.',
 };
 
 const VERIFY_COMMANDS: { tool: string; command: string }[] = [
   { tool: 'Claude Code', command: '/' },
-  { tool: 'Codex CLI', command: '/skills' },
+  { tool: 'Codex CLI', command: '$' },
   { tool: 'Google Gemini CLI', command: '/skills list' },
 ];
 

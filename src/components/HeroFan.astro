@@ -40,6 +40,17 @@ const { lang } = Astro.props;
  * 不新增动效也不新增断点：全站动效上限是「关系图之外恰好三处」，这里只改了
  * 一个几何常量，动效数量不变。
  */
+/*
+ * 扇心是输入，六片叶子是产物。叶子用扩展名是准确的——产物确实有扩展名；
+ * 扇心原本写 "PDF" 则不是：六个 SKILL.md 没有一个声明过接受的输入格式，
+ * 而这是全站最显眼的一处格式断言。改写成「一个单元」，说的是要交进来的**东西**
+ * 而不是它的文件类型，与 flow.input、/docs、/legal/delivery 的措辞一致。
+ *
+ * 不走 i18n 字典：扇心盒子宽度由 `padding: 0.5rem 0.75rem` 加字宽决定，
+ * 字典里的句子会把它撑成一条横杠、压到最内侧那对叶片。这里要的就是一个短标签。
+ */
+const SOURCE_LABEL: Record<Locale, string> = { en: 'ONE UNIT', ko: '한 단원' };
+
 const ANGLE_SPAN = 190;
 const fanned = SKILLS.map((skill, i) => ({
   skill,
@@ -58,7 +69,7 @@ const fanned = SKILLS.map((skill, i) => ({
   in the /skills section below; reading them out again adds nothing.
 */}
 <div class="hero-fan" aria-hidden="true" lang={lang}>
-  <span class="hero-fan__source">PDF</span>
+  <span class="hero-fan__source">{SOURCE_LABEL[lang]}</span>
   {fanned.map(({ skill, angle, delay }) => (
     <span
       class="hero-fan__leaf font-mono"

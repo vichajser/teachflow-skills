@@ -47,9 +47,9 @@ export interface FlowEdge {
 }
 
 /**
- * 教材 PDF + 학습자 정보 —— 演出第一拍从这里落下。
+ * 교재 단원 + 학습자 정보 —— 演出第一拍从这里落下。
  *
- * 宽度 240 而非 200：英文标签 "Textbook PDF + learner profile" 在 14px 下
+ * 宽度 240 而非 200：英文标签 "Textbook unit + learner profile" 在 14px 下
  * 自然宽约 177px，200 宽的盒子扣掉左右留白后只剩 176px，正好压线。
  * Task 12 换上 Inter 后字宽会变，压线的设计会翻车。中心点仍是 480
  * （360 + 240/2），所以 edgePath 生成的曲线一条都没动。
