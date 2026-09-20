@@ -1,0 +1,20 @@
+{
+  "name": "teachflow-shop-api",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "TeachFlow skill 发行系统：发版、履约、下载、更新分发",
+  "scripts": {
+    "start": "node src/server.ts",
+    "worker": "node src/worker.ts",
+    "migrate": "node src/db/migrate.ts",
+    "test": "vitest run"
+  },
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "dependencies": {
+    "pg": "^8.13.0",
+    "pg-boss": "^10.1.5"
+  }
+}
