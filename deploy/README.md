@@ -71,7 +71,62 @@ SITE_DOMAIN=<域名> caddy reload --config /etc/caddy/Caddyfile
 
 ---
 
-## 4. 域名确定后必改的两处
+## 3b. shop-api（发版 / 履约 / 下载）
+
+站点是纯静态的，但售卖闭环需要一小块动态服务。Caddy 把 `/api/*` 与
+`/download*` 反代到本机 `127.0.0.1:8787`，其余路径照旧走静态文件。
+
+这一节只讲机器上要做的事；服务本身的说明（接口、发版流程、上线自检）在
+[`../shop-api/README.md`](../shop-api/README.md)。
+
+**一次性准备：**
+
+```bash
+# 1) 系统用户与目录。母版 zip 的权威副本放在 masters/，下载请求直接读它。
+sudo useradd --system --home /srv/teachflow --shell /usr/sbin/nologin teachflow
+sudo mkdir -p /srv/teachflow/masters /etc/teachflow
+sudo chown -R teachflow:teachflow /srv/teachflow/masters
+
+# 2) Postgres 16。必须只监听回环——这台机器上没有任何东西需要从外面连库。
+sudo apt install postgresql-16
+sudo -u postgres createuser --pwprompt teachflow
+sudo -u postgres createdb --owner teachflow teachflow
+# /etc/postgresql/16/main/postgresql.conf: listen_addresses = 'localhost'
+sudo systemctl restart postgresql
+
+# 3) 代码与依赖
+sudo -u teachflow git clone <repo> /srv/teachflow/src   # 或 rsync 上来
+sudo -u teachflow npm install --omit=dev --prefix /srv/teachflow/shop-api
+
+# 4) 密钥文件。内容照 shop-api/.env.example 逐项填。
+sudo install -m 0600 -o root -g root /dev/null /etc/teachflow/shop-api.env
+sudo editor /etc/teachflow/shop-api.env
+
+# 5) 建表
+sudo -u teachflow env $(sudo cat /etc/teachflow/shop-api.env | xargs) \
+     npm run migrate --prefix /srv/teachflow/shop-api
+
+# 6) 两个 systemd 服务
+sudo cp deploy/shop-api.service deploy/shop-api-worker.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now shop-api shop-api-worker
+```
+
+**worker 只能有一份。** 更新通知是「查名单 → 逐封发 → 发一封记一笔」，两份
+同时跑会让同一个买家收到两封信。不要把 `shop-api-worker` 做成 systemd 模板，
+也不要手动起第二份。
+
+**Caddy 侧**：`deploy/Caddyfile` 里的 `@shop` 一节已经写好。注意它牵动三处，
+改动其中任何一处路径时三处都要同步（文件里有注释说明为什么）：反代的
+`handle`、`@unknown_locale` 的排除清单、`@html` 的排除清单。
+
+**上线后逐条自检**：见 [`../shop-api/README.md`](../shop-api/README.md) 的
+「上线自检」。其中 worker 那两条尤其重要——它在开发机上从未运行过
+（沙箱装不上 `pg-boss`）。
+
+---
+
+## 4. 域名与构建期变量
 
 占位域名 `https://tryteachflow.com` 只允许出现在**两个**文件里：
 
@@ -86,6 +141,26 @@ SITE_DOMAIN=<域名> caddy reload --config /etc/caddy/Caddyfile
 `tests/unit/site.test.ts` 有一条守卫会扫描 `src/` 与 `public/`，任何第三个文件
 里出现该占位域名都会让它变红。`scripts/verify-build.mjs` 另有一条自扫描，
 保证校验脚本自身不硬编码域名。
+
+shop-api 的 `PUBLIC_BASE_URL`（在 `/etc/teachflow/shop-api.env` 里）是第四处。
+它不在上面那条守卫的扫描范围内——守卫只看仓库里的文件——所以换域名时要自己
+记得改它。写错了不会有任何东西报错，只是发出去的每一封信里都是一条指向旧主机
+的下载链接。
+
+### 构建期变量：`PUBLIC_BUY_CTA_URL`
+
+`/buy` 上的结账按钮指向 Polar 的托管结账页。这个 URL 在 **构建时** 读入：
+
+```bash
+PUBLIC_BUY_CTA_URL=https://buy.polar.sh/... npm run build
+```
+
+不设的话 `/buy` 会渲染成「直接结账尚未开放」，把读者指回 Agensi 与邮件——
+这是刻意的，一条通往不存在的结账页的死链比没有链接坏得多。所以在 Polar 上
+把商品建起来之前，**不要**随便填一个值让按钮"看起来正常"。
+
+它与 shop-api 的运行时变量是两套东西：这一个进的是静态产物，改了必须重新
+`npm run build` 并重新 rsync，重启服务没有任何作用。
 
 ---
 

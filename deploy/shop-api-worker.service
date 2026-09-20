@@ -1,0 +1,69 @@
+# TeachFlow shop-api worker —— pg-boss 后台任务：R2 归档、更新通知扇出、
+# 每日补投与限流表清理。
+#
+# 安装：
+#   sudo cp deploy/shop-api-worker.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now shop-api-worker
+#
+# **这个服务只能有一份。** notify-update 是「先查待发名单、再逐封发、发一封
+# 记一笔」，两份同时跑会在名单还没写完时读到同一批收件人，于是同一个买家收
+# 两封信。这里没有任何 template/instance 配置（unit 名里没有 `@`），部署时
+# 也不要手动起第二份、不要把它做成 systemd 模板。
+#
+# 它与 shop-api 分开跑的理由同样只有一个：一次几十封的邮件扇出会把事件循环
+# 占住好几秒，而下载接口是买家点了链接就在等的东西，不能陪着一起卡。
+
+[Unit]
+Description=TeachFlow shop-api background worker
+Documentation=file:///srv/teachflow/shop-api/README.md
+After=network-online.target postgresql.service
+Wants=network-online.target
+# 不是强依赖：worker 不经过 API 进程，API 挂了它照常归档与发信。
+# 这一行只让两者在手动 restart 时保持一致的先后。
+After=shop-api.service
+
+[Service]
+Type=simple
+User=teachflow
+Group=teachflow
+WorkingDirectory=/srv/teachflow/shop-api
+
+# 与 API 共用同一份环境：两个进程连同一个库、同一个 R2 桶、同一个发信域名。
+EnvironmentFile=/etc/teachflow/shop-api.env
+
+ExecStart=/usr/bin/node src/worker.ts
+
+Restart=always
+RestartSec=10
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+# worker 的优雅关闭是 `boss.stop({ wait: true })`——把手上的任务做完再断开。
+# 中途掐断会留下一条 active 状态的任务，要等它超时才会被别人接手，所以这里
+# 给的时间比 API 宽得多。
+KillSignal=SIGTERM
+TimeoutStopSec=120
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=shop-api-worker
+
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictNamespaces=true
+LockPersonality=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+
+# 归档任务要把母版读出来推到 R2。只读就够——写母版是发版接口的事。
+ReadOnlyPaths=/srv/teachflow/masters
+
+[Install]
+WantedBy=multi-user.target

@@ -9,6 +9,45 @@
 	root * /srv/teachflow/dist
 	encode zstd gzip
 
+	# ---- shop-api：发版、履约、下载。反代到本机 8787，不走静态文件。----
+	#
+	# 这三条路径合成一个 matcher，因为它们要在**三处**同时被照顾到，漏一处
+	# 就是一个只在生产才看得见的故障：
+	#
+	#   1. 这里的 `handle`（反代本身）；
+	#   2. 下面 `@unknown_locale` 的排除清单——`redir` 在默认指令顺序里排在
+	#      `handle` **之前**，不排除的话 `/api/health` 会先被 302 到 `/en`，
+	#      反代永远拿不到请求；
+	#   3. 下面 `@html` 的排除清单——否则接口响应会被打上面向页面的
+	#      `Cache-Control`，而 `/download` 返回的是带签名的、只属于一个买家的
+	#      zip，绝不该带 `public`。
+	#
+	# 写 `/download /download/*` 而不是 `/download*`：后者也会吃掉将来的
+	# `/downloads/` 之类静态目录，而那种冲突只会在上线后以 404 的形式出现。
+	#
+	# 反代目标是 127.0.0.1——shop-api 只监听回环，Postgres 同理。两者都不对
+	# 外开放端口，公网入口有且只有 Caddy 这一个。
+	@shop path /api/* /download /download/*
+	handle @shop {
+		reverse_proxy 127.0.0.1:8787 {
+			# 母版 zip 约 230 KB，但发版接口收的是 multipart 上传，响应要等落盘
+			# 加校验；给足 5 分钟，与 shop-api 自己的 requestTimeout 对齐。
+			transport http {
+				read_timeout 300s
+				write_timeout 300s
+			}
+			# 限流表按客户端 IP 记账，而 shop-api 取的是 X-Forwarded-For 的
+			# **第一个**值。这里用 `header_up` **覆盖**而不是沿用 Caddy 默认的
+			# 追加行为：默认行为会把客户端自带的那一份留在最前面，于是任何人
+			# 只要每次请求换一个伪造的 XFF 就能把限流绕干净。覆盖之后第一个
+			# 值永远是 Caddy 看到的真实对端。
+			#
+			# 这台机器前面没有别的代理。若将来加了 CDN 或 LB，这一行要改成
+			# 读它们的可信头，否则记到的会是那一跳的 IP。
+			header_up X-Forwarded-For {remote_host}
+		}
+	}
+
 	# 根路径进默认语言。302 而非 301——将来若加语言协商，301 会被浏览器长期缓存。
 	# 目标**不带**尾斜杠：全站 canonical 是无尾斜杠形态（`${SITE.domain}/en`），
 	# 跳到 `/en` 让浏览器第一跳就落在 canonical 上（R-13）。
@@ -34,7 +73,10 @@
 	# 指向它的链接（实测）。保留是因为成本为零——将来往 `public/samples/` 放静态
 	# 样例文件时，这一条已就位，不必再想起“要把新目录加进这份清单”。若你正在清理
 	# 死配置，删掉它同样安全，但记得那时要同步检查上面的注释还在不在。
-	@unknown_locale not path / /en /en/* /ko /ko/* /_astro/* /fonts/* /samples/* /favicon.svg /robots.txt /sitemap* /404.html
+	#
+	# `/api/*`、`/download`、`/download/*` 在这里排除，理由见文件上方 @shop 的
+	# 第 2 条：`redir` 排在 `handle` 之前，不排除就永远到不了反代。
+	@unknown_locale not path / /en /en/* /ko /ko/* /api/* /download /download/* /_astro/* /fonts/* /samples/* /favicon.svg /robots.txt /sitemap* /404.html
 	redir @unknown_locale /en 302
 
 	@immutable path /_astro/* /fonts/*
@@ -46,7 +88,9 @@
 	# `/en/index.html`。写成 `path *.html /` 的后果是：没有任何真实页面拿到
 	# Cache-Control（只有字面以 .html 结尾的 URL 才命中，而站点没有这种 URL）。
 	# 反向排除对“除了静态资源以外的一切”生效，改写前后都成立。
-	@html not path /_astro/* /fonts/* /favicon.svg /robots.txt /sitemap*
+	# `/api/*` 与 `/download*` 也排除：见 @shop 的第 3 条——接口自己决定缓存
+	# 语义，签名下载绝不能被打上 `public`。
+	@html not path /api/* /download /download/* /_astro/* /fonts/* /favicon.svg /robots.txt /sitemap*
 	header @html Cache-Control "public, max-age=0, must-revalidate"
 
 	header {

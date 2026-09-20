@@ -1,0 +1,71 @@
+# TeachFlow shop-api —— 发版、履约、下载接口。
+#
+# 安装：
+#   sudo cp deploy/shop-api.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now shop-api
+#
+# 环境变量清单与各自的取得方式见 shop-api/README.md。
+
+[Unit]
+Description=TeachFlow shop-api
+Documentation=file:///srv/teachflow/shop-api/README.md
+# Postgres 在同一台机器上。`After` 只保证启动顺序，不保证对方已经能接受连接，
+# 所以下面仍然要靠 Restart= 兜底：数据库还没起来时进程会退出并被拉起重试。
+After=network-online.target postgresql.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=teachflow
+Group=teachflow
+WorkingDirectory=/srv/teachflow/shop-api
+
+# 密钥只经由这个文件进入进程，不写进 unit、不进仓库、不落数据库。
+# 权限：chown root:root、chmod 0600——systemd 以 root 读它，读完才降到 teachflow。
+EnvironmentFile=/etc/teachflow/shop-api.env
+
+# 没有构建步骤：Node 22 直接跑 .ts（见 shop-api/README.md「为什么没有构建」）。
+ExecStart=/usr/bin/node src/server.ts
+
+# 进程崩了就拉起来。RestartSec 给 5 秒，免得配置错误时每秒重启刷满日志；
+# StartLimit 让「怎么重启都起不来」变成一个会停下来的、看得见的失败状态，
+# 而不是无限重启。
+Restart=always
+RestartSec=5
+StartLimitIntervalSec=120
+StartLimitBurst=5
+
+# 收到 SIGTERM 后先停止接受新连接、把在途请求做完再退。server.ts 的优雅
+# 关闭要走完 HTTP server → pg-boss → 连接池三步，给 35 秒。
+KillSignal=SIGTERM
+TimeoutStopSec=35
+
+# 日志进 journald。进程只打方法、路径与错误摘要，不打栈、不打邮箱、不打
+# webhook 正文（那里面有密钥和买家信息）。
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=shop-api
+
+# ---- 沙箱。这个进程要读母版目录、连本机 Postgres、出网访问 R2 与 Resend，
+# 除此以外不需要任何东西。----
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictNamespaces=true
+LockPersonality=true
+MemoryDenyWriteExecute=false
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+
+# ProtectSystem=strict 之下整个文件系统只读，母版目录必须显式开写。
+# 它是 MASTER_DIR 的值：发版时 zip 在这里落盘，下载时从这里读。
+ReadWritePaths=/srv/teachflow/masters
+
+[Install]
+WantedBy=multi-user.target
