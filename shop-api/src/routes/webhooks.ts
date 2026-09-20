@@ -1,6 +1,6 @@
 import type { Pool } from 'pg';
 import type { Handler, RequestContext } from '../http/router.ts';
-import { BodyTooLarge, readRawBody, sendJson } from '../http/respond.ts';
+import { BodyTooLarge, readRawBody, sendError, sendJson } from '../http/respond.ts';
 import type { MorAdapter, VerifyFailure } from '../mor/types.ts';
 import { applyWebhookEvent } from '../db/orders.ts';
 
@@ -13,6 +13,15 @@ const STATUS_BY_FAILURE: Record<VerifyFailure, number> = {
   bad_signature: 401,
   stale_timestamp: 401,
   malformed_payload: 400,
+};
+
+// 回给供应商看的说明。措辞只描述我们这边的判定，不回显收到的内容——
+// 这个响应会进对方的投递日志，而我们无法假定那份日志是私密的。
+const MESSAGE_BY_FAILURE: Record<VerifyFailure, string> = {
+  missing_headers: '缺少签名所需的请求头。',
+  bad_signature: '签名校验未通过。',
+  stale_timestamp: '时间戳超出允许窗口。',
+  malformed_payload: '签名通过，但内容不是我们认识的结构。',
 };
 
 export interface WebhookDeps {
@@ -32,7 +41,7 @@ export function webhookRoute(deps: WebhookDeps): Handler {
       raw = await readRawBody(ctx.req, MAX_BODY_BYTES);
     } catch (err) {
       if (err instanceof BodyTooLarge) {
-        sendJson(ctx.res, 413, { error: 'payload_too_large' });
+        sendError(ctx.res, 413, 'payload_too_large', '请求体超出上限。');
         return;
       }
       throw err;
@@ -45,7 +54,12 @@ export function webhookRoute(deps: WebhookDeps): Handler {
       deps.now ? deps.now() : undefined,
     );
     if (!outcome.ok) {
-      sendJson(ctx.res, STATUS_BY_FAILURE[outcome.reason], { error: outcome.reason });
+      sendError(
+        ctx.res,
+        STATUS_BY_FAILURE[outcome.reason],
+        outcome.reason,
+        MESSAGE_BY_FAILURE[outcome.reason],
+      );
       return;
     }
 
@@ -62,7 +76,7 @@ export function webhookRoute(deps: WebhookDeps): Handler {
 
     if (result === 'unknown_order') {
       // 回非 200 让供应商重投：付款事件可能只是还在路上。
-      sendJson(ctx.res, 409, { error: 'unknown_order' });
+      sendError(ctx.res, 409, 'unknown_order', '事件指向的订单不存在。');
       return;
     }
 

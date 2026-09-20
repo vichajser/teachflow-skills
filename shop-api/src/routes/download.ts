@@ -1,6 +1,6 @@
 import type { Pool } from 'pg';
 import type { Handler, RequestContext } from '../http/router.ts';
-import { sendHtml, sendJson } from '../http/respond.ts';
+import { sendError, sendHtml } from '../http/respond.ts';
 import { verifyToken, type VerifyFailure } from '../lib/token.ts';
 import { StorageError, type Storage } from '../lib/storage.ts';
 import { injectLicenceHolder } from '../lib/watermark.ts';
@@ -29,6 +29,15 @@ const FAILURE_BY_REASON: Record<VerifyFailure, PageFailure> = {
   bad_algorithm: 'invalid_token',
   bad_signature: 'invalid_token',
   expired: 'expired',
+};
+
+// 文件接口回的是 JSON，触发它的是浏览器的下载动作，所以这段话通常只出现在
+// 开发者工具里。写成人话仍然有用：买家把它截图发来时，我们不必再问一遍。
+const FAILURE_MESSAGE: Record<PageFailure, string> = {
+  missing_token: '链接缺少访问令牌。',
+  invalid_token: '链接无法验证。',
+  expired: '链接已过期。',
+  revoked: '该订单已退款或被拒付，文件不再提供下载。',
 };
 
 function langOf(ctx: RequestContext, order: OrderRow | null): Lang {
@@ -102,20 +111,20 @@ export function downloadFileRoute(deps: DownloadDeps): Handler {
     const resolved = await resolve(deps, ctx);
     // 状态码与页面一致，正文回 JSON：调用它的是浏览器的下载动作，不是人在读的页面。
     if (!resolved.ok) {
-      sendJson(ctx.res, FAILURE_STATUS[resolved.kind], { error: resolved.kind });
+      sendError(ctx.res, FAILURE_STATUS[resolved.kind], resolved.kind, FAILURE_MESSAGE[resolved.kind]);
       return;
     }
 
     const { order } = resolved;
     const skillId = ctx.params.skillId ?? '';
     if (!(await hasEntitlement(deps.pool, order.id, skillId))) {
-      sendJson(ctx.res, 403, { error: 'not_entitled', skill: skillId });
+      sendError(ctx.res, 403, 'not_entitled', '这笔订单不包含该 skill。', { skill: skillId });
       return;
     }
 
     const release = await latestRelease(deps.pool, skillId);
     if (!release) {
-      sendJson(ctx.res, 404, { error: 'no_release', skill: skillId });
+      sendError(ctx.res, 404, 'no_release', '该 skill 还没有发布过版本。', { skill: skillId });
       return;
     }
 
@@ -124,7 +133,7 @@ export function downloadFileRoute(deps: DownloadDeps): Handler {
       master = await deps.storage.getMaster(skillId, release.version);
     } catch (err) {
       if (err instanceof StorageError) {
-        sendJson(ctx.res, 503, { error: 'master_unavailable', skill: skillId });
+        sendError(ctx.res, 503, 'master_unavailable', '文件暂时取不到，请稍后再试。', { skill: skillId });
         return;
       }
       throw err;

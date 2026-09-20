@@ -1,7 +1,7 @@
 import { createHash, timingSafeEqual } from 'node:crypto';
 import type { Pool } from 'pg';
 import type { Handler, RequestContext } from '../http/router.ts';
-import { BodyTooLarge, readRawBody, sendJson } from '../http/respond.ts';
+import { BodyTooLarge, readRawBody, sendError, sendJson } from '../http/respond.ts';
 import { fieldOf, fileOf, MultipartError, parseMultipart } from '../lib/multipart.ts';
 import { validateSkillZip } from '../lib/zip-validate.ts';
 import { compareSemver, isSemver } from '../lib/frontmatter.ts';
@@ -35,7 +35,7 @@ function authorized(header: string | string[] | undefined, expected: string): bo
 export function adminReleasesRoute(deps: ReleaseDeps): Handler {
   return async (ctx: RequestContext) => {
     if (!authorized(ctx.req.headers.authorization, deps.adminToken)) {
-      sendJson(ctx.res, 401, { error: 'unauthorized' });
+      sendError(ctx.res, 401, 'unauthorized', '缺少或不正确的 Bearer token。');
       return;
     }
 
@@ -44,7 +44,9 @@ export function adminReleasesRoute(deps: ReleaseDeps): Handler {
       body = await readRawBody(ctx.req, MAX_UPLOAD_BYTES);
     } catch (err) {
       if (err instanceof BodyTooLarge) {
-        sendJson(ctx.res, 413, { error: 'payload_too_large', limit_bytes: MAX_UPLOAD_BYTES });
+        sendError(ctx.res, 413, 'payload_too_large', '上传体积超出上限。', {
+          limit_bytes: MAX_UPLOAD_BYTES,
+        });
         return;
       }
       throw err;
@@ -55,7 +57,7 @@ export function adminReleasesRoute(deps: ReleaseDeps): Handler {
       parts = parseMultipart(body, ctx.req.headers['content-type']);
     } catch (err) {
       if (err instanceof MultipartError) {
-        sendJson(ctx.res, 400, { error: 'bad_multipart', detail: err.message });
+        sendError(ctx.res, 400, 'bad_multipart', err.message);
         return;
       }
       throw err;
@@ -77,35 +79,40 @@ export function adminReleasesRoute(deps: ReleaseDeps): Handler {
       .filter(([, v]) => v === undefined || v === '')
       .map(([k]) => k as string);
     if (missing.length > 0) {
-      sendJson(ctx.res, 400, { error: 'missing_fields', fields: missing });
+      sendError(ctx.res, 400, 'missing_fields', '缺少必填字段。', { fields: missing });
       return;
     }
     if (!isSemver(version!)) {
-      sendJson(ctx.res, 400, { error: 'bad_version', detail: '版本号必须是 x.y.z' });
+      sendError(ctx.res, 400, 'bad_version', '版本号必须是 x.y.z。');
       return;
     }
 
     const validation = validateSkillZip(zip!.data, skill!);
     if (!validation.ok) {
-      sendJson(ctx.res, 400, { error: 'invalid_zip', detail: validation.reason });
+      sendError(ctx.res, 400, 'invalid_zip', validation.reason);
       return;
     }
     if (validation.version !== version) {
-      sendJson(ctx.res, 400, {
-        error: 'version_mismatch',
-        detail: `SKILL.md 里写的是 ${validation.version}，请求里写的是 ${version}`,
-      });
+      sendError(
+        ctx.res,
+        400,
+        'version_mismatch',
+        `SKILL.md 里写的是 ${validation.version}，请求里写的是 ${version}。`,
+      );
       return;
     }
 
     // 路由层先查一次，是为了给出可读的 409；真正的并发闸是表上的 UNIQUE。
     if (await getRelease(deps.pool, skill!, version!)) {
-      sendJson(ctx.res, 409, { error: 'version_exists', skill, version });
+      sendError(ctx.res, 409, 'version_exists', '该版本已经发过了。', { skill, version });
       return;
     }
     const latest = await latestVersion(deps.pool, skill!);
     if (latest && compareSemver(version!, latest) <= 0) {
-      sendJson(ctx.res, 409, { error: 'version_not_newer', latest, attempted: version });
+      sendError(ctx.res, 409, 'version_not_newer', '新版本号必须高于当前最高版本。', {
+        latest,
+        attempted: version,
+      });
       return;
     }
 
@@ -128,7 +135,7 @@ export function adminReleasesRoute(deps: ReleaseDeps): Handler {
       });
     } catch (err) {
       if (err instanceof VersionConflict) {
-        sendJson(ctx.res, 409, { error: 'version_exists', skill, version });
+        sendError(ctx.res, 409, 'version_exists', '该版本已经发过了。', { skill, version });
         return;
       }
       throw err;
@@ -138,12 +145,13 @@ export function adminReleasesRoute(deps: ReleaseDeps): Handler {
       await deps.enqueue('archive-master', { skillId: skill, version });
       await deps.enqueue('notify-update', { releaseId: release.id, skillId: skill, version });
     } catch (err) {
-      sendJson(ctx.res, 500, {
-        error: 'enqueue_failed',
-        detail: (err as Error).message,
-        release_id: release.id,
-        note: '发版记录已写入，重投任务即可，不要重新上传',
-      });
+      sendError(
+        ctx.res,
+        500,
+        'enqueue_failed',
+        '发版记录已写入，但后台任务没投递成功。重投任务即可，不要重新上传。',
+        { release_id: release.id },
+      );
       return;
     }
 

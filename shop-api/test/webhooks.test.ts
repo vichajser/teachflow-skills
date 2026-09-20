@@ -200,7 +200,7 @@ describe('验签把关', () => {
     const db = fakeDb();
     const { status, json } = await deliver(db, PAID, { headers: {} });
     expect(status).toBe(401);
-    expect(json).toEqual({ error: 'missing_headers' });
+    expect(json.error.code).toBe('missing_headers');
   });
 
   it('时间戳过期时 401', async () => {
@@ -216,7 +216,7 @@ describe('验签把关', () => {
       },
     });
     expect(status).toBe(401);
-    expect(json).toEqual({ error: 'stale_timestamp' });
+    expect(json.error.code).toBe('stale_timestamp');
   });
 
   it('签名对但内容读不懂时 400——重投也没用，别再投了', async () => {

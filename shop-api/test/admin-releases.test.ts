@@ -169,7 +169,7 @@ describe('鉴权', () => {
   it('没有 Authorization 头时 401', async () => {
     const { state, json } = await post({ ...fakePool(), ...fakeStorage() }, { token: null });
     expect(state.status).toBe(401);
-    expect(json).toEqual({ error: 'unauthorized' });
+    expect(json.error.code).toBe('unauthorized');
   });
 
   it('token 不对时 401', async () => {
@@ -251,7 +251,7 @@ describe('版本单调', () => {
     const { state, json } = await post({ ...db, ...st }, { zip: second });
 
     expect(state.status).toBe(409);
-    expect(json.error).toBe('version_exists');
+    expect(json.error.code).toBe('version_exists');
     expect(db.rows).toHaveLength(1);
     expect(db.rows[0]).toEqual(before);
   });
@@ -265,7 +265,7 @@ describe('版本单调', () => {
       { fields: { version: '0.9.0' }, zip: skillZip('0.9.0') },
     );
     expect(state.status).toBe(409);
-    expect(json).toMatchObject({ error: 'version_not_newer', latest: '1.0.0', attempted: '0.9.0' });
+    expect(json.error).toMatchObject({ code: 'version_not_newer', latest: '1.0.0', attempted: '0.9.0' });
     expect(db.rows).toHaveLength(1);
   });
 
@@ -288,7 +288,7 @@ describe('版本单调', () => {
     await post({ ...db, ...st }, { zip: skillZip('1.0.0') });
     const { state, json } = await post({ ...db, ...st }, { zip: skillZip('1.0.0') });
     expect(state.status).toBe(409);
-    expect(json.error).toBe('version_exists');
+    expect(json.error.code).toBe('version_exists');
     expect(db.rows).toHaveLength(1);
   });
 });
@@ -302,8 +302,8 @@ describe('请求校验', () => {
       { fields: { version: '2.0.0' }, zip: skillZip('1.0.0') },
     );
     expect(state.status).toBe(400);
-    expect(json.error).toBe('version_mismatch');
-    expect(json.detail).toContain('1.0.0');
+    expect(json.error.code).toBe('version_mismatch');
+    expect(json.error.message).toContain('1.0.0');
     expect(st.puts).toEqual([]);
     expect(db.rows).toEqual([]);
   });
@@ -316,8 +316,8 @@ describe('请求校验', () => {
       { zip: skillZip('1.0.0', { skillId: 'other-skill' }) },
     );
     expect(state.status).toBe(400);
-    expect(json.error).toBe('invalid_zip');
-    expect(json.detail).toContain('lesson-workflow');
+    expect(json.error.code).toBe('invalid_zip');
+    expect(json.error.message).toContain('lesson-workflow');
     expect(st.puts).toEqual([]);
     expect(db.rows).toEqual([]);
   });
@@ -328,8 +328,8 @@ describe('请求校验', () => {
       { fields: { changelog_ko: undefined as unknown as string }, zip: null },
     );
     expect(state.status).toBe(400);
-    expect(json.error).toBe('missing_fields');
-    expect(json.fields.sort()).toEqual(['changelog_ko', 'zip']);
+    expect(json.error.code).toBe('missing_fields');
+    expect(json.error.fields.sort()).toEqual(['changelog_ko', 'zip']);
   });
 
   it('版本号不是 X.Y.Z 时 400', async () => {
@@ -338,7 +338,7 @@ describe('请求校验', () => {
       { fields: { version: 'v1.0' }, zip: skillZip('1.0.0') },
     );
     expect(state.status).toBe(400);
-    expect(json.error).toBe('bad_version');
+    expect(json.error.code).toBe('bad_version');
   });
 
   it('不是 multipart 时 400 而不是 500', async () => {
@@ -347,7 +347,7 @@ describe('请求校验', () => {
       { contentType: 'application/json' },
     );
     expect(state.status).toBe(400);
-    expect(json.error).toBe('bad_multipart');
+    expect(json.error.code).toBe('bad_multipart');
   });
 });
 
@@ -366,8 +366,8 @@ describe('投递失败', () => {
       },
     );
     expect(state.status).toBe(500);
-    expect(json.error).toBe('enqueue_failed');
-    expect(json.release_id).toBe(db.rows[0]!.id);
+    expect(json.error.code).toBe('enqueue_failed');
+    expect(json.error.release_id).toBe(db.rows[0]!.id);
     expect(db.rows).toHaveLength(1);
   });
 });

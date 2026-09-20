@@ -10,6 +10,23 @@ export function sendJson(res: ServerResponse, status: number, body: unknown): vo
   res.end(payload);
 }
 
+/**
+ * 统一的错误信封：`{ error: { code, message } }`。
+ *
+ * code 供程序判断，message 供人阅读——所以 message 永远是我们自己写死的句子，
+ * 绝不回显内部路径、SQL 或上游响应体。额外字段（哪些字段缺了、当前最高版本）
+ * 放在 error 对象里，调用方用得上，也不必再解析 message。
+ */
+export function sendError(
+  res: ServerResponse,
+  status: number,
+  code: string,
+  message: string,
+  extra: Record<string, unknown> = {},
+): void {
+  sendJson(res, status, { error: { code, message, ...extra } });
+}
+
 export function sendHtml(res: ServerResponse, status: number, html: string): void {
   res.writeHead(status, {
     'content-type': 'text/html; charset=utf-8',

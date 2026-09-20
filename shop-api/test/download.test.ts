@@ -398,20 +398,20 @@ describe('文件接口', () => {
   it('没买过的 skill：403', async () => {
     const r = await call('file', { skillId: 'rubric-builder' });
     expect(r.status).toBe(403);
-    expect(JSON.parse(r.text)).toEqual({ error: 'not_entitled', skill: 'rubric-builder' });
+    expect(JSON.parse(r.text).error).toMatchObject({ code: 'not_entitled', skill: 'rubric-builder' });
   });
 
   it('退款后连自己买过的 skill 也取不到', async () => {
     const r = await call('file', { db: fakeDb({ status: 'refunded' }) });
     expect(r.status).toBe(403);
-    expect(JSON.parse(r.text)).toEqual({ error: 'revoked' });
+    expect(JSON.parse(r.text).error.code).toBe('revoked');
   });
 
   it('有权利但还没发过版：404', async () => {
     const db = fakeDb({ releases: [release('ppt-workflow', '1.0.0')] });
     const r = await call('file', { db });
     expect(r.status).toBe(404);
-    expect(JSON.parse(r.text)).toEqual({ error: 'no_release', skill: 'lesson-workflow' });
+    expect(JSON.parse(r.text).error).toMatchObject({ code: 'no_release', skill: 'lesson-workflow' });
   });
 
   it('母版取不到：503，不是 500', async () => {
@@ -422,7 +422,7 @@ describe('文件接口', () => {
     });
     const r = await call('file', { storage });
     expect(r.status).toBe(503);
-    expect(JSON.parse(r.text)).toEqual({ error: 'master_unavailable', skill: 'lesson-workflow' });
+    expect(JSON.parse(r.text).error).toMatchObject({ code: 'master_unavailable', skill: 'lesson-workflow' });
   });
 
   it('过期 token 回 JSON，状态码与页面一致', async () => {
@@ -433,13 +433,13 @@ describe('文件接口', () => {
     });
     const r = await call('file', { token: stale });
     expect(r.status).toBe(410);
-    expect(JSON.parse(r.text)).toEqual({ error: 'expired' });
+    expect(JSON.parse(r.text).error.code).toBe('expired');
   });
 
   it('缺 token：400', async () => {
     const r = await call('file', { token: null });
     expect(r.status).toBe(400);
-    expect(JSON.parse(r.text)).toEqual({ error: 'missing_token' });
+    expect(JSON.parse(r.text).error.code).toBe('missing_token');
   });
 
   it('别人的 token 签名验不过：401，且不查库', async () => {
