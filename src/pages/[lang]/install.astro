@@ -1,0 +1,302 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Icon from '@/components/Icon.astro';
+import { SITE } from '@/config/site';
+import { localizePath, type Locale } from '@/i18n/config';
+import { useTranslations } from '@/i18n/t';
+
+export { localeStaticPaths as getStaticPaths } from '@/i18n/paths';
+
+const lang = Astro.params.lang as Locale;
+const t = useTranslations(lang);
+
+/*
+ * 与 docs.astro 同一条纪律：每条事实都写成 { en, ko } 成对出现，渲染时只取
+ * 其中一版。这样"不得只在一种语言里写出某条事实"由结构保证。
+ *
+ * 本页只讲三件已核实的事（见 .superpowers/sdd/install-paths-research.md）：
+ *   · Claude Code 桌面应用是真正的全程无终端路径（A1/A3）；
+ *   · Codex 读同一批 SKILL.md，但没有"上传已下载文件夹"的按钮（B2）；
+ *   · Gemini CLI 只文档化了命令式安装，消费者应用完全不读技能文件夹（C2/C3）。
+ * 研究文件标为 UNCONFIRMED 的几条——Windows 的 C:\Users\... 字面量、Codex/Gemini
+ * 的图形化上传、Gemini Code Assist 的技能支持——本页一个字都不写。
+ *
+ * 全页不出现命令行：Finder/文件资源管理器里的操作是文件操作，不是 shell。
+ * 在 AI 自己的输入框里键入 / 或 $ 不是命令行，且本页每一处都点明"输入框"。
+ */
+
+const LEAD: Record<Locale, string> = {
+  en: 'Installing here means one thing: putting six folders of plain-text files into a single folder your AI tool already reads. You do it in Finder or File Explorer. No terminal is involved, and this page never asks you to open one.',
+  ko: '여기서 설치란 한 가지입니다. 일반 텍스트 파일로 된 폴더 여섯 개를, 쓰고 계신 AI 도구가 이미 읽는 폴더 하나에 넣는 일입니다. 작업은 Finder나 파일 탐색기에서 합니다. 터미널은 쓰지 않으며, 이 페이지는 터미널을 열라고 요청하지 않습니다.',
+};
+
+/*
+ * meta description 与 LEAD 分开：LEAD 是为版面写的，而搜索结果摘要在 ~160 处
+ * 截断（`seo.test.mjs` 有上界断言）。两者说的是同一件事，只是长度约束不同。
+ */
+const DESCRIPTION: Record<Locale, string> = {
+  en: 'A click-only install walkthrough for the six TeachFlow skills, done entirely in Finder or File Explorer — with Claude Code, Codex or Cursor.',
+  ko: 'TeachFlow 스킬 여섯 개를 명령줄 없이 설치하는 방법입니다. Claude Code, Codex, Cursor에서 Finder나 파일 탐색기만으로 설치합니다.',
+};
+
+const BEFORE_HEADING: Record<Locale, string> = {
+  en: 'Before you start',
+  ko: '시작하기 전에',
+};
+
+const BEFORE_ITEMS: { en: string; ko: string }[] = [
+  {
+    en: 'You have the six zip files.',
+    ko: 'zip 파일 여섯 개를 가지고 있습니다.',
+  },
+  {
+    en: 'You have one of the tools this page installs into: Claude Code, Codex or Cursor.',
+    ko: '이 페이지에서 설치할 수 있는 도구 가운데 하나를 쓰고 있습니다. Claude Code, Codex, Cursor 중 하나입니다.',
+  },
+];
+
+const CLAUDE_HEADING: Record<Locale, string> = {
+  en: 'Claude Code',
+  ko: 'Claude Code',
+};
+
+const CLAUDE_LEAD: Record<Locale, string> = {
+  en: 'This is the one path that is click-only from start to finish. Anthropic\'s own quickstart for the desktop app states, "No terminal required."',
+  ko: '처음부터 끝까지 클릭만으로 되는 방법입니다. 데스크톱 앱에 대한 Anthropic의 안내 문서에도 "터미널이 필요하지 않습니다"라고 적혀 있습니다.',
+};
+
+const CLAUDE_STEPS: { en: string; ko: string }[] = [
+  {
+    en: 'Open claude.com/download in your browser and download the Claude desktop app for macOS or Windows.',
+    ko: '브라우저에서 claude.com/download를 열고 macOS 또는 Windows용 Claude 데스크톱 앱을 내려받습니다.',
+  },
+  {
+    en: 'Install it the way you install any other app, then open it and sign in. The Code tab needs a paid Claude plan — Pro, Max, Team or Enterprise.',
+    ko: '다른 앱을 설치하듯 설치한 뒤 실행하고 로그인합니다. Code 탭은 유료 Claude 요금제(Pro, Max, Team, Enterprise)가 있어야 합니다.',
+  },
+  {
+    en: 'Click the Code tab. That is Claude Code with a graphical interface; the app already includes it, so there is no separate command-line tool to install first.',
+    ko: 'Code 탭을 클릭합니다. 그래픽 화면이 있는 Claude Code이며, 앱에 이미 포함되어 있으므로 먼저 따로 설치할 명령줄 도구가 없습니다.',
+  },
+  {
+    en: 'Unzip the six zip files you downloaded. Each one opens into a single folder named after its skill: lesson-workflow, worksheet-workflow, ppt-workflow, word-workflow, audio-workflow and report-workflow.',
+    ko: '내려받은 zip 파일 여섯 개의 압축을 풉니다. 각각 스킬 이름을 딴 폴더 하나로 풀립니다. lesson-workflow, worksheet-workflow, ppt-workflow, word-workflow, audio-workflow, report-workflow입니다.',
+  },
+  {
+    en: 'Open your home folder in Finder (macOS) or File Explorer (Windows). On macOS the .claude folder is hidden — press Cmd + Shift + . to show hidden items. That is Finder, not a terminal.',
+    ko: 'Finder(macOS)나 파일 탐색기(Windows)에서 홈 폴더를 엽니다. macOS에서는 .claude 폴더가 숨겨져 있으므로 Cmd + Shift + .를 눌러 숨긴 항목을 표시합니다. 이곳은 터미널이 아니라 Finder입니다.',
+  },
+  {
+    en: 'Open the .claude folder, then the skills folder inside it. If there is no skills folder, make one: right-click, choose New Folder, and name it skills.',
+    ko: '.claude 폴더를 열고 그 안의 skills 폴더를 엽니다. skills 폴더가 없으면 새로 만듭니다. 마우스 오른쪽 버튼을 누르고 새 폴더를 골라 이름을 skills로 정하면 됩니다.',
+  },
+  {
+    en: 'Copy the six skill folders into that skills folder — one folder per skill, each still holding its own SKILL.md. The finished shape is ~/.claude/skills/lesson-workflow/SKILL.md, and the same for the other five.',
+    ko: '스킬 폴더 여섯 개를 그 skills 폴더 안으로 복사합니다. 스킬마다 폴더 하나씩이고, 각 폴더 안에는 자기 SKILL.md가 그대로 들어 있어야 합니다. 완성된 모습은 ~/.claude/skills/lesson-workflow/SKILL.md이며, 나머지 다섯도 같은 방식입니다.',
+  },
+  {
+    en: 'Nothing else to do. Claude Code watches the folder, and Anthropic\'s docs say "Editing skills is live." You do not need to restart it.',
+    ko: '더 할 일은 없습니다. Claude Code는 이 폴더를 지켜보며, Anthropic 문서에는 "스킬 편집은 바로 반영됩니다"라고 적혀 있습니다. 다시 실행할 필요가 없습니다.',
+  },
+];
+
+const CLAUDE_NOTES: Record<Locale, string> = {
+  en: 'Two things worth knowing. First, ~/.claude/skills/ is read by the local Code tab; Cowork and cloud sessions take their skills from a claude.ai account instead, so they will not see this folder. Second, never name a skill folder synced — that name is reserved.',
+  ko: '알아 두실 점 두 가지입니다. 첫째, ~/.claude/skills/는 로컬 Code 탭이 읽는 위치입니다. Cowork과 클라우드 세션은 claude.ai 계정에서 동기화한 스킬을 쓰므로 이 폴더를 보지 않습니다. 둘째, 스킬 폴더 이름을 synced로 짓지 마세요. 그 이름은 예약되어 있습니다.',
+};
+
+const CODEX_HEADING: Record<Locale, string> = {
+  en: 'Codex',
+  ko: 'Codex',
+};
+
+const CODEX_LEAD: Record<Locale, string> = {
+  en: 'Codex reads the same SKILL.md folders. One honest caveat: there is no button in Codex that uploads a downloaded skill folder. Copying the folders in is the supported way, and OpenAI\'s docs describe it as a manual step.',
+  ko: 'Codex는 같은 SKILL.md 폴더를 읽습니다. 다만 솔직히 말씀드릴 점이 있습니다. Codex에는 내려받은 스킬 폴더를 올리는 버튼이 없습니다. 폴더를 직접 복사해 넣는 것이 지원되는 방법이며, OpenAI 문서도 이를 수동 작업으로 설명합니다.',
+};
+
+const CODEX_STEPS: { en: string; ko: string }[] = [
+  {
+    en: 'If you have not already, unzip the six zip files. Each one opens into a single folder named after its skill.',
+    ko: '아직 하지 않았다면 zip 파일 여섯 개의 압축을 풉니다. 각각 스킬 이름을 딴 폴더 하나로 풀립니다.',
+  },
+  {
+    en: 'Open your home folder in Finder (macOS) or File Explorer (Windows). On macOS the .agents folder is hidden — press Cmd + Shift + . to show hidden items.',
+    ko: 'Finder(macOS)나 파일 탐색기(Windows)에서 홈 폴더를 엽니다. macOS에서는 .agents 폴더가 숨겨져 있으므로 Cmd + Shift + .를 눌러 숨긴 항목을 표시합니다.',
+  },
+  {
+    en: 'Open the .agents folder, then the skills folder inside it. If there is no skills folder, make one and name it skills.',
+    ko: '.agents 폴더를 열고 그 안의 skills 폴더를 엽니다. skills 폴더가 없으면 새로 만들어 이름을 skills로 정합니다.',
+  },
+  {
+    en: 'Copy the six skill folders into it, one folder per skill. The finished shape is ~/.agents/skills/lesson-workflow/SKILL.md, and the same for the other five.',
+    ko: '스킬 폴더 여섯 개를 그 안으로 복사합니다. 스킬마다 폴더 하나씩입니다. 완성된 모습은 ~/.agents/skills/lesson-workflow/SKILL.md이며, 나머지 다섯도 같은 방식입니다.',
+  },
+  {
+    en: 'Codex normally notices new skills on its own. If one does not appear, quit Codex completely and open it again.',
+    ko: 'Codex는 보통 새 스킬을 스스로 알아차립니다. 그래도 나타나지 않으면 Codex를 완전히 종료했다가 다시 실행합니다.',
+  },
+];
+
+const CODEX_NOTE: Record<Locale, string> = {
+  en: 'To use a skill, type $ in Codex\'s chat box and pick it from the list. The $ goes in the chat box, not in a terminal.',
+  ko: '스킬을 쓰려면 Codex의 채팅 입력창에 $를 입력하고 목록에서 고릅니다. $는 터미널이 아니라 채팅 입력창에 넣습니다.',
+};
+
+const GEMINI_HEADING: Record<Locale, string> = {
+  en: 'Google Gemini',
+  ko: 'Google Gemini',
+};
+
+const GEMINI_PARAS: { en: string; ko: string }[] = [
+  {
+    en: 'Gemini CLI does support the same skill folders, but every install route Google documents is a typed command. There is no window to drag a folder into.',
+    ko: 'Gemini CLI는 같은 스킬 폴더를 지원합니다. 다만 Google이 안내하는 설치 방법은 모두 직접 입력하는 명령입니다. 폴더를 끌어다 놓을 창은 없습니다.',
+  },
+  {
+    en: 'The Gemini app at gemini.google.com does not read skill folders at all. Its customisation feature is Gems, which is a different thing.',
+    ko: 'gemini.google.com의 Gemini 앱은 스킬 폴더를 아예 읽지 않습니다. 그 앱의 사용자 설정 기능은 Gems이며, 스킬과는 다른 것입니다.',
+  },
+  {
+    en: 'So the honest answer: if you want a click-only install, use Claude Code. If you already work in Gemini CLI and do not mind typing one line, the commands are on the docs page.',
+    ko: '그래서 솔직한 답은 이렇습니다. 클릭만으로 설치하고 싶다면 Claude Code를 쓰세요. 이미 Gemini CLI를 쓰고 있고 한 줄 입력이 괜찮다면, 명령은 사용 안내 페이지에 있습니다.',
+  },
+];
+
+const DOCS_LINK_LABEL: Record<Locale, string> = {
+  en: 'Open the docs page',
+  ko: '사용 안내 페이지 열기',
+};
+
+const CURSOR_HEADING: Record<Locale, string> = {
+  en: 'Cursor',
+  ko: 'Cursor',
+};
+
+const CURSOR_BODY: Record<Locale, string> = {
+  en: 'Cursor loads skills from Claude\'s folders as well, so if you use Cursor you get the six skills from the same ~/.claude/skills/ install. Cursor\'s own docs state this compatibility.',
+  ko: 'Cursor는 Claude의 폴더에서도 스킬을 불러옵니다. 따라서 Cursor를 쓰신다면 같은 ~/.claude/skills/ 설치로 스킬 여섯 개를 그대로 쓸 수 있습니다. 이 호환성은 Cursor 자체 문서에 적혀 있습니다.',
+};
+
+const VERIFY_HEADING: Record<Locale, string> = {
+  en: 'Did it work?',
+  ko: '제대로 됐는지 확인하기',
+};
+
+const VERIFY_LEAD: Record<Locale, string> = {
+  en: 'The folder name is the command name. Open the tool and check that the six names are in the list.',
+  ko: '폴더 이름이 곧 명령 이름입니다. 도구를 열고 목록에 여섯 이름이 있는지 확인합니다.',
+};
+
+const VERIFY_ROWS: { tool: string; action: { en: string; ko: string } }[] = [
+  {
+    tool: 'Claude Code',
+    action: {
+      en: 'Type / in the prompt box. The six names should appear in the list.',
+      ko: '입력창에 /를 입력합니다. 목록에 여섯 이름이 나타나야 합니다.',
+    },
+  },
+  {
+    tool: 'Codex',
+    action: {
+      en: 'Type $ in the chat box and pick from the list.',
+      ko: '채팅 입력창에 $를 입력하고 목록에서 고릅니다.',
+    },
+  },
+];
+
+const IFNOT_HEADING: Record<Locale, string> = {
+  en: 'If it did not work',
+  ko: '안 됐을 때 확인할 것',
+};
+
+const IFNOT_ITEMS: { en: string; ko: string }[] = [
+  {
+    en: 'The folder is hidden. On macOS, press Cmd + Shift + . in Finder to show hidden items. You can also use Finder\'s Go menu, then Go to Folder, and type ~/.claude/skills — that box belongs to Finder, not a terminal.',
+    ko: '폴더가 숨겨져 있는 경우입니다. macOS에서는 Finder에서 Cmd + Shift + .를 눌러 숨긴 항목을 표시합니다. Finder의 이동 메뉴에서 폴더로 이동을 고르고 ~/.claude/skills를 입력해도 됩니다. 그 입력창은 터미널이 아니라 Finder의 것입니다.',
+  },
+  {
+    en: 'The zip unzipped into a nested folder, so SKILL.md sits one level too deep. Open the skill folder and check that SKILL.md is directly inside it. If it is inside another folder, move it up one level.',
+    ko: '압축이 폴더 안에 또 폴더가 생기게 풀려서 SKILL.md가 한 단계 더 깊이 들어간 경우입니다. 스킬 폴더를 열어 SKILL.md가 그 안에 바로 있는지 확인합니다. 다른 폴더 안에 들어가 있으면 한 단계 위로 옮깁니다.',
+  },
+  {
+    en: 'The folder was renamed. The folder name is the command name, so renaming it changes what you type. Also, never name a folder synced — that name is reserved.',
+    ko: '폴더 이름을 바꾼 경우입니다. 폴더 이름이 곧 명령 이름이므로 이름을 바꾸면 입력할 이름도 달라집니다. 또한 폴더 이름을 synced로 짓지 마세요. 그 이름은 예약되어 있습니다.',
+  },
+];
+---
+
+<BaseLayout
+  lang={lang}
+  title={`${t('install.title')} — ${SITE.productName}`}
+  description={DESCRIPTION[lang]}
+  path="/install"
+>
+  <h1 class="pt-16 text-4xl font-semibold text-text-hi">{t('install.title')}</h1>
+  <p class="mt-3 max-w-2xl text-lg text-text-body">{LEAD[lang]}</p>
+
+  <section class="mt-12">
+    <h2 class="mb-4 text-2xl font-semibold text-text-hi">{BEFORE_HEADING[lang]}</h2>
+    <ul class="max-w-3xl list-disc space-y-2 pl-5 text-text-body">
+      {BEFORE_ITEMS.map((item) => <li>{item[lang]}</li>)}
+    </ul>
+  </section>
+
+  <section class="mt-12">
+    <h2 class="mb-4 text-2xl font-semibold text-text-hi">{CLAUDE_HEADING[lang]}</h2>
+    <p class="max-w-2xl text-text-body">{CLAUDE_LEAD[lang]}</p>
+    <ol class="mt-4 max-w-3xl list-decimal space-y-3 pl-5 text-text-body">
+      {CLAUDE_STEPS.map((step) => <li>{step[lang]}</li>)}
+    </ol>
+    <p class="mt-4 max-w-3xl text-sm text-text-mute">{CLAUDE_NOTES[lang]}</p>
+  </section>
+
+  <section class="mt-12">
+    <h2 class="mb-4 text-2xl font-semibold text-text-hi">{CODEX_HEADING[lang]}</h2>
+    <p class="max-w-2xl text-text-body">{CODEX_LEAD[lang]}</p>
+    <ol class="mt-4 max-w-3xl list-decimal space-y-3 pl-5 text-text-body">
+      {CODEX_STEPS.map((step) => <li>{step[lang]}</li>)}
+    </ol>
+    <p class="mt-4 max-w-3xl text-sm text-text-mute">{CODEX_NOTE[lang]}</p>
+  </section>
+
+  <section class="mt-12">
+    <h2 class="mb-4 text-2xl font-semibold text-text-hi">{GEMINI_HEADING[lang]}</h2>
+    <div class="max-w-2xl space-y-3 text-text-body">
+      {GEMINI_PARAS.map((para) => <p>{para[lang]}</p>)}
+    </div>
+    <p class="mt-3">
+      <a
+        href={localizePath('/docs', lang)}
+        class="text-accent hover:underline"
+      >{DOCS_LINK_LABEL[lang]}</a>
+    </p>
+  </section>
+
+  <section class="mt-12">
+    <h2 class="mb-4 text-2xl font-semibold text-text-hi">{CURSOR_HEADING[lang]}</h2>
+    <p class="max-w-2xl text-text-body">{CURSOR_BODY[lang]}</p>
+  </section>
+
+  <section class="mt-12">
+    <h2 class="mb-4 text-2xl font-semibold text-text-hi">{VERIFY_HEADING[lang]}</h2>
+    <p class="max-w-2xl text-text-body">{VERIFY_LEAD[lang]}</p>
+    <ul class="mt-3 grid max-w-3xl gap-2 sm:grid-cols-2">
+      {VERIFY_ROWS.map((row) => (
+        <li class="rounded-lg border border-border bg-surface px-4 py-3">
+          <p class="flex items-center gap-2 text-text-hi">
+            <Icon name="folder" size={18} class="text-accent" />{row.tool}
+          </p>
+          <p class="mt-1 text-sm text-text-body">{row.action[lang]}</p>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <section class="mt-12 pb-16">
+    <h2 class="mb-4 text-2xl font-semibold text-text-hi">{IFNOT_HEADING[lang]}</h2>
+    <ol class="max-w-3xl list-decimal space-y-3 pl-5 text-text-body">
+      {IFNOT_ITEMS.map((item) => <li>{item[lang]}</li>)}
+    </ol>
+  </section>
+</BaseLayout>

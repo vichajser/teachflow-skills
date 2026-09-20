@@ -77,7 +77,7 @@ function hangulRatio(text) {
   return hangul / chars.length;
 }
 
-const LOCALIZED = ['faq', 'docs', 'samples', '404'].flatMap((slug) =>
+const LOCALIZED = ['faq', 'docs', 'samples', 'install', '404'].flatMap((slug) =>
   ['en', 'ko'].map((lang) => ({ lang, slug, file: `${lang}/${slug}/index.html` })),
 );
 
