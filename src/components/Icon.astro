@@ -1,0 +1,46 @@
+---
+import { ICON_PATHS, type IconName } from '@/data/icons';
+
+interface Props {
+  name: IconName;
+  /** 边长（px）。默认 20——正文行高 24 之内，属于 spec §5.1 说的"小面积图标"。 */
+  size?: number;
+  /** 额外的类；颜色走 `text-*`，由 `currentColor` 接过来。 */
+  class?: string;
+}
+
+const { name, size = 20, class: className = '' } = Astro.props;
+const paths = ICON_PATHS[name];
+---
+
+{/*
+  `aria-hidden="true"` + `focusable="false"`：站内每一个图标都紧挨着一段说明
+  同一件事的文字（skill 标题、事实句、分节标题），图标本身是装饰。给它
+  `role="img"` 加 label 只会让读屏器把同一件事念两遍。
+  `focusable="false"` 针对 IE/旧 Edge 把 `<svg>` 放进 Tab 序列的老毛病——
+  `aria-hidden` 宿主内部出现可聚焦元素正是 `scripts/aria-hidden-scan.mjs`
+  与 axe aria-hidden-focus 判失败的形态。本组件不含任何 a/button/tabindex。
+
+  `stroke="currentColor"` 而不是 favicon 那个 `url(#g)` 渐变：渐变要求每个
+  `<svg>` 自带 `<defs>`，同一 id 在一页里出现 N 次就是 N 个重复 id（HTML 无效，
+  且 Chrome 按文档序取第一个）。改用 currentColor 后，颜色由调用方的
+  `text-accent-glow` / `text-accent` / `text-accent-warm` 给出——这正好让图标
+  沿用 spec §5.2 的阶段配色编码，而 `stageClass()` 仍然只管 border/shadow，
+  `tests/unit/skills.test.ts` 那条"阶段类不得含 text-*"的断言不受影响。
+*/}
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 24 24"
+  width={size}
+  height={size}
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.5"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  aria-hidden="true"
+  focusable="false"
+  class:list={['shrink-0', className]}
+>
+  {paths.map((d) => <path d={d} />)}
+</svg>

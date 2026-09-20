@@ -61,6 +61,40 @@ body::before {
 }
 
 /*
+  Texture 2: 两团定点辉光，作为全站背景层。
+
+  Ruling —— 用 CSS 辉光层满足"加背景图片"，不引入任何位图背景。
+  为什么：spec §5.3 把质感手法写成"仅此四项"（网格底纹、辉光、渐变描边、
+  等宽字标注），四项里没有一项是光栅图；§5 又把基调钉在"开发者工具而非教育
+  机构"，一张摄影背景正是教育机构官网的样子。这一层用的就是第 2 项
+  （`0 0 40px rgba(46,125,255,.35)` 那个辉光）的放大版，语汇不变、面积变大，
+  页面从此不再是"纯文字铺在纯色上"。
+  代价：如果本意确实是要买一张插画/摄影背景，那这次做的方向不对，推翻成本是
+  删掉这个规则块再加静态资源——没有其他代码依赖它。
+
+  实现约束（和 `body::before` 同一套，别改）：
+  - `z-index: -1` + 固定定位：与网格底纹同层，绝不能给 `<body>` 加不透明
+    背景类，否则两层一起被盖掉（`motion-budget.test.mjs` 守着这一条）。
+  - `::after` 在 `::before` 之后绘制，所以辉光叠在网格之上——网格是纹理、
+    辉光是光，顺序反了网格会显得浮在光上面。
+  - 两团都收在视口上半部：正文从 `pt-16`/`pt-20` 开始，光晕落在标题区背后，
+    往下迅速衰减到纯底色，长页面滚动时不会一路跟着发光。
+  - 透明度上限 0.16：正文最低对比度是 text-mute #7C8AA6 落在 #0E1626 上
+    （5.20:1）。辉光只叠在 body 背景上、不叠在卡片里（卡片自带 bg-surface
+    且不透明），所以正文对比度不受影响；这个值是"看得见但不喧宾夺主"的量。
+*/
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    radial-gradient(60rem 40rem at 15% -10%, rgba(46, 125, 255, 0.16), transparent 70%),
+    radial-gradient(45rem 35rem at 85% 0%, rgba(34, 211, 238, 0.10), transparent 70%);
+}
+
+/*
   Texture 3: gradient border. A pseudo-element, not `border-image` —
   `border-image` ignores `border-radius`. `background-clip: padding-box` is what
   keeps the element's own `background-color` from painting over the `::after`
@@ -82,8 +116,14 @@ body::before {
   background: linear-gradient(135deg, var(--color-accent), var(--color-accent-glow));
 }
 
-/* Compliance quiet zone: under body[data-quiet] even the texture goes away. */
-body[data-quiet]::before {
+/*
+  Compliance quiet zone: under body[data-quiet] even the textures go away.
+  两个伪元素都要列进来——spec §5.5 说的是"/pricing 与 /legal/* 取消所有辉光
+  与动效"，而 `body[data-quiet] *` 那条只压 box-shadow，压不住 background-image
+  画出来的辉光；漏掉 ::after 的话合规页背后仍然亮着两团光。
+*/
+body[data-quiet]::before,
+body[data-quiet]::after {
   display: none;
 }
 

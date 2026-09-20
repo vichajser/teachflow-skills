@@ -128,6 +128,12 @@ export const SECURITY_MATRIX: readonly SecurityRow[] = [
 export const VERIFIABLE_FACTS = [
   {
     id: 'no-executable-code',
+    /*
+     * `icon` 与 `id` 分开：id 是这条事实的稳定标识（单元测试逐字锁住它），
+     * icon 是它在 `/security` 上的图形。两者同名只是巧合不成立的那种耦合——
+     * 将来换一张图不该动 id，改 id 也不该悄悄换图。
+     */
+    icon: 'shield-check',
     text: {
       en: 'The six skills are 32 Markdown documents with no executable code. Every instruction they contain can be read as plain text.',
       ko: '스킬 6종은 실행 코드가 없는 Markdown 문서 32개입니다. 담긴 모든 지시를 일반 텍스트로 읽어 볼 수 있습니다.',
@@ -135,6 +141,7 @@ export const VERIFIABLE_FACTS = [
   },
   {
     id: 'runs-offline',
+    icon: 'cloud-off',
     text: {
       en: 'You can disconnect from the internet before you run them. The skills make no network request of any kind, so nothing you feed them can leave your machine — and the check costs you one click.',
       ko: '실행하기 전에 인터넷을 끊어 보셔도 됩니다. 스킬은 어떤 네트워크 요청도 하지 않으므로 입력하신 자료가 컴퓨터 밖으로 나갈 수 없습니다. 확인에 드는 수고는 클릭 한 번뿐입니다.',

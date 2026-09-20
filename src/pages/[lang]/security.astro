@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
+import Icon from '@/components/Icon.astro';
 import { SITE } from '@/config/site';
 import { SECURITY_MATRIX, VERIFIABLE_FACTS } from '@/data/security-matrix';
 import { useTranslations } from '@/i18n/t';
@@ -22,10 +23,17 @@ const t = useTranslations(lang);
 
   <section class="mt-12">
     <h2 class="mb-4 text-xl font-semibold text-text-hi">{t('security.facts')}</h2>
+    {/*
+      图标与文字并排（`flex` + `gap`），不是浮在文字上方：这两条是整页
+      最该被读完的句子，图标只负责让它们一眼可辨，不该把文字往下挤一行。
+      `items-start` + 图标自带的 `shrink-0`：文案换行时图标钉在第一行行首，
+      不随文字块垂直居中漂移。
+    */}
     <ul class="grid gap-4 md:grid-cols-2">
       {VERIFIABLE_FACTS.map((fact) => (
-        <li class="rounded-xl border border-accent-glow bg-surface p-5 text-text-body">
-          {fact.text[lang]}
+        <li class="flex items-start gap-3 rounded-xl border border-accent-glow bg-surface p-5 text-text-body">
+          <Icon name={fact.icon} size={22} class="mt-0.5 text-accent-glow" />
+          <span>{fact.text[lang]}</span>
         </li>
       ))}
     </ul>

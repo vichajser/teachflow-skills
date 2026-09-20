@@ -4,6 +4,7 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
 import FlowDiagram from '@/components/FlowDiagram/FlowDiagram.astro';
 import SkillCard from '@/components/SkillCard.astro';
 import HeroFan from '@/components/HeroFan.astro';
+import Icon from '@/components/Icon.astro';
 import PriceBlock from '@/components/PriceBlock.astro';
 import { SITE } from '@/config/site';
 import { SKILLS } from '@/data/skills';
@@ -59,7 +60,17 @@ const metaDescription = t('home.metaDescription');
   <FlowDiagram lang={lang} />
 
   <section class="py-12">
-    <h2 class="mb-6 text-2xl font-semibold text-text-hi">{t('home.skillsTitle')}</h2>
+    {/*
+      四个小节标题各配一个图标，放在 `<h2>` **内部**、用 flex 与文字同行。
+      在里面而不是上面：标题与图标是同一件事的两种表达，分成两行会在栏目之间
+      多出一层视觉噪声。svg 不贡献任何文本节点，`structuredText` 与
+      `pages.test.mjs` 的韩文占比因此不受影响。
+      图标颜色沿用 spec §5.2 的编码：技能一览取阶段 2 的电光蓝，成品预览取
+      冰青，隐私取电紫（与 report-workflow 同为"终点/结果"语义），购买回到蓝。
+    */}
+    <h2 class="mb-6 flex items-center gap-2 text-2xl font-semibold text-text-hi">
+      <Icon name="grid" size={22} class="text-accent" />{t('home.skillsTitle')}
+    </h2>
     <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       {SKILLS.map((skill) => {
         const data = byId.get(skill.id);
@@ -83,7 +94,9 @@ const metaDescription = t('home.metaDescription');
     不预先渲染文件列表——那属于 Task 11 的数据。
   */}
   <section class="py-12">
-    <h2 class="mb-2 text-2xl font-semibold text-text-hi">{t('home.samplesTitle')}</h2>
+    <h2 class="mb-2 flex items-center gap-2 text-2xl font-semibold text-text-hi">
+      <Icon name="layers" size={22} class="text-accent-glow" />{t('home.samplesTitle')}
+    </h2>
     <p class="max-w-2xl text-text-body">{t('home.samplesBody')}</p>
     <a
       href={localizePath('/samples', lang)}
@@ -92,7 +105,9 @@ const metaDescription = t('home.metaDescription');
   </section>
 
   <section class="py-12">
-    <h2 class="mb-2 text-2xl font-semibold text-text-hi">{t('home.privacyTitle')}</h2>
+    <h2 class="mb-2 flex items-center gap-2 text-2xl font-semibold text-text-hi">
+      <Icon name="lock" size={22} class="text-accent-warm" />{t('home.privacyTitle')}
+    </h2>
     <p class="max-w-2xl text-text-body">{t('home.privacyBody')}</p>
     <a
       href={localizePath('/security', lang)}
@@ -102,7 +117,9 @@ const metaDescription = t('home.metaDescription');
 
   <section class="grid gap-6 py-12 md:grid-cols-[minmax(0,1fr)_320px]">
     <div>
-      <h2 class="text-2xl font-semibold text-text-hi">{t('home.buyTitle')}</h2>
+      <h2 class="flex items-center gap-2 text-2xl font-semibold text-text-hi">
+        <Icon name="cart" size={22} class="text-accent" />{t('home.buyTitle')}
+      </h2>
       <p class="mt-2 text-text-body">{t('home.buyBody')}</p>
       <ul class="mt-4 space-y-1 text-sm">
         <li>
