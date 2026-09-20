@@ -11,3 +11,6 @@ dist/
 
 # macOS
 .DS_Store
+
+# Claude Code 本地写入暂存（非项目产物）
+.claude/.cc-writes/

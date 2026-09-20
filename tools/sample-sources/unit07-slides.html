@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>Unit 7 Smart Life · 수업용 슬라이드 미리보기</title>
+<style>
+  :root{
+    --bg:#0E1626; --line:#1F2C4A; --hi:#F2F6FF; --body:#C3CFE4; --mut:#7C8AA6;
+    --cy:#22D3EE; --bl:#2E7DFF; --pu:#A855F7;
+    --slide:#111C31;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg);}
+  body{
+    font-family:"Apple SD Gothic Neo","Pretendard",system-ui,sans-serif;
+    color:var(--body); width:1200px; padding:26px 28px 24px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .top{display:flex;align-items:flex-end;justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:16px}
+  .t1{font-size:18px;font-weight:700;color:var(--hi);letter-spacing:-.2px}
+  .t2{font-size:12px;color:var(--mut);margin-top:5px}
+  .file{font-size:11.5px;color:var(--mut);font-family:ui-monospace,Menlo,monospace}
+  .file b{color:var(--body);font-weight:600}
+
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;align-items:stretch}
+  .card{border:1px solid var(--line);border-radius:9px;overflow:hidden;background:#0B1220;display:flex;flex-direction:column}
+  .slide{background:var(--slide);flex:1;min-height:236px;padding:13px 14px 26px;position:relative;border-bottom:1px solid var(--line)}
+  .slide::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--cy);opacity:.75}
+  .slide.v2::before{background:var(--bl)}
+  .slide.v3::before{background:var(--pu)}
+  .pg{position:absolute;right:11px;bottom:8px;font-size:9px;color:var(--mut);font-family:ui-monospace,Menlo,monospace}
+  .st{font-size:13px;font-weight:700;color:var(--hi);line-height:1.25}
+  .ss{font-size:9.5px;color:var(--mut);margin-top:3px;letter-spacing:.2px}
+  .rule{height:1px;background:var(--line);margin:8px 0 8px}
+  .en{font-size:10.5px;color:var(--hi);line-height:1.5}
+  .ko{font-size:9.5px;color:var(--body);line-height:1.5}
+  .mu{font-size:9px;color:var(--mut);line-height:1.45}
+  ul{list-style:none}
+  li{position:relative;padding-left:10px;margin-bottom:3px}
+  li::before{content:"";position:absolute;left:0;top:6px;width:4px;height:4px;border-radius:50%;background:var(--cy);opacity:.8}
+  .cap{padding:8px 11px 9px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .cap .l{font-size:10px;color:var(--body);font-weight:600}
+  .cap .r{font-size:9px;color:var(--mut)}
+
+  /* slide-internal bits */
+  .big{font-size:22px;font-weight:800;color:var(--hi);letter-spacing:-.4px;line-height:1.1}
+  .sub{font-size:11px;color:var(--cy);margin-top:6px;letter-spacing:.3px}
+  .meta{position:absolute;left:14px;bottom:10px;font-size:9px;color:var(--mut)}
+  .chips{display:grid;grid-template-columns:1fr 1fr;gap:4px 8px;margin-top:2px}
+  .chip{border:1px solid var(--line);border-radius:4px;padding:3px 5px;background:#0D172A}
+  .chip b{display:block;font-size:9.5px;color:var(--hi);font-weight:700}
+  .chip span{font-size:8.5px;color:var(--mut)}
+  .task{margin-top:7px;border-left:2px solid var(--pu);padding-left:7px}
+  .task .lb{font-size:8.5px;color:var(--pu);letter-spacing:.5px;font-weight:700}
+  .task .tx{font-size:9.5px;color:var(--body);margin-top:1px;line-height:1.4}
+  table{border-collapse:collapse;width:100%;margin-top:5px}
+  th,td{border:1px solid var(--line);padding:3px 5px;font-size:9px;text-align:left;color:var(--body)}
+  th{color:var(--mut);font-weight:600;background:#0D172A;font-size:8.5px}
+  .blank{color:#3C4D70}
+  .frame{border:1px dashed #2A3A5E;border-radius:5px;padding:6px 7px;margin-top:5px}
+  .q{font-size:10px;color:var(--hi);line-height:1.45}
+  .sp{font-size:10px;line-height:1.5}
+  .sp b{color:var(--cy);font-weight:700}
+  .hl{color:var(--hi);border-bottom:1.5px solid var(--pu);padding-bottom:1px}
+  .foot{margin-top:15px;padding-top:11px;border-top:1px solid var(--line);display:flex;justify-content:space-between;font-size:10px;color:var(--mut)}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <div>
+    <div class="t1">Unit 7. Smart Life · 3/6차시 — 수업용 슬라이드</div>
+    <div class="t2">초등 6학년 · 40분 · 듣기·말하기 통합 수업 · 전체 12쪽 중 6쪽 미리보기 · 모든 글자와 표 편집 가능</div>
+  </div>
+  <div class="file">outputs / <b>U07_L3_수업용슬라이드.pptx</b></div>
+</div>
+
+<div class="grid">
+
+  <!-- 1 -->
+  <div class="card">
+    <div class="slide">
+      <div class="big">Unit 7<br>Smart Life</div>
+      <div class="sub">Lesson 3 · Smart habits, smart questions</div>
+      <div class="rule"></div>
+      <div class="mu" style="margin-bottom:4px;color:#8FA0BE;font-weight:600">오늘의 학습 목표</div>
+      <ul class="ko">
+        <li>스마트 기기를 무엇에 쓰는지 영어로 묻고 답할 수 있다.</li>
+        <li>How often 으로 빈도를 묻고 답할 수 있다.</li>
+        <li>우리 반 스마트 기기 사용 규칙을 영어 문장으로 쓴다.</li>
+      </ul>
+      <div class="meta">○○초등학교 6학년 · 영어과</div>
+      <div class="pg">1 / 12</div>
+    </div>
+    <div class="cap"><span class="l">표지 · 학습 목표</span><span class="r">도입 3분</span></div>
+  </div>
+
+  <!-- 2 -->
+  <div class="card">
+    <div class="slide v2">
+      <div class="st">Key Words</div>
+      <div class="ss">오늘 쓸 낱말 · 소리 내어 두 번 읽기</div>
+      <div class="rule"></div>
+      <div class="chips">
+        <div class="chip"><b>smart watch</b><span>스마트 워치</span></div>
+        <div class="chip"><b>smart speaker</b><span>인공지능 스피커</span></div>
+        <div class="chip"><b>charge</b><span>충전하다</span></div>
+        <div class="chip"><b>battery</b><span>배터리</span></div>
+        <div class="chip"><b>set an alarm</b><span>알람을 맞추다</span></div>
+        <div class="chip"><b>screen time</b><span>화면 보는 시간</span></div>
+        <div class="chip"><b>remind</b><span>알려 주다</span></div>
+        <div class="chip"><b>save time</b><span>시간을 아끼다</span></div>
+      </div>
+      <div class="task">
+        <div class="lb">TASK</div>
+        <div class="tx">Match each word to the picture card on your desk. 짝과 함께 8개를 맞춰 봅니다.</div>
+      </div>
+      <div class="pg">3 / 12</div>
+    </div>
+    <div class="cap"><span class="l">핵심 어휘 제시</span><span class="r">제시 6분</span></div>
+  </div>
+
+  <!-- 3 -->
+  <div class="card">
+    <div class="slide v3">
+      <div class="st">Before You Listen</div>
+      <div class="ss">듣기 전 예측 · 대본은 아직 보지 않습니다</div>
+      <div class="rule"></div>
+      <div class="en" style="margin-bottom:6px">Two classmates talk after school. One of them has something new.</div>
+      <div class="mu" style="margin-bottom:3px;color:#8FA0BE;font-weight:600">예측 질문</div>
+      <ul class="en">
+        <li>What is the new thing? Guess one word.</li>
+        <li>What do you think they use it for?</li>
+      </ul>
+      <div class="frame">
+        <div class="mu" style="margin-bottom:3px">내 예측을 한 문장으로 적어 봅니다.</div>
+        <div class="en">I think it is a <span class="blank">____________</span>.</div>
+      </div>
+      <div class="pg">5 / 12</div>
+    </div>
+    <div class="cap"><span class="l">듣기 전 · 상황과 예측</span><span class="r">1차 청취 전 5분</span></div>
+  </div>
+
+  <!-- 4 -->
+  <div class="card">
+    <div class="slide v2">
+      <div class="st">Listen Again · Detail Table</div>
+      <div class="ss">2차 청취 · 들으면서 표를 채웁니다</div>
+      <div class="rule"></div>
+      <table>
+        <tr><th style="width:30%">Question</th><th>Jiho</th><th>Minsu</th></tr>
+        <tr><td>Which device?</td><td class="blank">________</td><td class="blank">________</td></tr>
+        <tr><td>What for?</td><td class="blank">________</td><td class="blank">________</td></tr>
+        <tr><td>How often?</td><td class="blank">________</td><td class="blank">________</td></tr>
+      </table>
+      <div class="task">
+        <div class="lb">TASK</div>
+        <div class="tx">Write only key words, not full sentences. 낱말만 적어도 됩니다.</div>
+      </div>
+      <div class="pg">7 / 12</div>
+    </div>
+    <div class="cap"><span class="l">듣기 과제표</span><span class="r">2차 청취 7분</span></div>
+  </div>
+
+  <!-- 5 -->
+  <div class="card">
+    <div class="slide">
+      <div class="st">Look at the Lines</div>
+      <div class="ss">3차 청취 · 대본 일부를 보며 문형을 찾습니다</div>
+      <div class="rule"></div>
+      <div class="sp"><b>Jiho:</b> <span class="hl">What do you use it for?</span></div>
+      <div class="sp"><b>Minsu:</b> I use it <span class="hl">to set an alarm</span> in the morning.</div>
+      <div class="sp"><b>Jiho:</b> <span class="hl">How often</span> do you charge it?</div>
+      <div class="sp"><b>Minsu:</b> About <span class="hl">twice a week</span>.</div>
+      <div class="task">
+        <div class="lb">NOTICE</div>
+        <div class="tx">밑줄 친 부분에서 규칙을 찾아봅니다. use it to 다음에는 어떤 말이 오나요?</div>
+      </div>
+      <div class="pg">8 / 12</div>
+    </div>
+    <div class="cap"><span class="l">대본 발췌 · 언어 초점</span><span class="r">3차 청취 6분</span></div>
+  </div>
+
+  <!-- 6 -->
+  <div class="card">
+    <div class="slide v3">
+      <div class="st">Pair Work · Class Survey</div>
+      <div class="ss">짝을 바꿔 3명에게 묻고 표를 채웁니다</div>
+      <div class="rule"></div>
+      <div class="mu" style="margin-bottom:3px;color:#8FA0BE;font-weight:600">Useful expressions</div>
+      <div class="en" style="margin-bottom:2px">A: What do you use your <span class="blank">______</span> for?</div>
+      <div class="en" style="margin-bottom:2px">B: I use it to <span class="blank">______</span>.</div>
+      <div class="en" style="margin-bottom:2px">A: How often do you use it?</div>
+      <div class="en">B: <span class="blank">______</span> a day / a week.</div>
+      <table>
+        <tr><th style="width:26%">Friend</th><th>Device</th><th>Use</th><th>How often</th></tr>
+        <tr><td>학생 A</td><td class="blank">______</td><td class="blank">______</td><td class="blank">______</td></tr>
+        <tr><td>학생 B</td><td class="blank">______</td><td class="blank">______</td><td class="blank">______</td></tr>
+      </table>
+      <div class="pg">10 / 12</div>
+    </div>
+    <div class="cap"><span class="l">말하기 활동 · 산출 틀</span><span class="r">활동 10분</span></div>
+  </div>
+
+</div>
+
+<div class="foot">
+  <span>시각 스타일: 다크 클래스룸 · 16:9 · 정답 노출 없음 (Answer Check 는 11쪽에 별도 배치)</span>
+  <span>TeachFlow · ppt-workflow 산출물 미리보기</span>
+</div>
+
+</body>
+</html>

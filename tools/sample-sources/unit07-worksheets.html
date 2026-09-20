@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>Unit 7 Smart Life · 수준별 학습지 3종</title>
+<style>
+  :root{
+    --bg:#0E1626; --line:#1F2C4A; --hi:#F2F6FF; --body:#C3CFE4; --mut:#7C8AA6;
+    --cy:#22D3EE; --bl:#2E7DFF; --pu:#A855F7;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg)}
+  body{
+    font-family:"Apple SD Gothic Neo","Pretendard",system-ui,sans-serif;
+    color:var(--body);width:1200px;padding:26px 26px 24px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .top{display:flex;align-items:flex-end;justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:16px}
+  .t1{font-size:18px;font-weight:700;color:var(--hi);letter-spacing:-.2px}
+  .t2{font-size:12px;color:var(--mut);margin-top:5px}
+  .file{font-size:11px;color:var(--mut);font-family:ui-monospace,Menlo,monospace;text-align:right;line-height:1.75}
+  .file b{color:var(--body);font-weight:600}
+
+  .row{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;align-items:stretch}
+  .doc{border:1px solid var(--line);border-radius:9px;background:#111C31;overflow:hidden;display:flex;flex-direction:column}
+  .dh{padding:10px 13px;border-bottom:1px solid var(--line);background:#0D172A;position:relative}
+  .dh::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--cy)}
+  .doc.b .dh::before{background:var(--pu)}
+  .doc.c .dh::before{background:var(--bl)}
+  .dn{font-size:12.5px;font-weight:700;color:var(--hi)}
+  .dk{font-size:10px;color:var(--mut);margin-top:3px}
+  .dp{padding:12px 13px 14px;flex:1}
+
+  .fields{display:flex;gap:6px;font-size:9px;color:var(--mut);border-bottom:1px solid var(--line);padding-bottom:7px;margin-bottom:9px}
+  .fields span{flex:1}
+  .fields i{font-style:normal;color:#3C4D70}
+
+  .sec{margin-bottom:11px}
+  .sec:last-child{margin-bottom:0}
+  .sh{display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid #1A2540;padding-bottom:3px;margin-bottom:6px}
+  .sh .l{font-size:10.5px;font-weight:700;color:var(--hi)}
+  .sh .r{font-size:8.5px;color:var(--mut);font-family:ui-monospace,Menlo,monospace}
+
+  .bank{border:1px dashed #2A3A5E;border-radius:5px;padding:6px 8px;margin-bottom:6px}
+  .bank .bl{font-size:8.5px;color:var(--cy);letter-spacing:.4px;font-weight:700;margin-bottom:3px}
+  .bank .bw{font-size:9.5px;color:var(--hi);line-height:1.5}
+
+  .q{font-size:10px;color:var(--hi);line-height:1.5;margin-bottom:5px;padding-left:15px;position:relative}
+  .q b{color:var(--mut);font-weight:600;position:absolute;left:0;top:0;font-family:ui-monospace,Menlo,monospace;font-size:9px}
+  .q em{font-style:normal;color:#3C4D70}
+  .q .hint{display:block;font-size:9px;color:var(--mut);margin-top:1px}
+  .ko{font-size:9.5px;color:var(--body);line-height:1.5}
+  .mini{border-left:2px solid #223052;padding-left:8px;margin-bottom:7px}
+  .mini .mt{font-size:8.5px;color:var(--mut);letter-spacing:.3px;margin-bottom:2px}
+  .mini .mx{font-size:9.5px;color:var(--hi);line-height:1.5}
+  .cut{border-top:1px dashed #33456E;text-align:center;margin:11px 0 10px;position:relative}
+  .cut span{position:relative;top:-7px;background:#111C31;padding:0 8px;font-size:9px;color:var(--mut)}
+  .frame{border:1px dashed #2A3A5E;border-radius:5px;padding:6px 8px;margin-top:5px}
+  .rule{height:1px;background:#1A2540;margin:5px 0}
+  .lines i{display:block;border-bottom:1px solid #1A2540;height:13px}
+
+  table{border-collapse:collapse;width:100%;margin-top:4px}
+  th,td{border:1px solid #1A2540;padding:3px 5px;font-size:9px;text-align:left;color:var(--body);line-height:1.4}
+  th{background:#0D172A;color:var(--mut);font-weight:600;font-size:8.5px}
+  td.ans{color:var(--hi)}
+
+  .tag{display:inline-block;font-size:8px;border:1px solid #2C3D63;border-radius:3px;padding:1px 5px;color:var(--mut);letter-spacing:.3px}
+  .foot{margin-top:15px;padding-top:11px;border-top:1px solid var(--line);display:flex;justify-content:space-between;font-size:10px;color:var(--mut)}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <div>
+    <div class="t1">Unit 7. Smart Life · 3/6차시 — 수업 후 수준별 학습지 3종</div>
+    <div class="t2">초등 6학년 · A2 · Foundation / Core / Extension 이 같은 핵심 요소를 확인합니다 · 편집 가능한 .docx</div>
+  </div>
+  <div class="file">
+    outputs / <b>U07_L3_학생용학습지.docx</b><br>
+    outputs / <b>U07_L3_심화도전카드.docx</b><br>
+    outputs / <b>U07_L3_교사용정답지.docx</b>
+  </div>
+</div>
+
+<div class="row">
+
+  <!-- 1. Student Worksheet -->
+  <div class="doc">
+    <div class="dh">
+      <div class="dn">학생용 학습지</div>
+      <div class="dk">Levelled Progress Check · Part A 100점 + Part B 100점</div>
+    </div>
+    <div class="dp">
+      <div class="fields">
+        <span>Name <i>________</i></span><span>Class <i>______</i></span><span>Date <i>______</i></span>
+      </div>
+
+      <div class="sec">
+        <div class="sh"><span class="l">Part A · Foundation Practice</span><span class="r">100 pts</span></div>
+        <div class="ko" style="margin-bottom:6px;color:var(--mut)">
+          <span class="tag">Build Confidence</span> 낱말 상자를 보고 풀어도 됩니다.
+        </div>
+
+        <div class="sh"><span class="l">1. Vocabulary</span><span class="r">8문항 / 20점</span></div>
+        <div class="bank">
+          <div class="bl">WORD BANK</div>
+          <div class="bw">charge · battery · remind · screen time · habit · set an alarm · save time · smart watch</div>
+        </div>
+        <div class="q"><b>1</b>I use my phone to ________ an alarm every night.</div>
+        <div class="q"><b>2</b>My ________ is low. I need to charge it.</div>
+        <div class="q"><b>3</b>Reading every day is a good ________.</div>
+        <div class="q" style="color:var(--mut)"><b>4</b>… 5~8번 같은 형식으로 이어집니다.</div>
+      </div>
+
+      <div class="sec">
+        <div class="sh"><span class="l">2. Reading / Context</span><span class="r">4문항 / 20점</span></div>
+        <div class="mini">
+          <div class="mt">MINI TEXT · 각색 지문</div>
+          <div class="mx">Jiho got a smart watch. He uses it to set an alarm. He charges it twice a week. He checks his screen time every evening.</div>
+        </div>
+        <div class="q"><b>1</b>Jiho charges his watch every day. <em>( T / F )</em></div>
+        <div class="q"><b>2</b>What does Jiho use the watch for? <em>____________</em></div>
+      </div>
+
+      <div class="cut"><span>✂️ 절취선 (Cut Here) ✂️</span></div>
+
+      <div class="sec">
+        <div class="sh"><span class="l">Part B · Core Practice</span><span class="r">100 pts</span></div>
+        <div class="ko" style="margin-bottom:6px;color:var(--mut)">
+          <span class="tag">Check Understanding</span> 낱말 상자 없이 스스로 씁니다.
+        </div>
+
+        <div class="sh"><span class="l">3. Grammar</span><span class="r">6문항 / 30점</span></div>
+        <div class="q"><b>1</b>Rewrite: <em>I use it. I set an alarm.</em><span class="hint">→ 한 문장으로 (use … to …)</span></div>
+        <div class="q"><b>2</b>Find and fix the mistake: <em>I use it to setting a timer.</em></div>
+        <div class="q"><b>3</b>Ask a question about frequency: <em>______ do you charge it?</em></div>
+      </div>
+
+      <div class="sec">
+        <div class="sh"><span class="l">4. Writing</span><span class="r">1과제 / 30점</span></div>
+        <div class="ko">Write about one smart device you use. 5~6 sentences.</div>
+        <div class="frame lines"><i></i><i></i><i></i></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Extension Challenge Card -->
+  <div class="doc b">
+    <div class="dh">
+      <div class="dn">심화 도전 카드</div>
+      <div class="dk">Extension Challenge Card · 100점 · 일찍 끝낸 학생에게 배부</div>
+    </div>
+    <div class="dp">
+      <div class="fields">
+        <span>Name <i>________</i></span><span>Class <i>______</i></span><span>Date <i>______</i></span>
+      </div>
+      <div class="ko" style="margin-bottom:9px;color:var(--mut)">
+        <span class="tag" style="border-color:#3B2A63;color:#B892E0">Go Further</span> 배운 표현으로 내 생각을 말해 봅시다.
+      </div>
+
+      <div class="sec">
+        <div class="sh"><span class="l">Vocabulary Challenge</span><span class="r">20점</span></div>
+        <div class="q"><b>1</b>Which is NOT a good collocation? <span class="hint">ⓐ charge a phone &nbsp; ⓑ save time &nbsp; ⓒ open an alarm</span></div>
+        <div class="q"><b>2</b>Use <em>remind</em> and <em>habit</em> in one sentence about your day.</div>
+        <div class="frame lines"><i></i><i></i></div>
+      </div>
+
+      <div class="sec">
+        <div class="sh"><span class="l">Reading / Thinking Challenge</span><span class="r">20점</span></div>
+        <div class="mini">
+          <div class="mt">NOTICE · 각색 지문</div>
+          <div class="mx">School rule: Phones stay in the bag from 9 to 3. You may use a smart watch only to check the time.</div>
+        </div>
+        <div class="q"><b>1</b>Why does the school allow watches but not phones? Give one reason in English.</div>
+        <div class="q"><b>2</b>Do you agree with this rule? Why or why not?</div>
+      </div>
+
+      <div class="sec">
+        <div class="sh"><span class="l">Grammar in Use</span><span class="r">30점</span></div>
+        <div class="q"><b>1</b>Write two sentences about yourself using <em>I use … to …</em>.</div>
+        <div class="q"><b>2</b>Write one question with <em>How often</em> to ask your teacher.</div>
+        <div class="frame lines"><i></i><i></i><i></i></div>
+      </div>
+
+      <div class="sec">
+        <div class="sh"><span class="l">Writing Challenge</span><span class="r">30점</span></div>
+        <div class="ko">Our class needs one smart-device rule. Write the rule and give two reasons. 70~90 words.</div>
+        <div class="frame lines"><i></i><i></i><i></i><i></i></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Teacher Answer Key -->
+  <div class="doc c">
+    <div class="dh">
+      <div class="dn">교사용 정답지</div>
+      <div class="dk">Teacher Answer Key · 정답 · 채점 기준표 · 활용 제안</div>
+    </div>
+    <div class="dp">
+
+      <div class="sec">
+        <div class="sh"><span class="l">Foundation 정답</span><span class="r">Part A</span></div>
+        <div class="ko">
+          Vocabulary 1. set &nbsp; 2. battery &nbsp; 3. habit &nbsp; 4. screen time<br>
+          Reading 1. F (twice a week) &nbsp; 2. To set an alarm.
+        </div>
+      </div>
+
+      <div class="sec">
+        <div class="sh"><span class="l">Core 정답</span><span class="r">Part B</span></div>
+        <div class="ko">
+          Grammar 1. I use it to set an alarm. &nbsp; 2. setting → set &nbsp; 3. How often<br>
+          <span style="color:var(--mut)">해설: to 뒤에는 동사원형을 씁니다. 우리 반에서 가장 자주 나온 오류입니다.</span>
+        </div>
+      </div>
+
+      <div class="sec">
+        <div class="sh"><span class="l">Extension 예시 답안</span><span class="r">도전 카드</span></div>
+        <div class="ko">
+          Vocabulary 1. ⓒ (turn on an alarm 이 자연스러움)<br>
+          <span style="color:var(--mut)">Thinking 문항은 이유가 타당하면 표현이 다소 서툴러도 정답으로 인정합니다.</span>
+        </div>
+      </div>
+
+      <div class="sec">
+        <div class="sh"><span class="l">Writing 채점 기준표</span><span class="r">30점</span></div>
+        <table>
+          <tr><th style="width:38%">영역</th><th style="width:16%">배점</th><th>상 수준 기술</th></tr>
+          <tr><td>Content 내용 완성도</td><td class="ans">10</td><td>기기와 용도를 모두 밝혔다</td></tr>
+          <tr><td>Language 어휘·문법</td><td class="ans">10</td><td>use … to … 를 바르게 썼다</td></tr>
+          <tr><td>Organization 구조</td><td class="ans">5</td><td>문장 순서가 자연스럽다</td></tr>
+          <tr><td>Task Achievement</td><td class="ans">5</td><td>요구 분량을 채웠다</td></tr>
+        </table>
+      </div>
+
+      <div class="sec">
+        <div class="sh"><span class="l">교사 활용 제안</span><span class="r">한국어</span></div>
+        <div class="ko" style="line-height:1.6">
+          · Foundation 은 낱말 상자가 있으면 문장을 완성할 수 있는 학생에게 적합합니다.<br>
+          · Core 는 학급 대다수 학생을 기준으로 합니다.<br>
+          · Extension 은 Core 를 일찍 끝낸 학생에게 카드 형태로 따로 줍니다.<br>
+          · Part A / Part B 를 절취선에서 잘라 개인별로 나눠 주면 학생이 수준 차이를 덜 의식합니다.<br>
+          · 공통 오류 피드백은 <em>to + 동사원형</em> 하나만 골라 다음 차시 도입 3분에 다룹니다.
+        </div>
+      </div>
+
+      <div class="rule"></div>
+      <div class="ko" style="color:var(--mut);font-size:9px">
+        교사 확인 필요: 각색 지문이 우리 교재 내용과 어긋나지 않는지, 정답 표본 2~3개가 맞는지 확인해 주십시오. 2022 개정 교육과정 성취기준 연결은 교사 확인 필요로 남겨 두었습니다.
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<div class="foot">
+  <span>세 수준이 동일한 핵심 요소(use … to … / How often)를 확인합니다 · 학생 배부본에는 정답이 없습니다</span>
+  <span>TeachFlow · worksheet-workflow 산출물 미리보기</span>
+</div>
+
+</body>
+</html>

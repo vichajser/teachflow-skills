@@ -250,7 +250,10 @@ describe('/samples states each card honestly', () => {
 
   it('labels exactly the unready cards as pending, in both locales', () => {
     // 变异 A：删掉 `<p>{t('samples.pending')}</p>` 整个分支 → 计数 0，必红。
-    const labels = { en: 'Sample in preparation', ko: '샘플 준비 중' };
+    const labels = {
+      en: 'Preview only — file in preparation',
+      ko: '미리보기만 제공 — 파일 준비 중',
+    };
     for (const lang of ['en', 'ko']) {
       const text = visibleText(`${lang}/samples/index.html`);
       const found = text.split(labels[lang]).length - 1;

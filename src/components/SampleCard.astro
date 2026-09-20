@@ -55,13 +55,23 @@ const ready = isReady(sample);
     dist 下全部 index.html 直接判失败）。点开原图在新标签页是同等有效的"看大图"
     路径，对键盘与屏幕阅读器也更友好。这是一处有意偏离，记在此以免后来者误判为漏做。
   */}
+  {/*
+    缩略图钉死 16:10 + `object-cover object-top`，不让原图自己的比例决定卡片高度。
+    五张预览的原始比例从 2400×1516（幻灯片，≈1.58:1）一直到 1588×2246
+    （A4 竖版家长通知书，≈0.71:1）——按原比例渲染时浏览器实测：同一行三张卡
+    的标题分别落在 y=723 / 782 / 759，读者看到的是一排参差不齐的卡片，而
+    "对齐"正是这一页唯一的视觉工作（五个产物并排比较）。
+    `object-top` 而不是默认的 `center`：这些产物都是文档，信息密度集中在顶部
+    （标题行、单元名、表头），裁掉的应该是底部留白而不是抬头。
+    原图并没有丢——整张图就在 `<a>` 的目标里，点一下即可看全。
+  */}
   {sample.previewImage && (
     <a href={sample.previewImage} target="_blank" rel="noopener">
       <img
         src={sample.previewImage}
         alt={sample.title[lang]}
         loading="lazy"
-        class="mb-4 w-full rounded-lg border border-border"
+        class="mb-4 aspect-[16/10] w-full rounded-lg border border-border object-cover object-top"
       />
     </a>
   )}

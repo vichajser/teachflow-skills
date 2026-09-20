@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>Unit 7 Smart Life · 듣기 대본</title>
+<style>
+  :root{
+    --bg:#0E1626; --line:#1F2C4A; --hi:#F2F6FF; --body:#C3CFE4; --mut:#7C8AA6;
+    --cy:#22D3EE; --bl:#2E7DFF; --pu:#A855F7;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg)}
+  body{
+    font-family:"Apple SD Gothic Neo","Pretendard",system-ui,sans-serif;
+    color:var(--body);width:1200px;padding:26px 30px 24px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .top{display:flex;align-items:flex-end;justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:16px}
+  .t1{font-size:18px;font-weight:700;color:var(--hi);letter-spacing:-.2px}
+  .t2{font-size:12px;color:var(--mut);margin-top:5px}
+  .file{font-size:11.5px;color:var(--mut);font-family:ui-monospace,Menlo,monospace;text-align:right;line-height:1.7}
+  .file b{color:var(--body);font-weight:600}
+
+  .cols{display:grid;grid-template-columns:1.32fr 1fr;gap:18px;align-items:start}
+  .panel{border:1px solid var(--line);border-radius:9px;background:#111C31;overflow:hidden}
+  .ph{padding:9px 14px;border-bottom:1px solid var(--line);background:#0D172A;display:flex;justify-content:space-between;align-items:center}
+  .ph .n{font-size:12px;font-weight:700;color:var(--hi)}
+  .ph .k{font-size:10px;color:var(--mut)}
+  .pb{padding:13px 14px 14px}
+
+  .meta{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:7px;overflow:hidden;margin-bottom:16px}
+  .meta div{background:#111C31;padding:8px 11px}
+  .meta .l{font-size:9.5px;color:var(--mut);letter-spacing:.3px}
+  .meta .v{font-size:11.5px;color:var(--hi);font-weight:600;margin-top:3px}
+
+  .turn{display:grid;grid-template-columns:52px 60px 1fr;gap:9px;padding:6px 0;border-bottom:1px dashed #1A2540}
+  .turn:last-child{border-bottom:none}
+  .tc{font-size:10px;color:var(--cy);font-family:ui-monospace,Menlo,monospace;padding-top:2px}
+  .spk{font-size:10.5px;font-weight:700;color:var(--bl);padding-top:1px}
+  .spk.b{color:var(--pu)}
+  .ln{font-size:12.5px;color:var(--hi);line-height:1.5}
+  .dir{font-size:10px;color:var(--mut);margin-top:3px;padding-left:7px;border-left:2px solid #223052}
+
+  .note{border:1px dashed #2A3A5E;border-radius:6px;padding:9px 11px;margin-top:12px}
+  .note .lb{font-size:9.5px;color:var(--cy);letter-spacing:.5px;font-weight:700;margin-bottom:4px}
+  .note p{font-size:10.5px;color:var(--body);line-height:1.55}
+
+  .blk{margin-bottom:13px}
+  .blk:last-child{margin-bottom:0}
+  .bl{font-size:10px;color:var(--mut);letter-spacing:.4px;font-weight:700;margin-bottom:5px;text-transform:uppercase}
+  .btx{font-size:11.5px;color:var(--hi);line-height:1.55}
+
+  ol{list-style:none;counter-reset:q}
+  ol li{counter-increment:q;position:relative;padding-left:21px;margin-bottom:7px;font-size:11.5px;color:var(--hi);line-height:1.5}
+  ol li::before{content:counter(q);position:absolute;left:0;top:1px;width:15px;height:15px;border:1px solid #2C3D63;border-radius:50%;font-size:8.5px;color:var(--mut);display:flex;align-items:center;justify-content:center;font-family:ui-monospace,Menlo,monospace}
+  ol li .ty{display:block;font-size:9px;color:var(--mut);letter-spacing:.3px;margin-bottom:1px}
+  ol li .op{display:block;font-size:10.5px;color:var(--body);margin-top:2px}
+  .line{color:#3C4D70}
+
+  .audio{margin-top:14px;border:1px solid var(--line);border-radius:8px;background:#0D172A;padding:11px 13px}
+  .audio .ar{display:flex;align-items:center;gap:10px}
+  .play{width:26px;height:26px;border-radius:50%;border:1.5px solid var(--cy);flex:none;position:relative}
+  .play::after{content:"";position:absolute;left:9px;top:7px;border-left:8px solid var(--cy);border-top:5.5px solid transparent;border-bottom:5.5px solid transparent}
+  .bar{flex:1;height:3px;background:#1B2742;border-radius:2px;position:relative}
+  .bar i{position:absolute;left:0;top:0;bottom:0;width:34%;background:var(--cy);border-radius:2px;opacity:.85}
+  .dur{font-size:10px;color:var(--mut);font-family:ui-monospace,Menlo,monospace}
+  .af{font-size:10px;color:var(--mut);margin-top:7px}
+  .af b{color:var(--body);font-weight:600;font-family:ui-monospace,Menlo,monospace}
+  .foot{margin-top:15px;padding-top:11px;border-top:1px solid var(--line);display:flex;justify-content:space-between;font-size:10px;color:var(--mut)}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <div>
+    <div class="t1">Unit 7. Smart Life · 3/6차시 — 듣기 음원 대본 및 듣기 과제</div>
+    <div class="t2">초등 6학년 · A2 · 2인 대화 · slightly slow · 용도: 듣기 이해 + 따라 읽기</div>
+  </div>
+  <div class="file">
+    outputs / <b>U07_L3_듣기대본.md</b><br>
+    outputs / <b>U07_L3_듣기음원.mp3</b>
+  </div>
+</div>
+
+<div class="meta">
+  <div><div class="l">차시 주제</div><div class="v">스마트 기기 사용 묻고 답하기</div></div>
+  <div><div class="l">목표 문형</div><div class="v">I use it to + 동사원형</div></div>
+  <div><div class="l">목표 문형 2</div><div class="v">How often do you …?</div></div>
+  <div><div class="l">화자</div><div class="v">지호(남) · 민수(남)</div></div>
+</div>
+
+<div class="cols">
+
+  <div class="panel">
+    <div class="ph"><span class="n">Part 1 · Audio Script</span><span class="k">음성 합성에 넣는 부분은 여기까지입니다</span></div>
+    <div class="pb">
+
+      <div class="turn">
+        <div class="tc">00:00</div><div class="spk">안내</div>
+        <div><div class="ln" style="color:var(--body)">Unit 7, 세 번째 차시. 대화를 잘 듣고 표를 채워 봅시다.</div>
+        <div class="dir">한국어 안내는 음원 도입부에만 넣고 본문 대화에는 넣지 않습니다.</div></div>
+      </div>
+
+      <div class="turn">
+        <div class="tc">00:05</div><div class="spk">Jiho</div>
+        <div class="ln">Hi, Minsu. Is that a new smart watch?</div>
+      </div>
+      <div class="turn">
+        <div class="tc">00:09</div><div class="spk b">Minsu</div>
+        <div class="ln">Yes, it is. My sister gave it to me last weekend.</div>
+      </div>
+      <div class="turn">
+        <div class="tc">00:14</div><div class="spk">Jiho</div>
+        <div class="ln">That's cool. What do you use it for?</div>
+      </div>
+      <div class="turn">
+        <div class="tc">00:17</div><div class="spk b">Minsu</div>
+        <div class="ln">I use it to set an alarm in the morning. It also reminds me to drink water.</div>
+      </div>
+      <div class="turn">
+        <div class="tc">00:22</div><div class="spk">Jiho</div>
+        <div class="ln">Nice. How often do you charge it?</div>
+      </div>
+      <div class="turn">
+        <div class="tc">00:25</div><div class="spk b">Minsu</div>
+        <div class="ln">About twice a week. The battery is quite good.</div>
+      </div>
+      <div class="turn">
+        <div class="tc">00:29</div><div class="spk">Jiho</div>
+        <div class="ln">Do you check your screen time too?</div>
+      </div>
+      <div class="turn">
+        <div class="tc">00:32</div><div class="spk b">Minsu</div>
+        <div class="ln">Yes, every evening. It saves time because I stop playing games earlier.</div>
+      </div>
+      <div class="turn">
+        <div class="tc">00:37</div><div class="spk">Jiho</div>
+        <div class="ln">That's a smart habit. I want one, too.</div>
+      </div>
+      <div class="turn">
+        <div class="tc">00:42</div><div class="spk b">Minsu</div>
+        <div class="ln">Then ask your parents first. A smart watch is smart only if you use it well.</div>
+      </div>
+      <div class="turn">
+        <div class="tc">00:48</div><div class="spk">안내</div>
+        <div class="ln" style="color:var(--body)">다시 한 번 들어 봅시다.</div>
+      </div>
+
+      <div class="note">
+        <div class="lb">PART 2 · SCENE</div>
+        <p>Two sixth-grade classmates talk in the school hallway after class about a new smart watch.</p>
+      </div>
+      <div class="note">
+        <div class="lb">PART 3 · SAMPLE CONTEXT</div>
+        <p>Friendly and curious tone, slightly slow speed, neutral English accent; both speakers are twelve-year-old boys, Jiho asking and Minsu explaining.</p>
+      </div>
+
+      <div class="audio">
+        <div class="ar">
+          <div class="play"></div>
+          <div class="bar"><i></i></div>
+          <div class="dur">00:50</div>
+        </div>
+        <div class="af">음원 파일: <b>U07_L3_듣기음원.mp3</b> · 안내 한국어 / 대화 영어 · 교실 스피커 재생용</div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="ph"><span class="n">Part 4 · Listening Tasks</span><span class="k">음성 합성에 넣지 않습니다</span></div>
+    <div class="pb">
+
+      <div class="blk">
+        <div class="bl">학생 안내</div>
+        <div class="btx" style="font-size:11px;color:var(--body);line-height:1.6">
+          1차 청취: 전체 흐름만 듣습니다. 2차 청취: 1~4번을 풉니다. 3차 청취: 5번 받아쓰기를 완성합니다.
+        </div>
+      </div>
+
+      <ol>
+        <li><span class="ty">GIST</span>What are the two boys mainly talking about?
+          <span class="op">ⓐ a new game &nbsp; ⓑ a new smart watch &nbsp; ⓒ a school trip</span></li>
+        <li><span class="ty">DETAIL</span>Who gave Minsu the smart watch?
+          <span class="op line">____________________________</span></li>
+        <li><span class="ty">DETAIL</span>How often does Minsu charge the watch?
+          <span class="op">ⓐ every day &nbsp; ⓑ twice a week &nbsp; ⓒ once a month</span></li>
+        <li><span class="ty">VOCABULARY</span>Find the word that means "the time you spend looking at a phone or a screen".
+          <span class="op line">____________________________</span></li>
+        <li><span class="ty">DICTATION</span>Listen and write the sentence you hear.
+          <span class="op line">I ______ it ______ ______ an alarm in the morning.</span></li>
+      </ol>
+
+      <div class="note" style="border-color:#2C3D63">
+        <div class="lb" style="color:var(--pu)">교사용 ANSWER KEY</div>
+        <p>1. ⓑ &nbsp;|&nbsp; 2. His sister. &nbsp;|&nbsp; 3. ⓑ &nbsp;|&nbsp; 4. screen time</p>
+        <p style="margin-top:3px">5. I use it to set an alarm in the morning.</p>
+        <p style="margin-top:6px;color:var(--mut)">이 정답 부분은 학생 배부본에서 잘라 내고 나눠 주십시오.</p>
+      </div>
+
+      <div class="note">
+        <div class="lb">교사 확인 필요</div>
+        <p>음원 속도가 우리 반 학생에게 맞는지 1회 미리 들어 보시고, 필요하면 대본을 고쳐 다시 생성하십시오.</p>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<div class="foot">
+  <span>Part 4 는 음성 합성 입력에 넣지 않습니다 · 대본에는 영어만, 한국어 안내는 음원 도입·마무리에만</span>
+  <span>TeachFlow · audio-workflow 산출물 미리보기</span>
+</div>
+
+</body>
+</html>

@@ -21,11 +21,13 @@ const t = useTranslations(lang);
   <h1 class="pt-16 text-4xl font-semibold text-text-hi">{t('samples.title')}</h1>
   <p class="mt-3 max-w-2xl text-text-body">{t('samples.lead')}</p>
   {/*
-    `samples.note` 如实说明「可下载的副本还在准备中」。这一页的卡片目前全部
-    是 pending（`samples.ts` 里 `file` 全为 null，那是对的——填假路径会造死链），
-    而标题原先写「实际产出」，于是读者看到的是「实际产出」下面五个「准备中」。
-    文案改成描述**格式与结构**后，即便没有下载文件这一页读起来也是完整的。
-    卡片数据与 pending 分支一概未动。
+    `samples.note` 如实说明这一页给的是什么：五张卡现在都有**真实渲染的预览图**
+    （由 skill 自身从同一个教材单元产出），但只有听力音频以其**标题所写的交付
+    格式**（.mp3）真实存在，因而只有它给下载按钮。另外四张标题写的是
+    .pptx/.xlsx/.docx/.png，手上只有截图——给下载按钮就是让买家点一个"下载
+    .pptx"却拿到 PNG。所以那四张留在 pending 分支，文案也相应从"样例准备中"
+    改成"仅预览，文件准备中"：卡片上看得见的东西和文字说的必须是同一件事。
+    界线的完整理由写在 `src/data/samples.ts` 的顶部注释里。
   */}
   <p class="mt-3 max-w-2xl text-sm text-text-mute">{t('samples.note')}</p>
 

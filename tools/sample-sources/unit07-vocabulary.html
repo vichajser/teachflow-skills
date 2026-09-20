@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>Unit 7 Smart Life · 어휘 학습표</title>
+<style>
+  :root{
+    --bg:#0E1626; --line:#1F2C4A; --hi:#F2F6FF; --body:#C3CFE4; --mut:#7C8AA6;
+    --cy:#22D3EE; --bl:#2E7DFF; --pu:#A855F7;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg)}
+  body{
+    font-family:"Apple SD Gothic Neo","Pretendard",system-ui,sans-serif;
+    color:var(--body);width:1200px;padding:26px 24px 24px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .top{display:flex;align-items:flex-end;justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:14px}
+  .t1{font-size:18px;font-weight:700;color:var(--hi);letter-spacing:-.2px}
+  .t2{font-size:12px;color:var(--mut);margin-top:5px}
+  .file{font-size:11.5px;color:var(--mut);font-family:ui-monospace,Menlo,monospace;text-align:right;line-height:1.7}
+  .file b{color:var(--body);font-weight:600}
+
+  /* spreadsheet chrome */
+  .sheet{border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#0B1220}
+  .bar{display:flex;align-items:center;gap:9px;padding:7px 11px;background:#0D172A;border-bottom:1px solid var(--line)}
+  .cellref{font-family:ui-monospace,Menlo,monospace;font-size:10px;color:var(--mut);border:1px solid var(--line);border-radius:4px;padding:2px 8px;background:#111C31}
+  .fx{font-family:ui-monospace,Menlo,monospace;font-size:10px;color:var(--body);flex:1;border-left:1px solid var(--line);padding-left:9px}
+  .fx span{color:var(--mut)}
+
+  table{border-collapse:collapse;width:100%;table-layout:fixed}
+  th,td{border:1px solid #1A2540;padding:5px 6px;text-align:left;vertical-align:top;font-size:9.5px;line-height:1.45;color:var(--body);overflow-wrap:anywhere}
+  /* column header row A B C ... */
+  tr.abc th{background:#0D172A;color:var(--mut);font-family:ui-monospace,Menlo,monospace;font-size:8.5px;font-weight:600;text-align:center;padding:3px 4px;height:16px}
+  /* real header row */
+  tr.hdr th{background:#132039;color:var(--hi);font-size:9px;font-weight:700;letter-spacing:.1px;line-height:1.35;padding:6px}
+  tr.hdr th span.ko{color:var(--mut);font-weight:600;display:block;font-size:8px;margin-top:2px}
+  td.rn{background:#0D172A;color:var(--mut);font-family:ui-monospace,Menlo,monospace;font-size:8.5px;text-align:center;width:24px;padding:5px 2px}
+  td.w{color:var(--hi);font-weight:700;font-size:10.5px}
+  td.ph{font-family:ui-monospace,Menlo,monospace;color:var(--body);font-size:9px}
+  td.pos{color:var(--mut);font-style:italic;text-align:center}
+  td.src{color:var(--hi)}
+  td.self{background:#0C1526}
+  tbody tr:nth-child(even) td:not(.rn):not(.self){background:#0F1A2E}
+  .frag{display:inline-block;font-size:7.5px;color:var(--pu);border:1px solid #33265A;border-radius:3px;padding:0 3px;margin-left:3px;vertical-align:1px;letter-spacing:.2px}
+  .tabs{display:flex;gap:0;background:#0D172A;border-top:1px solid var(--line)}
+  .tab{font-size:9.5px;padding:6px 14px;color:var(--mut);border-right:1px solid var(--line)}
+  .tab.on{color:var(--hi);background:#111C31;border-top:2px solid var(--cy);padding-top:4px;font-weight:600}
+  .notes{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:14px}
+  .nb{border:1px dashed #2A3A5E;border-radius:6px;padding:9px 11px}
+  .nb .lb{font-size:9.5px;letter-spacing:.4px;font-weight:700;color:var(--cy);margin-bottom:4px}
+  .nb .lb.p{color:var(--pu)}
+  .nb p{font-size:10px;color:var(--body);line-height:1.55}
+  .foot{margin-top:13px;padding-top:11px;border-top:1px solid var(--line);display:flex;justify-content:space-between;font-size:10px;color:var(--mut)}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <div>
+    <div class="t1">Unit 7. Smart Life · 3/6차시 — 어휘 학습표 (11열)</div>
+    <div class="t2">초등 6학년 · A2~B1 · 12개 어휘 · 발음기호는 미국식으로 통일 · 편집·인쇄·학생 배부 가능</div>
+  </div>
+  <div class="file">
+    outputs / <b>U07_L3_어휘학습표.xlsx</b><br>
+    outputs / <b>U07_L3_어휘학습표.csv</b>
+  </div>
+</div>
+
+<div class="sheet">
+  <div class="bar">
+    <span class="cellref">A1</span>
+    <span class="fx">Word / Phrase &nbsp;<span>· 시트 1 / 3 · 틀 고정: 1~2행, A열</span></span>
+  </div>
+
+  <table>
+    <colgroup>
+      <col style="width:24px"><col style="width:74px"><col style="width:64px"><col style="width:40px">
+      <col style="width:78px"><col style="width:104px"><col style="width:150px"><col style="width:140px">
+      <col style="width:84px"><col style="width:112px"><col style="width:132px"><col style="width:72px">
+    </colgroup>
+    <tbody>
+      <tr class="abc">
+        <th></th><th>A</th><th>B</th><th>C</th><th>D</th><th>E</th><th>F</th><th>G</th><th>H</th><th>I</th><th>J</th><th>K</th>
+      </tr>
+      <tr class="hdr">
+        <th style="background:#0D172A"></th>
+        <th>Word / Phrase<span class="ko">낱말·표현</span></th>
+        <th>Phonetic Symbol<span class="ko">발음기호</span></th>
+        <th>Part of Speech<span class="ko">품사</span></th>
+        <th>Korean Meaning<span class="ko">한국어 뜻</span></th>
+        <th>English Meaning<span class="ko">영어 뜻풀이</span></th>
+        <th>Example from the Text<span class="ko">교재 원문 예문</span></th>
+        <th>Example in a New Sentence<span class="ko">새 예문</span></th>
+        <th>Extended Words<span class="ko">확장 어휘</span></th>
+        <th>Collocations<span class="ko">연어·표현</span></th>
+        <th>Common Mistakes<span class="ko">자주 틀리는 점</span></th>
+        <th>Student Self-check<span class="ko">학생 자기 점검</span></th>
+      </tr>
+
+      <tr><td class="rn">3</td>
+        <td class="w">smart watch</td><td class="ph">/smɑːrt wɑːtʃ/</td><td class="pos">noun</td>
+        <td>스마트 워치, 손목에 차는 스마트 기기</td>
+        <td>a watch that can do more than show the time</td>
+        <td class="src">Is that a new smart watch?</td>
+        <td>My smart watch tells me the weather.</td>
+        <td>watch, smartphone</td>
+        <td>wear a smart watch</td>
+        <td>smart watch 를 한 낱말 smartwatch 로 붙여 쓰지 않도록 교재 표기를 따른다</td>
+        <td class="self"></td></tr>
+
+      <tr><td class="rn">4</td>
+        <td class="w">smart speaker</td><td class="ph">/smɑːrt ˈspiːkər/</td><td class="pos">noun</td>
+        <td>인공지능 스피커</td>
+        <td>a speaker you can talk to and ask for things</td>
+        <td class="src">We have a smart speaker in the kitchen.</td>
+        <td>I ask the smart speaker to play music.</td>
+        <td>speak, speaker</td>
+        <td>talk to a smart speaker</td>
+        <td>speaker 를 "말하는 사람"으로만 알고 있는 경우가 많다</td>
+        <td class="self"></td></tr>
+
+      <tr><td class="rn">5</td>
+        <td class="w">charge</td><td class="ph">/tʃɑːrdʒ/</td><td class="pos">verb</td>
+        <td>충전하다</td>
+        <td>to put electricity into a battery</td>
+        <td class="src">How often do you charge it?</td>
+        <td>I charge my tablet every night.</td>
+        <td>charger, charging</td>
+        <td>charge a phone / fully charged</td>
+        <td>"값을 청구하다" 뜻과 헷갈린다. 이 차시에서는 충전 의미만 쓴다</td>
+        <td class="self"></td></tr>
+
+      <tr><td class="rn">6</td>
+        <td class="w">battery</td><td class="ph">/ˈbætəri/</td><td class="pos">noun</td>
+        <td>배터리, 건전지</td>
+        <td>the part that keeps a device working</td>
+        <td class="src">The battery is quite good.</td>
+        <td>My battery is low, so I need a charger.</td>
+        <td>batteries (복수형)</td>
+        <td>low battery / battery life</td>
+        <td>복수형은 batterys 가 아니라 batteries 이다</td>
+        <td class="self"></td></tr>
+
+      <tr><td class="rn">7</td>
+        <td class="w">set an alarm</td><td class="ph">/set ən əˈlɑːrm/</td><td class="pos">phrase</td>
+        <td>알람을 맞추다</td>
+        <td>to make a clock ring at a chosen time</td>
+        <td class="src">I use it to set an alarm in the morning.</td>
+        <td>Please set an alarm for seven o'clock.</td>
+        <td>alarm clock</td>
+        <td>set an alarm for + 시각</td>
+        <td>한국어 "알람을 켜다"를 open an alarm 으로 옮기지 않는다</td>
+        <td class="self"></td></tr>
+
+      <tr><td class="rn">8</td>
+        <td class="w">screen time</td><td class="ph">/skriːn taɪm/</td><td class="pos">noun</td>
+        <td>화면을 보는 시간</td>
+        <td>the time you spend looking at a phone or a screen</td>
+        <td class="src">Do you check your screen time too?</td>
+        <td>My screen time is two hours a day.</td>
+        <td>screen, time</td>
+        <td>check / reduce screen time</td>
+        <td>screen times 처럼 복수로 쓰지 않는다</td>
+        <td class="self"></td></tr>
+
+      <tr><td class="rn">9</td>
+        <td class="w">remind</td><td class="ph">/rɪˈmaɪnd/</td><td class="pos">verb</td>
+        <td>(잊지 않게) 알려 주다</td>
+        <td>to help someone remember something</td>
+        <td class="src">It also reminds me to drink water.</td>
+        <td>The app reminds me to do my homework.</td>
+        <td>reminder</td>
+        <td>remind me to + 동사원형</td>
+        <td>remind me doing 이 아니라 remind me to do 이다</td>
+        <td class="self"></td></tr>
+
+      <tr><td class="rn">10</td>
+        <td class="w">save time</td><td class="ph">/seɪv taɪm/</td><td class="pos">phrase</td>
+        <td>시간을 아끼다</td>
+        <td>to use less time than before</td>
+        <td class="src">It saves time because I stop playing games earlier.</td>
+        <td>A list saves time when we go shopping.</td>
+        <td>save, saving</td>
+        <td>save time / save money</td>
+        <td>save 뒤에 the time 을 붙이지 않는다</td>
+        <td class="self"></td></tr>
+
+      <tr><td class="rn">11</td>
+        <td class="w">habit</td><td class="ph">/ˈhæbɪt/</td><td class="pos">noun</td>
+        <td>버릇, 습관</td>
+        <td>something you do again and again</td>
+        <td class="src">That's a smart habit.</td>
+        <td>Reading before bed is a good habit.</td>
+        <td>habits</td>
+        <td>a good / bad habit</td>
+        <td>hobby(취미)와 뜻이 다르다</td>
+        <td class="self"></td></tr>
+
+      <tr><td class="rn">12</td>
+        <td class="w">How often …?</td><td class="ph">/haʊ ˈɔːfən/</td><td class="pos">phrase</td>
+        <td>얼마나 자주 …?</td>
+        <td>a question asking how many times something happens</td>
+        <td class="src">How often do you charge it?</td>
+        <td>How often do you walk to school?</td>
+        <td>often, always, never</td>
+        <td>How often do you …?</td>
+        <td>How many times 와 섞어 쓰지 않도록 이 차시에는 How often 으로 통일한다</td>
+        <td class="self"></td></tr>
+
+      <tr><td class="rn">13</td>
+        <td class="w">twice a week</td><td class="ph">/twaɪs ə wiːk/</td><td class="pos">phrase</td>
+        <td>일주일에 두 번</td>
+        <td>two times in one week</td>
+        <td class="src">About twice a week.</td>
+        <td>I go to the library twice a week.</td>
+        <td>once, three times</td>
+        <td>once / twice / three times a week</td>
+        <td>two times a week 보다 twice a week 가 자연스럽다</td>
+        <td class="self"></td></tr>
+
+      <tr><td class="rn">14</td>
+        <td class="w">use it to …</td><td class="ph">/juːz ɪt tuː/</td><td class="pos">phrase</td>
+        <td>…하려고 그것을 쓰다</td>
+        <td>to say why you use something</td>
+        <td class="src">use it to set an alarm<span class="frag">원문 조각</span></td>
+        <td>I use it to check the weather.</td>
+        <td>use, useful</td>
+        <td>use A to + 동사원형</td>
+        <td>to 뒤에 동사원형을 쓴다. use it to setting 은 틀린 표현이다</td>
+        <td class="self"></td></tr>
+    </tbody>
+  </table>
+
+  <div class="tabs">
+    <span class="tab on">어휘 학습표</span>
+    <span class="tab">인쇄용 (자기 점검란 확대)</span>
+    <span class="tab">산출물 안내</span>
+  </div>
+</div>
+
+<div class="notes">
+  <div class="nb">
+    <div class="lb">추출 근거</div>
+    <p>교재 본문과 듣기 대본에 반복되는 핵심어에서 추출했습니다. F열 원문 예문은 전부 교재와 대본에서 그대로 가져왔고, 완결된 문장이 없는 항목은 조각임을 표시했습니다.</p>
+  </div>
+  <div class="nb">
+    <div class="lb p">교사 확인 필요</div>
+    <p>발음기호(B열)와 원문 예문(F열)은 한 줄씩 교재와 대조해 주십시오. 두 항목은 AI가 틀리기 쉬운 부분입니다.</p>
+  </div>
+  <div class="nb">
+    <div class="lb">학생 자기 점검 (K열)</div>
+    <p>비워 두었습니다. 학생이 직접 읽을 수 있음 / 알아볼 수 있음 / 쓸 수 있음 / 아직 모름 중 하나를 적습니다.</p>
+  </div>
+</div>
+
+<div class="foot">
+  <span>어휘 수 12개 — B1 구간(8~12개) 기준에 맞습니다 · Google Sheets 업로드용 .csv 동봉</span>
+  <span>TeachFlow · word-workflow 산출물 미리보기</span>
+</div>
+
+</body>
+</html>
