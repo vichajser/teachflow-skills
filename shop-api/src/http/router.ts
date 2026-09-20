@@ -1,4 +1,5 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
+import { sendError } from './respond.ts';
 
 // 七条路由不值得一个框架。这里只支持精确段与 :name 单段参数，
 // 没有通配、没有正则、没有中间件栈——面越小越不会出意外。
@@ -67,8 +68,9 @@ export function createRouter(baseUrl: string) {
     const url = new URL(req.url ?? '/', baseUrl);
     const found = match(req.method ?? 'GET', url.pathname);
     if (!found) {
-      res.writeHead(404, { 'content-type': 'application/json; charset=utf-8' });
-      res.end(JSON.stringify({ error: 'not_found' }));
+      // 走 sendError 而不是手写：404 也是接口契约里的错误信封，
+      // 少数几条路径用另一种形状，调用方就得为它写第二套解析。
+      sendError(res, 404, 'not_found', '没有这个接口。');
       return;
     }
     await found.handler({ req, res, url, params: found.params, clientIp: clientIpOf(req) });

@@ -100,6 +100,18 @@ export async function markArchived(db: Queryable, id: string, at: Date): Promise
   ]);
 }
 
+/**
+ * 全部版本，最新发布的在前。发版 CLI 用它核对「我刚发的那一版进去了没有」，
+ * 所以排序按 published_at 而不是 semver：人要找的是刚才那一次操作。
+ */
+export async function allReleases(db: Queryable, limit: number): Promise<ReleaseRow[]> {
+  const { rows } = await db.query(
+    'SELECT * FROM releases ORDER BY published_at DESC, skill_id LIMIT $1',
+    [limit],
+  );
+  return rows.map(toRow);
+}
+
 export interface NewRelease {
   skillId: string;
   version: string;

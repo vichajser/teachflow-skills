@@ -6,9 +6,18 @@ import { fieldOf, fileOf, MultipartError, parseMultipart } from '../lib/multipar
 import { validateSkillZip } from '../lib/zip-validate.ts';
 import { compareSemver, isSemver } from '../lib/frontmatter.ts';
 import { masterKey, type Storage } from '../lib/storage.ts';
-import { getRelease, insertRelease, latestVersion, VersionConflict } from '../db/releases.ts';
+import {
+  allReleases,
+  getRelease,
+  insertRelease,
+  latestVersion,
+  VersionConflict,
+} from '../db/releases.ts';
 
 const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
+
+/** 列表上限。发版是人工动作，两百行足够翻到最早的一次，也不至于一次拉爆。 */
+const LIST_LIMIT = 200;
 
 export interface ReleaseDeps {
   adminToken: string;
@@ -30,6 +39,36 @@ function authorized(header: string | string[] | undefined, expected: string): bo
   const want = Buffer.from(expected, 'utf8');
   // 先比长度再定长比较：timingSafeEqual 长度不等会抛错。
   return provided.length === want.length && timingSafeEqual(provided, want);
+}
+
+/**
+ * 已发版本清单，给发版 CLI 核对用。
+ *
+ * 不回 changelog：这个接口是用来确认「那一版进去了没有」的，而两段双语正文
+ * 会把一次核对变成几十 KB 的响应，真正要看的 sha256 反而要翻半天。
+ */
+export function releasesListRoute(deps: { adminToken: string; pool: Pool }): Handler {
+  return async (ctx: RequestContext) => {
+    if (!authorized(ctx.req.headers.authorization, deps.adminToken)) {
+      sendError(ctx.res, 401, 'unauthorized', '缺少或不正确的 Bearer token。');
+      return;
+    }
+
+    const rows = await allReleases(deps.pool, LIST_LIMIT);
+    sendJson(ctx.res, 200, {
+      releases: rows.map((r) => ({
+        id: r.id,
+        skill: r.skillId,
+        version: r.version,
+        sha256: r.sha256,
+        size_bytes: r.sizeBytes,
+        published_at: r.publishedAt.toISOString(),
+        // null 表示还没推到 R2。reconcile 每天会补，连着几天都是 null 才值得查。
+        archived_at: r.archivedAt ? r.archivedAt.toISOString() : null,
+      })),
+      limit: LIST_LIMIT,
+    });
+  };
 }
 
 export function adminReleasesRoute(deps: ReleaseDeps): Handler {

@@ -77,7 +77,10 @@ describe('createRouter', () => {
     await router.handle(fakeReq('GET', '/nope'), res);
     expect(state.status).toBe(404);
     expect(state.headers['content-type']).toContain('application/json');
-    expect(JSON.parse(state.body)).toEqual({ error: 'not_found' });
+    // 与其余接口同一个错误信封：{ error: { code, message } }。
+    expect(JSON.parse(state.body)).toEqual({
+      error: { code: 'not_found', message: '没有这个接口。' },
+    });
   });
 
   it('查询串不参与路径匹配', () => {
