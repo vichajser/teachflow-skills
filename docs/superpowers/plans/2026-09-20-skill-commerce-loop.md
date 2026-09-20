@@ -51,7 +51,7 @@
 **文件：** `src/lib/watermark.ts`、`src/lib/token.ts`、`test/watermark.test.ts`、`test/token.test.ts`
 
 **产出接口：**
-- `injectLicenseHolder(zipBuf, { skillId, email, orderId, purchasedAt }): Buffer`
+- `injectLicenceHolder(zipBuf, { skillId, version, orderId, email, purchasedAt }, downloadedAt?): Buffer`
 - `signToken(secret, { orderId, ttlDays }): string` / `verifyToken(secret, token): { orderId } | null`
 
 **测试：** 注入后 zip 仍可被 `readCentralDirectory` 解析；`<skill>/LICENSE-HOLDER.txt` 存在且含订单号与邮箱；原有条目字节与偏移未被破坏（逐条比对名称与 CRC）。token 往返成功；过期拒绝；改一位签名即拒绝；算法字段被篡改为 `none` 拒绝。
