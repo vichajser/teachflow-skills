@@ -38,3 +38,15 @@ Education's school personal-data guidelines.
 Even if the teacher explicitly asks for individual details to be added, the output guidance
 carries a warning to check the school or institution's personal-data policy before sending
 anything externally. Read that warning before you send.
+
+### What to attach
+
+- Lesson plan — required. The source of the topic, vocabulary, grammar and activities.
+- Textbook content — required. The accurate basis for the vocabulary and example sentences.
+- Class details — optional. Class name, date, unit. Anything missing is left as a blank.
+
+### What to type
+
+> Make a parent newsletter for this lesson.
+
+Nothing is asked back. Where class details were left blank, the notice keeps a blank line for you to fill in by hand. Student names, ID numbers, individual scores and photographs never go on it — only class-level content — and the delivery note carries a reminder to check the school's personal-data policy before sending it externally.

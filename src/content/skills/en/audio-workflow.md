@@ -29,3 +29,15 @@ about one minute.
 Where the runtime has no speech synthesis, the script alone is produced. You then paste that
 script into a commercial speech tool yourself — and **never paste the Listening Tasks section
 with it.** If the questions get read out, the material is unusable.
+
+### What to attach
+
+- Textbook source text — required. The vocabulary, grammar and patterns in the script come from here.
+- Lesson plan — required. Gives the period's topic, lesson type and target language.
+- Audio settings — optional. Purpose, length, speed and accent.
+
+### What to type
+
+> Make the listening material for this lesson.
+
+It asks you for more only when the textbook and the lesson plan are both missing — otherwise it proceeds. Say nothing about settings and the defaults apply: a two-speaker dialogue, slightly slow, neutral English, about one minute. Out come the script, the scene, the tone guidance and five listening tasks, with an audio file where the runtime can synthesise speech.

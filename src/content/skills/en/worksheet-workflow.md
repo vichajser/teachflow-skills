@@ -41,3 +41,15 @@ design principles.
 
 Where the lesson plan has no full reading passage, a new passage at the same topic and
 difficulty is written and flagged as such.
+
+### What to attach
+
+- Lesson plan — required. The source of the topic, target vocabulary and grammar, activities and final task.
+- Textbook content — required. The source material the questions are built from.
+- Learner profile — optional. Grade, level, and how students split across the three tiers.
+
+### What to type
+
+> Make levelled worksheets for this lesson — it's for a performance assessment.
+
+It does not stop to ask about the learners. Where the profile is missing it assumes from the lesson plan and the textbook, and states those assumptions in the output. Naming an exam type routes the tasks through that exam's item formats and marking criteria. Three editable `.docx` files come out, with PDF on request.

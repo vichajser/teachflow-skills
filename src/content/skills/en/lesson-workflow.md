@@ -4,7 +4,7 @@ lang: en
 title: Lesson design
 tagline: Reads the textbook unit and decides what this lesson actually teaches. The other five skills follow that decision.
 inputs:
-  - Textbook unit — required. PDF, image or document
+  - Textbook unit — required. The pages this lesson covers
   - Teacher's guide — helpful. Helps pin down the unit objectives
   - Learner profile — helpful. School level and grade, actual English level, CEFR
   - Period length and total periods — helpful. E.g. 45 minutes × 3 periods
@@ -29,3 +29,17 @@ Exactly one main lesson type is chosen, with up to two secondary types attached.
 The core flow and step order decided here flow downstream unchanged. If a problem turns up at a later stage, only task difficulty, time allocation, question level and the amount of learning support are adjusted — the whole design is not overturned, so the materials stay consistent with one another.
 
 Without the textbook itself there is nothing to start from. Any other missing detail does not stop the work: assumptions are stated and the run continues.
+
+### What to attach
+
+- Textbook unit — required. The whole run starts from these pages.
+- Teacher's guide — helpful. Pins down the unit objectives and the intended focus.
+- Learner profile — helpful. School level and grade, actual English level, CEFR.
+- Period length and total periods — helpful. E.g. 45 minutes × 3 periods.
+- Anything you especially want covered — optional. Long-sentence parsing, core vocabulary, written-response practice.
+
+### What to type
+
+> Here's the textbook unit — design the lesson for me.
+
+Naming no mode means the whole chain runs by default: period split, design brief, lesson plan, then slide outline. Missing details do not stop it — the skill states its assumption and keeps going, and asks back only when a missing fact would change a teaching decision. Without the textbook there is nothing to start from.

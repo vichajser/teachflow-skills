@@ -35,3 +35,15 @@ Where the textbook has no complete example sentence, the closest phrase is used 
 such. Where there is no basis at all, the cell is left blank and flagged — never invented. Those
 two checks (pronunciation symbols and source example sentences) are always stated in the output
 guidance.
+
+### What to attach
+
+- Student textbook source text — required. The first-priority source for words and example sentences.
+- Lesson plan — required. Shows which words count as core for this period.
+- The textbook's vocabulary list page — required if the textbook has one. When it exists, that list takes priority.
+
+### What to type
+
+> Make a vocabulary sheet from this unit and export it to Google Sheets.
+
+No question comes back. The table is built from the textbook text, with the lesson plan as secondary support — it will not build the table from the lesson plan alone. Where a vocabulary list page exists, that list is used first. Two files come out: `.xlsx` and `.csv` for Google Sheets.
