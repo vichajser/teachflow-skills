@@ -1,0 +1,86 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import PriceBlock from '@/components/PriceBlock.astro';
+import { SITE } from '@/config/site';
+import { localizePath, type Locale } from '@/i18n/config';
+import { useTranslations } from '@/i18n/t';
+
+export { localeStaticPaths as getStaticPaths } from '@/i18n/paths';
+
+const lang = Astro.params.lang as Locale;
+const t = useTranslations(lang);
+
+// 空串 = Polar 商品还没建起来。见 `SITE.buyCtaUrl` 的注释：这一页因此
+// 有两个形态，而不是一条会落到 404 结账页的链接。
+const open = SITE.buyCtaUrl !== '';
+---
+
+<BaseLayout
+  lang={lang}
+  title={`${t('buy.title')} — ${SITE.productName}`}
+  description={t('buy.metaDescription')}
+  path="/buy"
+  variant="legal"
+>
+  <h1 class="pt-16 text-4xl font-semibold text-text-hi">{t('buy.title')}</h1>
+  <p class="mt-3 max-w-2xl text-text-body">{t('buy.lead')}</p>
+
+  <section class="mt-8 max-w-xl">
+    <PriceBlock lang={lang} />
+  </section>
+
+  {/*
+    站内不托管任何支付表单：这一整页没有 <form>、没有 <input>、没有脚本。
+    买家点这个链接之后就已经在 Polar 的托管结账页上，卡号从不经过本站，
+    PCI 面与支付页审核因此完全消失。tests/build/pages.test.mjs 把这一点
+    钉死——它是本页存在的全部理由，不是一句注释里的承诺。
+  */}
+  {open ? (
+    <section class="mt-10 max-w-2xl">
+      <a
+        href={SITE.buyCtaUrl}
+        rel="noopener"
+        class="inline-block rounded-lg bg-accent px-6 py-3 font-semibold text-bg hover:opacity-90"
+      >{t('buy.cta')}</a>
+      <p class="mt-4 text-sm text-text-body">{t('buy.ctaNote')}</p>
+      <p class="mt-2 text-sm text-text-body">{t('buy.delivery')}</p>
+    </section>
+  ) : (
+    <section class="mt-10 max-w-2xl rounded-xl border border-border bg-surface p-5">
+      <h2 class="text-lg font-semibold text-text-hi">{t('buy.closed')}</h2>
+      <p class="mt-2 text-sm text-text-body">{t('buy.closedBody')}</p>
+      <p class="mt-3 text-sm">
+        <a
+          href={SITE.agensiListingUrl}
+          rel="noopener"
+          class="text-accent hover:underline"
+        >{SITE.agensiListingUrl}</a>
+      </p>
+      <p class="mt-1 text-sm">
+        <a
+          href={`mailto:${SITE.supportEmail}`}
+          class="font-mono text-accent hover:underline"
+        >{SITE.supportEmail}</a>
+        <span class="ml-2 font-sans text-text-mute">{t('buy.emailUs')}</span>
+      </p>
+    </section>
+  )}
+
+  <ul class="mt-12 space-y-1 pb-16 text-sm">
+    <li>
+      <a href={localizePath('/legal/refund', lang)} class="text-accent hover:underline">
+        {t('pricing.refundLink')}
+      </a>
+    </li>
+    <li>
+      <a href={localizePath('/legal/delivery', lang)} class="text-accent hover:underline">
+        {t('pricing.deliveryLink')}
+      </a>
+    </li>
+    <li>
+      <a href={localizePath('/pricing', lang)} class="text-accent hover:underline">
+        {t('pricing.howToBuy')}
+      </a>
+    </li>
+  </ul>
+</BaseLayout>

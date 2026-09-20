@@ -200,13 +200,18 @@ for (const page of allHtml) {
 }
 
 // ---- 4. 价格写法。全站唯一合法写法是 "USD 29.90"（Global Constraints）。----
-// (a) 正向：配置里的价格必须**恰好**出现在四个价格页上。
-//     不要写成“每页都要有价格”——26 个文件里只有 4 个有价格。
+// (a) 正向：配置里的价格必须**恰好**出现在这份清单上的页面里。
+//     不要写成“每页都要有价格”——三十来个文件里只有这几个有价格。
+//     清单是封闭的：新页面带上价格必须**同时**改这里，否则报错。
+//     这正是它的用处——一个价格出现在预期之外的页面上，多半意味着
+//     有人复制了一段带价格的组件而没想清楚该页要不要承担价格承诺。
 const PRICE_PAGES = [
   'en/index.html',
   'en/pricing/index.html',
+  'en/buy/index.html',
   'ko/index.html',
   'ko/pricing/index.html',
+  'ko/buy/index.html',
 ];
 if (PRICE_DISPLAY) {
   for (const page of PRICE_PAGES) {
@@ -218,7 +223,10 @@ if (PRICE_DISPLAY) {
   for (const file of allHtml.filter((f) => !PRICE_PAGES.includes(f))) {
     const text = readFileSync(join(DIST, file), 'utf8');
     if (text.includes(PRICE_DISPLAY)) {
-      fail('price-notation', `${file} renders a price but is not one of the four price pages`);
+      fail(
+        'price-notation',
+        `${file} renders a price but is not on the ${PRICE_PAGES.length}-page price list`,
+      );
     }
   }
 }

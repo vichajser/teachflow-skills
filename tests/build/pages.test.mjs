@@ -3,6 +3,7 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { parse } from 'node-html-parser';
 import { SAMPLES, isReady } from '@/data/samples';
+import { SITE } from '@/config/site';
 
 /**
  * Task 11 落了九个新页面（en/ko × faq / docs / samples / 404，加根 404），
@@ -77,7 +78,9 @@ function hangulRatio(text) {
   return hangul / chars.length;
 }
 
-const LOCALIZED = ['faq', 'docs', 'samples', 'install', '404'].flatMap((slug) =>
+// `buy` 是后来加的（skill 商业闭环 T14）。它进这份清单而不是单开一套，
+// 是因为语言对等与"页面真的建出来了"这两件事对它的要求与其余页面一字不差。
+const LOCALIZED = ['faq', 'docs', 'samples', 'install', 'buy', '404'].flatMap((slug) =>
   ['en', 'ko'].map((lang) => ({ lang, slug, file: `${lang}/${slug}/index.html` })),
 );
 
@@ -364,6 +367,95 @@ describe('/docs keeps its step lists in the reader’s language', () => {
             `${lang === 'ko' ? '>' : '<'} ${lang === 'ko' ? MIN.ko : MIN.en}`,
         ).toBe(true);
       });
+    }
+  });
+});
+
+/**
+ * `/buy` 的全部内容就是一条通向 Polar 托管结账页的链接（spec §3.2）。
+ * 这组断言守的是"站内不托管任何支付表单"这一条——它不是排版偏好，
+ * 而是整个 PCI 面与支付页审核之所以不存在的原因。少了这组，往页面上
+ * 加一个收卡号的 `<input>` 不会让任何测试变红。
+ */
+describe('/buy links out to checkout instead of hosting one', () => {
+  const BOTH = ['en', 'ko'].map((lang) => `${lang}/buy/index.html`);
+
+  it('ships no form control of any kind, in either locale', () => {
+    for (const file of BOTH) {
+      const root = parse(read(file));
+      for (const tag of ['form', 'input', 'select', 'textarea', 'button']) {
+        expect(
+          root.querySelectorAll(tag),
+          `${file} ships a <${tag}> — the checkout must stay off this site`,
+        ).toHaveLength(0);
+      }
+    }
+  });
+
+  it('ships no script, in either locale', () => {
+    // 与 no-js.test.mjs 重叠是故意的：那一条守全站，这一条守的是
+    // "别人家的结账 widget 被贴到这一页上"这个具体的诱惑。
+    for (const file of BOTH) {
+      expect(parse(read(file)).querySelectorAll('script'), `${file} ships a script`)
+        .toHaveLength(0);
+    }
+  });
+
+  it('states the price exactly once, from the single source', () => {
+    for (const file of BOTH) {
+      const text = visibleText(file);
+      expect(text.split(SITE.price.display).length - 1, `${file} price count`).toBe(1);
+    }
+  });
+
+  it('always offers the refund and delivery policies', () => {
+    for (const lang of ['en', 'ko']) {
+      const hrefs = parse(read(`${lang}/buy/index.html`))
+        .querySelectorAll('main a')
+        .map((a) => a.getAttribute('href'));
+      expect(hrefs, `${lang}/buy hides the refund policy`)
+        .toContain(`/${lang}/legal/refund`);
+      expect(hrefs, `${lang}/buy hides the delivery terms`)
+        .toContain(`/${lang}/legal/delivery`);
+    }
+  });
+
+  /**
+   * 这一页有两个形态，取决于 `PUBLIC_BUY_CTA_URL` 在构建时有没有设。
+   * 断言跟着同一个常量分叉，而不是假定其中一种——否则本地构建（未设）
+   * 与生产构建（已设）之中必有一种是没人测过的。
+   */
+  it('renders the state its configuration actually asks for', () => {
+    for (const lang of ['en', 'ko']) {
+      const file = `${lang}/buy/index.html`;
+      const hrefs = parse(read(file))
+        .querySelectorAll('main a')
+        .map((a) => a.getAttribute('href'));
+
+      if (SITE.buyCtaUrl === '') {
+        // 结账未开放：不得出现任何指向站外结账的链接，且必须留下两条
+        // 现在就走得通的路——否则这一页等于把买家送进死胡同。
+        expect(hrefs, `${file} links to an unconfigured checkout`)
+          .not.toContain(SITE.buyCtaUrl);
+        expect(hrefs, `${file} drops the Agensi route`).toContain(SITE.agensiListingUrl);
+        expect(hrefs, `${file} drops the email route`)
+          .toContain(`mailto:${SITE.supportEmail}`);
+      } else {
+        const to = hrefs.filter((h) => h === SITE.buyCtaUrl);
+        expect(to, `${file} does not link to the checkout exactly once`).toHaveLength(1);
+      }
+    }
+  });
+
+  it('never ships an empty or literal-undefined href', () => {
+    // 判空分支写反时的实际产物：`href="undefined"` 或整个属性消失。
+    const DEAD = [undefined, null, '', 'null', 'undefined', '#'];
+    for (const file of BOTH) {
+      for (const a of parse(read(file)).querySelectorAll('a')) {
+        const href = a.getAttribute('href');
+        expect(DEAD.includes(href), `${file} ships a dead link: ${JSON.stringify(href)}`)
+          .toBe(false);
+      }
     }
   });
 });

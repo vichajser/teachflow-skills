@@ -31,6 +31,17 @@ export const SITE = {
     display: 'USD 29.90',
   },
 
+  /**
+   * Polar 托管结账页。站内不出现任何支付表单——PCI 面与支付页审核
+   * 因此完全消失——所以购买动作在站点侧的全部实现就是这一个链接。
+   *
+   * 构建时从 `PUBLIC_BUY_CTA_URL` 取，没设就是空串：商品还没在 Polar
+   * 建起来之前链过去只会落到一个不存在的结账页，而一条死的结账链接
+   * 比没有结账链接坏得多。空串时 `/buy` 渲染成「直接结账尚未开放」，
+   * 把读者指回 Agensi 与邮件这两条已经能走通的路。
+   */
+  buyCtaUrl: import.meta.env.PUBLIC_BUY_CTA_URL ?? '',
+
   agensiListingUrl: 'https://www.agensi.io',
   // 只链接，不复述其退款天数：Agensi 自家 /terms 与 /stripe-terms 互相矛盾。
   agensiTermsUrl: 'https://www.agensi.io/terms',

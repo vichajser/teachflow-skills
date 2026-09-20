@@ -22,6 +22,26 @@ describe('SITE constants', () => {
     expect(SITE.supportEmail).toBe('crossxtop@gmail.com');
   });
 
+  /**
+   * `buyCtaUrl` 是唯一一个构建期可变的常量，所以这里断言的是它的**形状**，
+   * 不是某个具体的值——把一个真实结账 URL 写进测试，等于要求每次换商品
+   * 都同步改测试，而那正是最容易被跳过的一步。
+   *
+   * 三条形状要求，各自对着一种真实的错法：
+   *   - 必须是字符串：`undefined` 会让 `/buy` 的判空分支变成 `!== ''` 为真，
+   *     于是渲染出一个 href="undefined" 的结账按钮。
+   *   - 非空时必须是 https 绝对地址：结账页在第三方域上，写成 `/checkout`
+   *     这样的站内相对路径会落到本站的 404。
+   *   - 非空时不得指向本站：站内不托管支付表单是这一页存在的前提。
+   */
+  it('exposes a build-time checkout URL that is empty or a third-party https URL', () => {
+    expect(typeof SITE.buyCtaUrl).toBe('string');
+    if (SITE.buyCtaUrl !== '') {
+      expect(SITE.buyCtaUrl.startsWith('https://')).toBe(true);
+      expect(SITE.buyCtaUrl).not.toContain(new URL(SITE.domain).host);
+    }
+  });
+
   it('keeps the domain in one place, with no trailing slash', () => {
     expect(SITE.domain.startsWith('https://')).toBe(true);
     expect(SITE.domain.endsWith('/')).toBe(false);
