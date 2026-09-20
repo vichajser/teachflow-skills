@@ -120,16 +120,16 @@ describe('FLOW_EDGES', () => {
 });
 
 describe('edgePath', () => {
-  it('produces a cubic bezier starting at the source and ending at the target', () => {
+  it('produces an elbow starting at the source and ending at the target', () => {
     const d = edgePath({ from: 'input', to: 'lesson-workflow' });
-    expect(d).toMatch(/^M [\d.]+ [\d.]+ C /);
+    expect(d).toMatch(/^M [\d.]+ [\d.]+ V /);
 
     // 光有前缀正则等于没测端点：把 x2 写死成常数，所有边都会连到同一个位置，
     // 而正则照样命中。这里把每条边的起点与终点解析出来逐个核对。
     const lesson = FLOW_NODES.find((n) => n.id === 'lesson-workflow')!;
     const parse = (path: string) => {
       const m = path.match(
-        /^M ([\d.-]+) ([\d.-]+) C [\d.-]+ [\d.-]+, [\d.-]+ [\d.-]+, ([\d.-]+) ([\d.-]+)$/,
+        /^M ([\d.-]+) ([\d.-]+) V [\d.-]+ H ([\d.-]+) V ([\d.-]+)$/,
       );
       if (!m) throw new Error(`unparseable path: ${path}`);
       return {
@@ -151,9 +151,9 @@ describe('edgePath', () => {
 
     for (const edge of FLOW_EDGES) {
       const m = edgePath(edge).match(
-        /^M ([\d.-]+) ([\d.-]+) C [\d.-]+ [\d.-]+, [\d.-]+ [\d.-]+, ([\d.-]+) ([\d.-]+)$/,
+        /^M ([\d.-]+) ([\d.-]+) V ([\d.-]+) H ([\d.-]+) V ([\d.-]+)$/,
       );
-      expect(m, `${edge.from} → ${edge.to} is not a single cubic bezier`).not.toBeNull();
+      expect(m, `${edge.from} → ${edge.to} is not an elbow`).not.toBeNull();
 
       const from = box(edge.from);
       const to = box(edge.to);
@@ -162,10 +162,35 @@ describe('edgePath', () => {
         from.x + from.w / 2,
         from.y + from.h,
       ]);
-      expect([Number(m![3]), Number(m![4])], `${label} end`).toEqual([
+      expect([Number(m![4]), Number(m![5])], `${label} end`).toEqual([
         to.x + to.w / 2,
         to.y,
       ]);
+    }
+  });
+
+  it('bends at the vertical midpoint between source and target', () => {
+    const box = (ref: string) =>
+      ref === 'input' ? INPUT_NODE : FLOW_NODES.find((n) => n.id === ref)!;
+
+    for (const edge of FLOW_EDGES) {
+      const m = edgePath(edge).match(
+        /^M ([\d.-]+) ([\d.-]+) V ([\d.-]+) H ([\d.-]+) V ([\d.-]+)$/,
+      );
+      expect(m, `${edge.from} → ${edge.to} is not an elbow`).not.toBeNull();
+
+      const from = box(edge.from);
+      const to = box(edge.to);
+      const label = `${edge.from} → ${edge.to}`;
+
+      // 上面那条只钉住两个端点。把中段挪到贴着目标顶边或贴着源底边，
+      // 端点一个都没动、那条断言照样全绿，画出来的却是一条压着节点边缘的
+      // 水平线。所以中段的纵向位置与横向落点也必须钉死：竖直拐点落在两端的
+      // 纵向中点，水平段终点落在目标顶边中点。
+      expect(Number(m![3]), `${label} elbow y`).toEqual(
+        (from.y + from.h + to.y) / 2,
+      );
+      expect(Number(m![4]), `${label} elbow x`).toEqual(to.x + to.w / 2);
     }
   });
 

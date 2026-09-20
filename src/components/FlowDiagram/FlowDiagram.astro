@@ -64,7 +64,12 @@ const STAGES = ([1, 2, 3] as const).map((stage) => ({
     focusable="false"
     class="hidden w-full md:block"
   >
-    <g data-flow-edges fill="none" stroke-width="2" stroke-linecap="round">
+    {/*
+      `stroke-linejoin="round"`：贝塞尔路径没有拐角，连线组原先不需要它；折线每
+      条有两个直角，缺了它 SVG 默认的尖角连接（miter）会在两处画成硬尖点——
+      在 2px 描边与 0.55 透明度下尤其毛刺。
+    */}
+    <g data-flow-edges fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       {FLOW_EDGES.map((edge) => (
         <path
           d={edgePath(edge)}

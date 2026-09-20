@@ -186,7 +186,24 @@ const boxOf = (ref: SkillId | 'input') => {
   return node;
 };
 
-/** 从源节点底边中点到目标节点顶边中点的垂直三次贝塞尔 */
+/**
+ * 从源节点底边中点到目标节点顶边中点的正交折线（竖直 → 水平 → 竖直）。
+ *
+ * 为什么是折线而不是对角直线：二级那一行的中心与一级、三级都不一样——四个
+ * 二级节点横向铺满 860 单位，左右两端距 480 各有 330 的偏移，而上下只隔 72。
+ * 直接连一条 `L` 会画出一把浅到几乎水平的扇形，读起来是"炸开"而不是"往下走"。
+ * 折线把横向位移放到中段那条水平线上，竖直两段始终垂直于节点边，一眼能读出
+ * 流向。
+ *
+ * 为什么所有边都写满 `M V H V` 四个命令，哪怕 `input → lesson-workflow` 这条
+ * 两边中点同在 480、`H` 是零长度空操作：测试只需一条解析正则，动画层也只需
+ * 一条代码路径（`flow-diagram.ts` 的自绘对形状无感，但它与测试都假设"每条的
+ * 命令序列一致"）。这个退化段在渲染上不可见，删掉它换来的只是两处分支判断。
+ * 别"顺手简化"成按需省略——那会让正则和代码路径各自再多一种形状。
+ *
+ * 中段落在 (y1 + y2) / 2 而不是贴着某一端：贴着上端会让水平线压进目标节点顶边，
+ * 贴着下端则压进源节点底边。取中点让两条竖直段等长，是这张图最平的读法。
+ */
 export function edgePath(edge: FlowEdge): string {
   const from = boxOf(edge.from);
   const to = boxOf(edge.to);
@@ -195,9 +212,9 @@ export function edgePath(edge: FlowEdge): string {
   const y1 = from.y + from.h;
   const x2 = to.x + to.w / 2;
   const y2 = to.y;
-  const lift = (y2 - y1) / 2;
+  const ym = (y1 + y2) / 2;
 
-  return `M ${x1} ${y1} C ${x1} ${y1 + lift}, ${x2} ${y2 - lift}, ${x2} ${y2}`;
+  return `M ${x1} ${y1} V ${ym} H ${x2} V ${y2}`;
 }
 
 export function nodeColor(stage: SkillStage): string {
