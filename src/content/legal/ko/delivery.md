@@ -2,11 +2,11 @@
 slug: delivery
 lang: ko
 title: 디지털 상품 전달 안내
-description: 구매 후 TeachFlow-KR이 전달되는 방식과 실행에 필요한 환경을 안내합니다.
+description: 구매 후 TeachFlow가 전달되는 방식과 실행에 필요한 환경을 안내합니다.
 updated: '2026-09-19'
 ---
 
-TeachFlow-KR은 디지털 상품입니다. **실물 배송이 없으며**, 우편으로 발송되는 것은
+TeachFlow는 디지털 상품입니다. **실물 배송이 없으며**, 우편으로 발송되는 것은
 아무것도 없습니다.
 
 ## 무엇을 받게 되나요

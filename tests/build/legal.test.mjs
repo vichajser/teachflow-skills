@@ -51,11 +51,14 @@ describe('/legal pages', () => {
     }
   });
 
-  it('never leaks the placeholder domain', () => {
+  it('never leaks a hardcoded host into the legal copy', () => {
     for (const page of LEGAL_PAGES) {
       const html = read(page);
       const body = html.slice(html.indexOf('<body'));
+      // 合规正文里不该出现任何写死的主机名：真域名与已退役的占位域名都不行。
+      // 前者是条款里该用相对链接的地方写了绝对地址，后者是改名时漏掉的残留。
       expect(body, page).not.toContain('teachflow-kr.example');
+      expect(body, page).not.toContain('tryteachflow.com');
     }
   });
 

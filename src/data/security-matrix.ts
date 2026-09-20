@@ -111,7 +111,7 @@ export const SECURITY_MATRIX: readonly SecurityRow[] = [
  * 两条可验证事实——比任何断言都强，因为读者能自己走一遍。
  *
  * **两条都必须是买家拿到的 zip 里真实存在的东西。** 早先的第二条写着
- * "The package ships verify.py"，那是照着 `TeachFlow-KR/` 仓库的结构写的，
+ * "The package ships verify.py"，那是照着 `TeachFlow/` 仓库的结构写的，
  * 不是照着交付物写的：`unzip -l` 六个 zip，里面只有 `SKILL.md`、
  * `references/*.md`、`README.md`、`SECURITY.md`、`LICENSE`——
  * **没有 verify.py，也没有 skills/ 或 docs/ 目录**。承诺一个随包不存在的

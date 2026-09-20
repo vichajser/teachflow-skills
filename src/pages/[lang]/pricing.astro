@@ -18,7 +18,7 @@ const titleById = new Map(skillEntries.map((e) => [e.data.id, e.data.title]));
 
 <BaseLayout
   lang={lang}
-  title={`${t('pricing.title')} — TeachFlow-KR`}
+  title={`${t('pricing.title')} — ${SITE.productName}`}
   description={`${t('pricing.product')} — ${SITE.price.display}`}
   path="/pricing"
   variant="legal"

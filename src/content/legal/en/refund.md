@@ -2,11 +2,11 @@
 slug: refund
 lang: en
 title: Refund & Cancellation Policy
-description: How refunds work for TeachFlow-KR, and your statutory right of withdrawal.
+description: How refunds work for TeachFlow, and your statutory right of withdrawal.
 updated: '2026-09-19'
 ---
 
-TeachFlow-KR is a one-time purchase. There is **no subscription and no auto-renewal**,
+TeachFlow is a one-time purchase. There is **no subscription and no auto-renewal**,
 so there is nothing to cancel — you are never billed a second time.
 
 How a refund is handled depends on where you bought it.

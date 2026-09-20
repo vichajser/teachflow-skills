@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
+import { SITE } from '@/config/site';
 import SampleCard from '@/components/SampleCard.astro';
 import { SAMPLES } from '@/data/samples';
 import { useTranslations } from '@/i18n/t';
@@ -13,7 +14,7 @@ const t = useTranslations(lang);
 
 <BaseLayout
   lang={lang}
-  title={`${t('samples.title')} — TeachFlow-KR`}
+  title={`${t('samples.title')} — ${SITE.productName}`}
   description={t('samples.lead')}
   path="/samples"
 >

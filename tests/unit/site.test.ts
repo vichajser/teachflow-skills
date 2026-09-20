@@ -29,12 +29,17 @@ describe('SITE constants', () => {
 });
 
 /**
- * The placeholder domain is allowed in exactly two files: `astro.config.mjs`
- * and `src/config/site.ts`. Anywhere else it is a latent bug — when the real
- * domain is bought, those copies would silently keep pointing at a dead host.
+ * The domain is allowed in exactly two files: `astro.config.mjs` and
+ * `src/config/site.ts`. Anywhere else it is a latent bug — a hardcoded copy
+ * keeps pointing at the old host the next time the domain moves.
  * R-7 exists because `public/robots.txt` was a third copy.
+ *
+ * This guard outlived the placeholder it was written for: it now scans for
+ * the real domain (`tryteachflow.com`), so it still fires on a third copy.
+ * The dead placeholder is asserted separately below — a stale
+ * `teachflow-kr.example` anywhere is now a bug in its own right.
  */
-describe('placeholder domain discipline', () => {
+describe('domain discipline', () => {
   const root = process.cwd();
   const allowed = new Set(['astro.config.mjs', 'src/config/site.ts']);
 
@@ -46,7 +51,7 @@ describe('placeholder domain discipline', () => {
       .filter((abs) => statSync(abs).isFile());
   }
 
-  it('appears in the shipped source only inside site.ts', () => {
+  function shippedSource(): string[] {
     const files = [
       resolve(root, 'astro.config.mjs'),
       ...listFiles(resolve(root, 'src')),
@@ -55,12 +60,34 @@ describe('placeholder domain discipline', () => {
 
     // 若扫描没读到任何 src 文件，说明查找逻辑坏了，而不是"干净"。
     expect(files.length).toBeGreaterThan(3);
+    return files;
+  }
 
-    const offenders = files
-      .filter((abs) => readFileSync(abs, 'utf8').includes('teachflow-kr.example'))
+  it('appears in the shipped source only inside site.ts', () => {
+    const offenders = shippedSource()
+      .filter((abs) => readFileSync(abs, 'utf8').includes('tryteachflow.com'))
       .map((abs) => abs.slice(root.length + 1))
       .filter((rel) => !allowed.has(rel));
 
     expect(offenders).toEqual([]);
+  });
+
+  it('has no surviving copy of the retired placeholder domain', () => {
+    const offenders = shippedSource()
+      .filter((abs) => readFileSync(abs, 'utf8').includes('teachflow-kr.example'))
+      .map((abs) => abs.slice(root.length + 1));
+
+    // 这里没有 allow-list：占位域名已经没有任何合法出现位置。
+    expect(offenders).toEqual([]);
+  });
+});
+
+/**
+ * 产品名同样只有一个出口。改名时最容易漏的是 `<title>`——它不在正文里，
+ * 肉眼扫页面看不见，而那正是 Stripe 与 Agensi 审核会读的地方。
+ */
+describe('product name discipline', () => {
+  it('is TeachFlow, with no locale suffix', () => {
+    expect(SITE.productName).toBe('TeachFlow');
   });
 });

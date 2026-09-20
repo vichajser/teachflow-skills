@@ -2,16 +2,16 @@
 slug: terms
 lang: en
 title: Terms of Service
-description: The licence you receive with TeachFlow-KR, who owns what, and the law that governs it.
+description: The licence you receive with TeachFlow, who owns what, and the law that governs it.
 updated: '2026-09-19'
 ---
 
-These terms govern your purchase and use of TeachFlow-KR. By buying or using the
+These terms govern your purchase and use of TeachFlow. By buying or using the
 package, you accept them.
 
 ## Who you are contracting with
 
-TeachFlow-KR is published by **CROSSXTOP LTD**, registered in England and Wales,
+TeachFlow is published by **CROSSXTOP LTD**, registered in England and Wales,
 company number **16339041**, registered office Suite 10890, 61 Bridge Street, Kington,
 United Kingdom, HR5 3DJ.
 
@@ -24,14 +24,14 @@ If you bought directly from us, CROSSXTOP LTD is the seller.
 
 ## What the product is
 
-TeachFlow-KR is a set of six skills for agents that read the `SKILL.md` format. Each
+TeachFlow is a set of six skills for agents that read the `SKILL.md` format. Each
 skill is a set of written instructions plus reference documents. You run them on your own
 machine, with your own agent and your own model subscription. We do not supply the agent
 or the model, and we do not host anything that processes your material.
 
 ## Your licence
 
-You receive a perpetual, non-exclusive, non-transferable licence to use TeachFlow-KR:
+You receive a perpetual, non-exclusive, non-transferable licence to use TeachFlow:
 
 - Yourself, as the named purchaser
 - In the classes you teach, including preparing and delivering material for them
@@ -58,7 +58,7 @@ anything further.
 copyright of CROSSXTOP LTD. Buying the package licenses their use; it does not transfer
 ownership.
 
-**Your textbooks belong to their publishers.** TeachFlow-KR reads material you supply.
+**Your textbooks belong to their publishers.** TeachFlow reads material you supply.
 Copyright in that material stays with whoever holds it — normally the textbook publisher.
 This product grants you **no rights whatsoever** in any third-party textbook, workbook or
 teaching material. Whether your use of a given textbook is permitted is between you, your
@@ -86,7 +86,7 @@ statutory rights as a consumer under UK or EU law.
 ## Limitation of liability
 
 To the extent the law allows, our total liability arising out of or in connection with
-TeachFlow-KR is limited to the amount you paid for it. We are not liable for indirect or
+TeachFlow is limited to the amount you paid for it. We are not liable for indirect or
 consequential loss, loss of profit, or loss of data.
 
 ## Changes

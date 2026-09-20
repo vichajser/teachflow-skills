@@ -2,11 +2,11 @@
 slug: delivery
 lang: en
 title: Digital Delivery
-description: How TeachFlow-KR reaches you after purchase, and what you need to run it.
+description: How TeachFlow reaches you after purchase, and what you need to run it.
 updated: '2026-09-19'
 ---
 
-TeachFlow-KR is digital. There is **no physical shipment** and nothing is posted to you.
+TeachFlow is digital. There is **no physical shipment** and nothing is posted to you.
 
 ## What you receive
 

@@ -73,7 +73,7 @@ SITE_DOMAIN=<域名> caddy reload --config /etc/caddy/Caddyfile
 
 ## 4. 域名确定后必改的两处
 
-占位域名 `https://teachflow-kr.example` 只允许出现在**两个**文件里：
+占位域名 `https://tryteachflow.com` 只允许出现在**两个**文件里：
 
 1. `src/config/site.ts` 的 `SITE.domain`
 2. `astro.config.mjs` 的 `site`

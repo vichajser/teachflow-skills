@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
+import { SITE } from '@/config/site';
 import { SECURITY_MATRIX, VERIFIABLE_FACTS } from '@/data/security-matrix';
 import { useTranslations } from '@/i18n/t';
 import type { Locale } from '@/i18n/config';
@@ -12,7 +13,7 @@ const t = useTranslations(lang);
 
 <BaseLayout
   lang={lang}
-  title={`${t('security.title')} — TeachFlow-KR`}
+  title={`${t('security.title')} — ${SITE.productName}`}
   description={t('security.lead')}
   path="/security"
 >

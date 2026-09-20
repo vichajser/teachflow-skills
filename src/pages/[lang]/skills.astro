@@ -1,6 +1,7 @@
 ---
 import { getCollection, render } from 'astro:content';
 import BaseLayout from '@/layouts/BaseLayout.astro';
+import { SITE } from '@/config/site';
 import SkillCard from '@/components/SkillCard.astro';
 import { SKILLS, stageClass } from '@/data/skills';
 import { useTranslations } from '@/i18n/t';
@@ -28,7 +29,7 @@ const sections = await Promise.all(
 
 <BaseLayout
   lang={lang}
-  title={`${t('nav.skills')} — TeachFlow-KR`}
+  title={`${t('nav.skills')} — ${SITE.productName}`}
   description={t('site.tagline')}
   path="/skills"
 >

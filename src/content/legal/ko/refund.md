@@ -2,11 +2,11 @@
 slug: refund
 lang: ko
 title: 환불 및 취소 정책
-description: TeachFlow-KR의 환불 처리 방식과 소비자 청약철회권 안내입니다.
+description: TeachFlow의 환불 처리 방식과 소비자 청약철회권 안내입니다.
 updated: '2026-09-19'
 ---
 
-TeachFlow-KR은 1회 구매 상품입니다. **구독도 자동 갱신도 없으므로** 취소할 것이 없고,
+TeachFlow는 1회 구매 상품입니다. **구독도 자동 갱신도 없으므로** 취소할 것이 없고,
 두 번 청구되는 일도 없습니다.
 
 환불 처리는 어디에서 구매하셨는지에 따라 달라집니다.

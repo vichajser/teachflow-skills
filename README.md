@@ -1,6 +1,6 @@
-# TeachFlow-KR 官网
+# TeachFlow 官网
 
-TeachFlow-KR（面向韩国教师的六技能套装）的营销与合规官网。Astro + Tailwind 纯静态站，
+TeachFlow（面向韩国教师的六技能套装）的营销与合规官网。Astro + Tailwind 纯静态站，
 英语/韩语双语，英语为默认语言。成品 `dist/` 由 Hetzner 上的 Caddy 直接托管，
 **服务器不需要 Node 运行时**。
 

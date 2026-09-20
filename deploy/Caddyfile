@@ -1,4 +1,4 @@
-# TeachFlow-KR —— Hetzner 上的纯静态托管。Caddy v2。
+# TeachFlow —— Hetzner 上的纯静态托管。Caddy v2。
 #
 # 部署与换域名的完整步骤见 deploy/README.md。这里只放配置本身。
 #

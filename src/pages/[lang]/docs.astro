@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
+import { SITE } from '@/config/site';
 import { useTranslations } from '@/i18n/t';
 import type { Locale } from '@/i18n/config';
 
@@ -13,8 +14,8 @@ const t = useTranslations(lang);
  * 这样"不得只在一种语言里写出某条事实"由结构保证，而不是靠人肉对照。
  */
 const LEAD: Record<Locale, string> = {
-  en: 'TeachFlow-KR is 32 plain-text instruction files, not an installed program. Here is how to put the six skills in place, confirm they loaded, and prepare your first unit.',
-  ko: 'TeachFlow-KR는 설치형 프로그램이 아니라 일반 텍스트 설명 파일 32개입니다. 여섯 스킬을 제자리에 넣고, 제대로 불러왔는지 확인하고, 첫 단원을 준비하는 방법을 안내합니다.',
+  en: 'TeachFlow is 32 plain-text instruction files, not an installed program. Here is how to put the six skills in place, confirm they loaded, and prepare your first unit.',
+  ko: 'TeachFlow는 설치형 프로그램이 아니라 일반 텍스트 설명 파일 32개입니다. 여섯 스킬을 제자리에 넣고, 제대로 불러왔는지 확인하고, 첫 단원을 준비하는 방법을 안내합니다.',
 };
 
 /*
@@ -130,7 +131,7 @@ const codeClass = 'font-mono text-accent-glow';
 
 <BaseLayout
   lang={lang}
-  title={`${t('docs.title')} — TeachFlow-KR`}
+  title={`${t('docs.title')} — ${SITE.productName}`}
   description={DESCRIPTION[lang]}
   path="/docs"
 >
