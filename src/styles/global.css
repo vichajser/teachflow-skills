@@ -190,6 +190,33 @@ body[data-quiet]::after {
   font-weight: 600;
 }
 
+/* 内容集合的正文里现在有 h3（skill 的「무엇을 첨부하나 / 어떻게 말하나」两节）。
+   Preflight 把 h* 的字号与字重都归成正文，于是小标题和它下面的段落长得一模一样，
+   读者看不出分节。字号对齐页面自己手写的 h3（text-sm font-semibold text-text-hi），
+   上边距比 `> * + *` 的 1rem 大一档，让标题贴住它统领的那段而不是浮在中间。 */
+.md-body h3 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-hi);
+}
+
+.md-body > h3 + * {
+  margin-top: 0.5rem;
+}
+
+.md-body > * + h3 {
+  margin-top: 1.5rem;
+}
+
+/* 「어떻게 말하나」整节的设计就建立在那句话被一眼认出是「教师说的原话」上。
+   Preflight 清掉 blockquote 的缩进后它退化成普通段落，这一节就没了意义。
+   用左边线而不是引号字符：引号在英韩两种排版里形状不同，边线两边一致。 */
+.md-body blockquote {
+  border-left: 2px solid var(--color-accent);
+  padding-left: 0.875rem;
+  color: var(--color-text-hi);
+}
+
 .md-body strong {
   color: var(--color-text-hi);
   font-weight: 600;
