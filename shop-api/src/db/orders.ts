@@ -57,6 +57,18 @@ export async function hasEntitlement(
   return rows.length > 0;
 }
 
+/** 该订单名下可下载的 skill。退款后返回空列表，下载页因此自然清空。 */
+export async function entitledSkillIds(db: Queryable, orderId: string): Promise<string[]> {
+  const { rows } = await db.query(
+    `SELECT e.skill_id FROM entitlements e
+       JOIN orders o ON o.id = e.order_id
+      WHERE e.order_id = $1 AND o.status = 'paid'
+      ORDER BY e.skill_id`,
+    [orderId],
+  );
+  return rows.map((r) => r.skill_id as string);
+}
+
 export type ApplyResult = 'applied' | 'duplicate' | 'ignored' | 'unknown_order';
 
 export interface ApplyArgs {
