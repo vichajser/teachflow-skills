@@ -1,0 +1,52 @@
+---
+import { stageClass, type SkillMeta } from '@/data/skills';
+import { localizePath, stripLocale, type Locale } from '@/i18n/config';
+
+interface Props {
+  lang: Locale;
+  skill: SkillMeta;
+  title: string;
+  tagline: string;
+  /**
+   * **去掉语言前缀**的路径，如 `/skills`、`/skills#ppt-workflow`。
+   * 与 `BaseLayout` 的 `path`、`SiteHeader` 的 `path` 同一套契约。
+   */
+  href: string;
+  /**
+   * 卡片标题的层级。默认 3——首页在 `<h2>` 小节标题之下用这张卡，h2→h3 是对的。
+   * `/skills` 里这些卡是 `<h1>` 之下的第一层内容、中间没有 h2，必须传 2，
+   * 否则 h1→h3 跳级（WCAG 1.3.1 的常见失败形态，读屏用户会以为漏听了一层）。
+   *
+   * 不用「补一个 `sr-only` 的 h2」那种变体：那是给读屏器造一个视觉用户
+   * 看不到的伪标题，两类用户从此看到不同的文档结构。prop 让两边看到同一个。
+   */
+  headingLevel?: 2 | 3;
+}
+
+const { lang, skill, title, tagline, href, headingLevel = 3 } = Astro.props;
+const Heading = `h${headingLevel}` as 'h2' | 'h3';
+
+// 先剥后加，因此这个调用是幂等的：'/skills' 与 '/en/skills' 都得到 '/en/skills'。
+// 即便上游误传了 `Astro.url.pathname`（带前缀），也不会拼出 '/en/en/skills'。
+const resolvedHref = localizePath(stripLocale(href), lang);
+---
+
+<a
+  href={resolvedHref}
+  data-skill={skill.id}
+  data-stage={skill.stage}
+  class:list={[
+    // `motion-reduce:hover:translate-y-0`：global.css 的兜底只把 transition-duration
+    // 压到 .01ms，位移量分毫未减——实测 reduced-motion 下 dY 仍是 -2px，只是
+    // 从「平滑升起」变成「瞬间跳」，对前庭敏感用户往往更难受。spec §8 要的是
+    // 零位移。逐点的变体影响面精确可见，优于在 media 块里写 `transform:none !important`。
+    'block rounded-xl border bg-surface p-5 transition-transform hover:-translate-y-0.5 motion-reduce:hover:translate-y-0',
+    stageClass(skill.stage),
+  ]}
+>
+  <Heading class="mb-1 text-lg font-semibold text-text-hi">{title}</Heading>
+  <p class="mb-3 text-sm text-text-body">{tagline}</p>
+  <p class="font-mono text-xs text-text-mute">
+    {skill.outputs.length > 0 ? skill.outputs.join('  ') : '—'}
+  </p>
+</a>

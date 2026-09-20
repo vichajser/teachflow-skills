@@ -1,0 +1,95 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import SkillCard from '@/components/SkillCard.astro';
+import { SKILLS, stageClass } from '@/data/skills';
+import { useTranslations } from '@/i18n/t';
+import type { Locale } from '@/i18n/config';
+
+export { localeStaticPaths as getStaticPaths } from '@/i18n/paths';
+
+const lang = Astro.params.lang as Locale;
+const t = useTranslations(lang);
+
+const entries = await getCollection('skills', (e) => e.data.lang === lang);
+const byId = new Map(entries.map((e) => [e.data.id, e]));
+
+// 缺一个内容文件就直接抛错：缺内容必须让构建失败，而不是静默出一个空页。
+// Task 14 的校验脚本与 tests/unit/skills-content.test.ts 从两个方向守同一条线。
+const sections = await Promise.all(
+  SKILLS.map(async (skill) => {
+    const entry = byId.get(skill.id);
+    if (!entry) throw new Error(`Missing ${lang} content for skill ${skill.id}`);
+    const { Content } = await render(entry);
+    return { skill, data: entry.data, Content };
+  }),
+);
+---
+
+<BaseLayout
+  lang={lang}
+  title={`${t('nav.skills')} — TeachFlow-KR`}
+  description={t('site.tagline')}
+  path="/skills"
+>
+  <h1 class="pt-16 pb-10 text-4xl font-semibold text-text-hi">{t('nav.skills')}</h1>
+
+  <ul class="grid gap-4 pb-12 sm:grid-cols-2 lg:grid-cols-3">
+    {sections.map(({ skill, data }) => (
+      <li>
+        {/*
+          headingLevel={2}：这些卡直接跟在 `<h1>` 后面，中间没有 h2，
+          用组件默认的 h3 就是 h1→h3 跳级。下面详述区的 `<h2>` 是同一层级，
+          两处对应，读屏器听到的目录与视觉顺序一致。
+        */}
+        <SkillCard
+          lang={lang}
+          skill={skill}
+          title={data.title}
+          tagline={data.tagline}
+          href={`/skills#${skill.id}`}
+          headingLevel={2}
+        />
+      </li>
+    ))}
+  </ul>
+
+  <div class="space-y-12 pb-16">
+    {sections.map(({ skill, data, Content }) => (
+      <article
+        id={skill.id}
+        data-stage={skill.stage}
+        class:list={['scroll-mt-24 rounded-xl border bg-surface p-6', stageClass(skill.stage)]}
+      >
+        <header class="mb-4">
+          <p class="font-mono text-xs text-text-mute">{skill.id}</p>
+          <h2 class="text-2xl font-semibold text-text-hi">{data.title}</h2>
+          <p class="text-text-body">{data.tagline}</p>
+        </header>
+
+        <div class="md-body max-w-none text-text-body"><Content /></div>
+
+        <div class="mt-6 grid gap-6 md:grid-cols-2">
+          <section>
+            <h3 class="mb-2 text-sm font-semibold text-text-hi">{t('skills.inputs')}</h3>
+            <ul class="list-disc space-y-1 pl-5 text-sm text-text-body">
+              {data.inputs.map((item) => <li>{item}</li>)}
+            </ul>
+          </section>
+          <section>
+            <h3 class="mb-2 text-sm font-semibold text-text-hi">{t('skills.checks')}</h3>
+            <ul class="list-disc space-y-1 pl-5 text-sm text-text-body">
+              {data.checks.map((item) => <li>{item}</li>)}
+            </ul>
+          </section>
+        </div>
+
+        {skill.outputs.length > 0 && (
+          <p class="mt-4 font-mono text-xs text-text-mute">
+            {t('skills.outputs')}: {skill.outputs.join('  ')}
+          </p>
+        )}
+      </article>
+    ))}
+  </div>
+</BaseLayout>

@@ -1,0 +1,104 @@
+# TeachFlow-KR —— Hetzner 上的纯静态托管。Caddy v2。
+#
+# 部署与换域名的完整步骤见 deploy/README.md。这里只放配置本身。
+#
+# 不得添加 basicauth（或任何形式的访问控制）：Stripe 审核员必须能匿名访问，
+# 这是预发布站点最常见的驳回原因（spec §6.1 末行、§9.3 第一条）。公开可访问
+# 是硬性要求，不是可选的硬化项。
+{$SITE_DOMAIN} {
+	root * /srv/teachflow/dist
+	encode zstd gzip
+
+	# 根路径进默认语言。302 而非 301——将来若加语言协商，301 会被浏览器长期缓存。
+	# 目标**不带**尾斜杠：全站 canonical 是无尾斜杠形态（`${SITE.domain}/en`），
+	# 跳到 `/en` 让浏览器第一跳就落在 canonical 上（R-13）。
+	redir / /en 302
+
+	# 未知语言前缀回默认语言（spec §8）。下面这份允许清单只用于**排除**真实存在的
+	# 顶层路径（语言目录、构建产物目录、静态文件），其余一律回 /en。
+	#
+	# 为什么不用 brief 的 `not path /en/* /ko/* /fonts/* …`：Caddy 的路径匹配里斜杠
+	# 是有意义的，`/en/*` **匹配不到裸 `/en`**。于是 canonical 形态的 `/en` 会落进
+	# 未知前缀规则被 302 成 `/en`（自我重定向环）或 `/en/`，正是 R-13 要消除的那一跳。
+	# 所以 `/en`、`/ko` 必须各自显式列出。
+	#
+	# 也不要改成 `path_regexp` 的语言前缀匹配：Go 的 RE2 引擎**不支持负向前瞻
+	# `(?!…)`**，而 Caddyfile 又会把正则里的 `{2}` 当占位符解析（需写成 `\{2\}`）。
+	# 这两个坑都无法在本地验证（沙箱无 caddy 二进制）。纯 `path` 前缀匹配只用最
+	# 基本的 matcher，没有正则引擎、没有转义、没有前瞻。
+	#
+	# 新增顶层目录（例如将来的 `/blog/`）时，必须在下列清单里补一条，否则该目录
+	# 下的一切都会被 302 到 /en。
+	#
+	# `/samples/*` 目前是**预留条目**：`dist/` 里还没有 `samples/` 目录，全站也没有
+	# 指向它的链接（实测）。保留是因为成本为零——将来往 `public/samples/` 放静态
+	# 样例文件时，这一条已就位，不必再想起“要把新目录加进这份清单”。若你正在清理
+	# 死配置，删掉它同样安全，但记得那时要同步检查上面的注释还在不在。
+	@unknown_locale not path / /en /en/* /ko /ko/* /_astro/* /fonts/* /samples/* /favicon.svg /robots.txt /sitemap* /404.html
+	redir @unknown_locale /en 302
+
+	@immutable path /_astro/* /fonts/*
+	header @immutable Cache-Control "public, max-age=31536000, immutable"
+
+	# HTML 的缓存头必须用**反向排除**来写，不能用 `path *.html /`。
+	# Caddy 的默认指令顺序把 `header` 排在 `rewrite`/`try_files` **之前**，所以这个
+	# matcher 看到的路径是客户端的请求路径（`/en`、`/en/pricing`），**不是**改写后的
+	# `/en/index.html`。写成 `path *.html /` 的后果是：没有任何真实页面拿到
+	# Cache-Control（只有字面以 .html 结尾的 URL 才命中，而站点没有这种 URL）。
+	# 反向排除对“除了静态资源以外的一切”生效，改写前后都成立。
+	@html not path /_astro/* /fonts/* /favicon.svg /robots.txt /sitemap*
+	header @html Cache-Control "public, max-age=0, must-revalidate"
+
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
+	}
+
+	# 候选顺序：`index.html` 优先于裸 `{path}`。**这是为规避 file_server 的目录
+	# 规范化跳而做的排序，真实行为未经运行时验证**（沙箱无 caddy 二进制）。
+	#
+	# 机制：`file_server` 默认会对“请求路径映射到目录”的情况发规范化重定向
+	# （**308 Permanent Redirect**，不是 301），把 `/en` 跳到 `/en/`——那样每个
+	# 无尾斜杠 canonical 都要多跳一次，正是 R-13 要消除的。文档说“若内部改写修改了
+	# 路径的最后一段（文件名），则不再发出规范化重定向”；但 `file` matcher 的候选
+	# 若是裸 `{path}`，而 `/en` 又恰好是一个**真实存在的目录**，它会在第一个候选就
+	# 命中，根本走不到“改写文件名”那一步，规范化跳照发不误。把 `{path}/index.html`
+	# 提到最前，强制走“改写文件名”的路径。
+	#
+	# 静态资源不受影响：`/favicon.svg/index.html`、`/robots.txt/index.html` 都不存在，
+	# 落到第二个候选 `{path}` 命中。
+	#
+	# 上线后**必须**用 `curl -sI https://<域名>/en` 复核：应为 `200`，**不是 `308`**。
+	# 见 deploy/README.md §6。
+	try_files {path}/index.html {path} {path}.html
+
+	handle_errors {
+		# 各语言的未命中路由进对应的本地化 404，保持语言上下文（spec §8 末行）。
+		# 其余（含根级语言中立兜底）走 `/404.html`。三个 `rewrite` 是互斥组：
+		# 带 matcher 的排在前面，只有第一个命中的会执行；最后一条无 matcher 用
+		# `*` 兜底——**不能**写成 `rewrite /404.html`，那会把 `/404.html` 当成
+		# matcher 而漏掉目标参数，Caddy 直接报错。
+		@en path /en/*
+		rewrite @en /en/404/index.html
+		@ko path /ko/*
+		rewrite @ko /ko/404/index.html
+		rewrite * /404.html
+
+		# `status {err.status_code}` 不是可有可无的：`rewrite` 把路径改写到错误页后，
+		# 裸 `file_server` 会把这次投递当成**成功**，返回 **200**（软 404）。`file_server`
+		# 的 `status` 子指令正是为“以正确的状态码投递自定义错误页”而存在的——用
+		# `{err.status_code}` 把原始错误码（这里是 404）带回来（R-50 后半）。
+		#
+		# 早先这里写的是“`file_server` 在 `handle_errors` 内会自动保留错误状态码”，
+		# 那句话是错的，别再改回去。
+		#
+		# 上线后**必须**用 `curl -sI https://<域名>/en/does-not-exist` 复核：应为
+		# `404`，**不是 `200`**，且响应体是对应语言的 404 页。见 deploy/README.md §6。
+		file_server {
+			status {err.status_code}
+		}
+	}
+
+	file_server
+}

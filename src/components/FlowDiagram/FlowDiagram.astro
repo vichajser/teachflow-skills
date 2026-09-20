@@ -1,0 +1,350 @@
+---
+import {
+  VIEWBOX,
+  FLOW_NODES,
+  FLOW_EDGES,
+  INPUT_NODE,
+  CAPSULE,
+  edgePath,
+  nodeColor,
+  sampleHref,
+} from './nodes';
+import { useTranslations } from '@/i18n/t';
+import type { TranslationKey } from '@/i18n/t';
+import type { Locale } from '@/i18n/config';
+
+interface Props {
+  lang: Locale;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+const label = (id: string) => t(`flow.node.${id}` as TranslationKey);
+
+/**
+ * `t()` 的返回类型是 string，但运行时对字典里不存在的键会给出 undefined
+ * （`DICTIONARIES[locale][key] ?? en[key]`）。裁决 2 要求空行连同标题一起不渲染，
+ * 这里把"取不到"与"取到空串"归并成同一种空，模板便只需判一次 length。
+ */
+const textOf = (key: TranslationKey): string => t(key) ?? '';
+
+// 样例链接规则住在 nodes.ts（`sampleHref`），这样它的"就绪时给什么链接、
+// 未就绪时不给"两条分支都能被直接测到——五个样例今天全是未就绪状态，
+// 光看构建产物看不出链接渲染被删掉。
+const sampleHrefFor = (id: (typeof FLOW_NODES)[number]['id']) => sampleHref(id, lang);
+
+// 三个阶段的文字版分组。SVG 只画得出"谁连着谁"，读屏器读不出来；
+// 这份分组把同一件事说成话，并且用上 flow.stage1/2/3 这三个键。
+const STAGES = ([1, 2, 3] as const).map((stage) => ({
+  stage,
+  title: t(`flow.stage${stage}` as TranslationKey),
+  nodes: FLOW_NODES.filter((n) => n.stage === stage),
+}));
+---
+
+{/*
+  `relative` 是侧卡的定位基准（裁决：外层容器需加 relative）。侧卡在 SVG 之外、
+  图容器之内，因为它们要在任何断点都能被 JS 开关，而 SVG 在 md 以下是
+  `display:none`——把卡塞进 SVG 会让移动端连卡带图一起消失。
+*/}
+<figure class="relative my-16" data-flow-diagram>
+  <figcaption class="mb-6 text-2xl font-semibold text-text-hi">
+    {t('flow.title')}
+  </figcaption>
+
+  {/*
+    SVG 对读屏器是装饰：<text> 之间的连接关系读不出来，
+    role="img" + 单个 aria-label 也只能念出标题。结构由下面那份
+    列表承担，它在任何断点都留在无障碍树里。
+  */}
+  <svg
+    viewBox={`0 0 ${VIEWBOX.w} ${VIEWBOX.h}`}
+    aria-hidden="true"
+    focusable="false"
+    class="hidden w-full md:block"
+  >
+    <g data-flow-edges fill="none" stroke-width="2" stroke-linecap="round">
+      {FLOW_EDGES.map((edge) => (
+        <path
+          d={edgePath(edge)}
+          data-edge={`${edge.from}->${edge.to}`}
+          stroke={edge.to === 'report-workflow' ? nodeColor(3) : nodeColor(2)}
+          opacity="0.55"
+        />
+      ))}
+    </g>
+
+    <g data-flow-input>
+      <rect
+        x={INPUT_NODE.x}
+        y={INPUT_NODE.y}
+        width={INPUT_NODE.w}
+        height={INPUT_NODE.h}
+        rx="10"
+        fill="#0E1626"
+        stroke="#1F2C4A"
+      />
+      <text
+        x={INPUT_NODE.x + INPUT_NODE.w / 2}
+        y={INPUT_NODE.y + INPUT_NODE.h / 2 + 5}
+        text-anchor="middle"
+        fill="#C3CFE4"
+        font-size="14"
+      >{t('flow.input')}</text>
+    </g>
+
+    {FLOW_NODES.map((node) => (
+      <g data-flow-node={node.id} data-stage={node.stage}>
+        <rect
+          x={node.x}
+          y={node.y}
+          width={node.w}
+          height={node.h}
+          rx="12"
+          fill="#0E1626"
+          stroke={nodeColor(node.stage)}
+          stroke-width="1.5"
+        />
+        <text
+          x={node.x + node.w / 2}
+          y={node.y + 34}
+          text-anchor="middle"
+          fill="#F2F6FF"
+          font-size="16"
+          font-weight="600"
+        >{label(node.id)}</text>
+        {node.outputs.length > 0 && (
+          <text
+            x={node.x + node.w / 2}
+            y={node.y + 60}
+            text-anchor="middle"
+            fill="#7C8AA6"
+            font-size="12"
+            font-family="ui-monospace, monospace"
+          >{node.outputs.join('  ')}</text>
+        )}
+      </g>
+    ))}
+
+    {/*
+      约束胶囊（spec §4.2）。初始 opacity="0"：它表达的是"约束沿流程向下传递"
+      这一**过程**，静态帧没有意义。所以无 JS 时它静默隐藏，而不是像节点/连线
+      那样渲染终态——终态的画法是"约束已经流完了"，那是错的，会让人以为
+      图上本来就有个飘着的胶囊。这是它与其余元素唯一的处理差别。
+
+      宽高取自 `CAPSULE`（nodes.ts），`runConstraintPulse()` 用同一个常量的
+      半宽做居中偏移——两处不再各自硬编码 132 / 66，改尺寸只需改一个地方。
+    */}
+    <g data-flow-capsule opacity="0">
+      <rect
+        rx="12"
+        width={CAPSULE.w}
+        height={CAPSULE.h}
+        fill="var(--color-raised)"
+        stroke="var(--color-accent-glow)"
+        stroke-width="1"
+      />
+      <text
+        x={CAPSULE.w / 2}
+        y="17"
+        text-anchor="middle"
+        font-size="12"
+        fill="var(--color-accent-glow)"
+        data-flow-capsule-label
+      >{t('flow.constraint.core')}</text>
+    </g>
+  </svg>
+
+  {/*
+    悬停 / 聚焦侧卡（spec §4.3）。每节点一张，默认 `hidden` —— 无 JS 时它们
+    全部不可见，因为"悬停看详情"这个行为本身就没发生。
+
+    放在 SVG 之外、图容器之内：SVG 在 md 以下是 `display:none`，卡若放进去会
+    连图带卡一起消失，而文字版列表才是窄屏的唯一呈现。`pointer-events-none`
+    的外壳保证不做交互时侧卡不拦截图上任何点击；卡自身恢复 `pointer-events-auto`。
+  */}
+  <div class="pointer-events-none absolute inset-y-0 right-0 hidden w-64 md:block">
+    {FLOW_NODES.map((node) => {
+      const needs = textOf(node.needsKey);
+      const makes = textOf(node.makesKey);
+      // 变量名不带 `sampleHref`：那样会遮蔽本文件顶部 import 进来的同名函数
+      // （`nodes.ts` 导出的规则），两个 `sampleHref` 类型不同，读起来极易混淆。
+      const href = sampleHrefFor(node.id);
+      return (
+        <article
+          data-flow-card={node.id}
+          hidden
+          class="pointer-events-auto rounded-xl border border-border bg-surface p-4 text-sm"
+        >
+          <h3 class="font-semibold text-text-hi">{label(node.id)}</h3>
+          {/*
+            裁决 2：内容为空时连同它的标题一起不渲染。今天六个节点两条都有值，
+            这是对未来加节点的防御——漏配一个键就会露出一行没有下文的标题。
+
+            值那一行的 `data-flow-card-needs` / `-makes` 是给构建测试的锚点：
+            有了它，断言可以**逐卡逐语言**把这一行与它自己那个节点的字典值逐字
+            比较；只数 `<p>` 的个数抓不住"六张卡全渲染同一个节点的内容"或
+            "韩文卡渲染英文"（B 组三条变异就是这么存活的）。
+
+            空值守卫本身只能靠源码断言守：六个节点两条都有值，产物里根本不出现
+            空行分支——删掉守卫与留着守卫构建出的 HTML 逐字节相同（与 N2 同形）。
+          */}
+          {needs.length > 0 && (
+            <>
+              <p class="mt-2 text-text-mute">{t('flow.card.needs')}</p>
+              <p class="font-mono text-xs text-text-body" data-flow-card-needs="">{needs}</p>
+            </>
+          )}
+          {makes.length > 0 && (
+            <>
+              <p class="mt-2 text-text-mute">{t('flow.card.makes')}</p>
+              <p class="font-mono text-xs text-text-body" data-flow-card-makes="">{makes}</p>
+            </>
+          )}
+          {href && (
+            <a href={href} class="mt-3 inline-block text-accent hover:underline">
+              {t('flow.card.sample')}
+            </a>
+          )}
+        </article>
+      );
+    })}
+  </div>
+
+  {/*
+    md 以下这是唯一的呈现（SVG 缩到手机宽度就看不清了）；md 以上它对读屏器
+    仍然存在，只是视觉上让位给 SVG —— 用 sr-only 而不是 hidden，因为
+    `display:none` 会把它从无障碍树里一并摘掉，读屏用户在桌面端就什么都听不到了。
+  */}
+  <ol data-flow-list class="mt-6 space-y-6 md:sr-only">
+    {STAGES.map(({ stage, title, nodes }) => (
+      <li>
+        <p class="text-sm font-semibold tracking-wide text-text-mute uppercase">
+          {title}
+        </p>
+        <ul class="mt-2 space-y-2">
+          {nodes.map((node) => {
+            const needs = textOf(node.needsKey);
+            const makes = textOf(node.makesKey);
+            return (
+              <li
+                class="rounded-lg border-l-2 bg-surface px-4 py-3"
+                style={`border-color: ${nodeColor(stage)}`}
+                data-flow-list-item={node.id}
+              >
+                <p class="text-text-hi">{label(node.id)}</p>
+                {/*
+                  这份列表是**无障碍树的唯一信息源**（SVG 整体 aria-hidden）；
+                  Task 13 修复轮 1 之前它只有节点名与产物，侧卡多出来的
+                  needs / makes 只有鼠标用户拿得到。补上这两行后，键盘与读屏
+                  用户静态就拿到全部信息，不依赖任何交互。用的是与侧卡同一对
+                  键、同一对标签，空值守卫同样在（裁决 2）。
+                */}
+                {needs.length > 0 && (
+                  <>
+                    <p class="mt-1 text-text-mute">{t('flow.card.needs')}</p>
+                    <p class="font-mono text-xs text-text-body" data-flow-list-needs="">
+                      {needs}
+                    </p>
+                  </>
+                )}
+                {makes.length > 0 && (
+                  <>
+                    <p class="mt-1 text-text-mute">{t('flow.card.makes')}</p>
+                    <p class="font-mono text-xs text-text-body" data-flow-list-makes="">
+                      {makes}
+                    </p>
+                  </>
+                )}
+                {node.outputs.length > 0 && (
+                  <p class="font-mono text-xs text-text-mute">
+                    {node.outputs.join('  ')}
+                  </p>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      </li>
+    ))}
+  </ol>
+
+  <p class="mt-6 text-sm text-text-mute">{t('flow.constraint')}</p>
+
+  {/*
+    这三个类由 flow-diagram.ts 在运行时 add/remove，静态标记里一个都没有。
+    Astro 会把它们编译成带作用域属性的选择器，而 `<g>`/`<path>` 本身在模板里
+    就带着该属性，所以运行时挂上的类照样命中。`transition` 与动效预算的
+    其余四项互不冲突：这一项是 spec §4.2 明列的"约束胶囊"。
+  */}
+  <style>
+    /*
+      SVG 元素上的 opacity 走 CSS 而非属性，才能过渡。连线本来就有
+      `opacity="0.55"` 属性，CSS 的 opacity 会覆盖它——这不是意外：悬停时
+      非相关元素一律降到 0.35，与它原先的 0.55 之争没有意义。
+    */
+    [data-flow-node],
+    [data-edge] {
+      transition:
+        opacity 200ms ease-out,
+        filter 200ms ease-out;
+    }
+
+    .is-dimmed {
+      opacity: 0.35;
+    }
+
+    /*
+      辉光只加在描边上（spec §5.1：霓虹色不进正文），所以是 drop-shadow
+      而不是给 <text> 上色。filter 在 SVG <g> 上按整棵子树统一绘制。
+    */
+    .is-focused,
+    .is-pulsing {
+      filter: drop-shadow(0 0 12px var(--color-accent-glow));
+    }
+
+    /*
+      spec §4.2 要的是"沿连线向下**滑动**的发光胶囊"，而 `runConstraintPulse`
+      用 `setAttribute('transform', …)` 更新位置——属性改动本身是瞬时的。这条
+      transition 让它在支持把 transform 当作可过渡 CSS 属性的浏览器上滑过去。
+
+      若某个浏览器不把该属性纳入过渡，退化成"每站跳一下"——仍能读出约束在
+      向下传递，不是坏掉。写在这里而不是 `style.transform`：brief 逐字给的是
+      `setAttribute`，且 SVG 用户单位与 CSS px 在这个 `<g>` 上恰好同刻度。
+
+      减少动态效果时整段不执行（`init()` 提前返回），无需额外取消。
+    */
+    [data-flow-capsule] {
+      transition:
+        transform 500ms ease-out,
+        opacity 200ms ease-out;
+    }
+
+    /*
+      spec §8 要求 reduced-motion 下无位移动效，此处**不需要**自己的
+      `@media (prefers-reduced-motion: reduce)` 块。两条理由：
+
+      1. 这两条过渡只动 opacity 与 filter，本来就没有位移；reduced-motion 下
+         真正会动的胶囊脉冲由 `init()` 提前返回，整段不执行。
+      2. global.css 的全局兜底已把 `transition-duration` 压到 .01ms，
+         悬停高亮因此是瞬时的，没有需要额外取消的过渡。
+
+      （这里原先还挂着第三条「禁止写自己的 media 块」的**硬约束**，理由是
+      `motion-budget.test.mjs` 当时按"**第一块** prefers-reduced-motion"定位
+      HeroFan 的规则，本组件多写一块就会把它挤到第二位、让断言去校验错块。
+      那是测试的脆弱性倒过来污染源码。该测试已改为按 `.hero-fan__leaf`
+      选择器定位，约束随之失效，故删去——将来若本组件真的需要一块自己的
+      media 查询，照写即可，上面两条只是说明今天不需要。）
+    */
+  </style>
+
+  {/*
+    渐进增强：脚本只在图进入视口时把 SVG 从静态终态"藏起再放出"。
+    关 JS、prefers-reduced-motion 或 md 以下（SVG 未渲染）时，HTML 本身就是终态。
+    目前只有首页引用本组件，所以这段 JS 也只随首页输出。
+  */}
+  <script>
+    import './flow-diagram.ts';
+  </script>
+</figure>

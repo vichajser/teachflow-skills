@@ -1,0 +1,37 @@
+---
+import { SITE } from '@/config/site';
+import { useTranslations } from '@/i18n/t';
+import type { Locale } from '@/i18n/config';
+
+interface Props {
+  lang: Locale;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+---
+
+{/*
+  全站价格的唯一渲染出口：值只来自 SITE.price.display，含 ISO 币种代码（不是
+  裸币种符号）。Stripe 要求购买币种无歧义，只写符号会被视为币种不明。
+
+  注意：Astro 会把 HTML 注释原样带进产物，所以这里连"错误写法长什么样"都不能
+  举例——tests/build/pricing.test.mjs 的最后一例会扫描全部 HTML 抓那种带符号的
+  写法，注释里出现示例会让构建自己把自己判失败。要举例请写在测试或文档里。
+*/}
+{/*
+  `edge-gradient` replaces `border-border` outright — the class declares its own
+  `border: 1px solid transparent` and a `border-*` colour utility would paint
+  over the gradient. `bg-surface` sets only `background-color`
+  `background-clip: padding-box` (in global.css) is what keeps it from covering
+  the `::after`. No `overflow: hidden` may be added to the parent.
+
+  /pricing is a `data-quiet` page: `body[data-quiet] * { box-shadow: none }`
+  kills glow but not the gradient border, so the quiet constraint still holds.
+*/}
+<div class="edge-gradient rounded-xl bg-surface p-6">
+  <p class="text-4xl font-semibold tracking-tight text-text-hi">
+    {SITE.price.display}
+  </p>
+  <p class="mt-2 text-sm text-text-body">{t('pricing.oneTime')}</p>
+</div>

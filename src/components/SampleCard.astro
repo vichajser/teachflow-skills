@@ -1,0 +1,87 @@
+---
+import { SKILLS, stageClass } from '@/data/skills';
+import { isReady, type Sample } from '@/data/samples';
+import { useTranslations } from '@/i18n/t';
+import type { Locale } from '@/i18n/config';
+
+interface Props {
+  lang: Locale;
+  sample: Sample;
+  /**
+   * 卡片标题的层级。默认 3；`/samples` 传 2——那里这些卡是 `<h1>` 之下的
+   * 第一层内容、中间没有 h2，沿用 h3 就是 h1→h3 跳级。与 `SkillCard` 同一套
+   * 理由与同一个默认值，两张卡保持一致以免将来各自漂移。
+   */
+  headingLevel?: 2 | 3;
+}
+
+const { lang, sample, headingLevel = 3 } = Astro.props;
+const Heading = `h${headingLevel}` as 'h2' | 'h3';
+const t = useTranslations(lang);
+
+const skill = SKILLS.find((s) => s.id === sample.skillId);
+if (!skill) throw new Error(`Sample ${sample.id} references unknown skill`);
+
+const ready = isReady(sample);
+---
+
+<article
+  class:list={[
+    // 未就绪用 `border-border` 与就绪卡（阶段色描边+辉光）区分，**不用元素级
+    // `opacity`**：`opacity` 作用在 `<article>` 上会把**整棵子树**（含卡片自己的
+    // 背景）按 0.7 合成到 body 的 `--color-void` 上。浏览器截图实测合成结果：
+    // 卡片背景 #0E1626 → #0C1321，text-text-mute #7C8AA6 → #59647B，
+    // 这一对是 **3.13:1**，低于 AA 4.5:1——而 pending 那行字是唯一说明卡片
+    // 状态的文字。去掉 opacity 后 text-mute 落在未合成的 surface 上是 5.20:1，
+    // skill id 那行一并达标。
+    //
+    // （别把 0.7 只套在文字上、背景仍取原始 #0E1626：那会算出 3.18，但浏览器
+    // 不会那样画——group opacity 把背景一起淡化了。3.13 是量出来的。）
+    'rounded-xl border bg-surface p-5',
+    // 质感 2 / spec §4.5 第 2 项：hover 升起。单个 `transition`（不是
+    // `transition-transform transition-shadow`）——那两条工具类都写
+    // `transition-property`，后者覆盖前者，位移会变成硬跳。Tailwind 4 的
+    // `transition` 默认属性列表本就含 transform 与 box-shadow。
+    // `motion-reduce:hover:translate-y-0` 只取消**位移**，辉光保留：spec §8 要的是
+    // 零位移，不是零反馈。兜底块（global.css:153-162）压时长，这个变体压位移，
+    // 两者互补——单靠兜底，reduced-motion 下这张卡仍然瞬间跳 4px。
+    'transition duration-200 hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(46,125,255,0.18)] motion-reduce:hover:translate-y-0',
+    ready ? stageClass(skill.stage) : 'border-border',
+  ]}
+>
+  {/*
+    spec §4.5 第 2 项写的是"点击开灯箱"。本实现有意改为**缩略图直接链接原图**：
+    灯箱要 JS，而零 JS 是 /samples 的硬约束（tests/build/no-js.test.mjs 枚举
+    dist 下全部 index.html 直接判失败）。点开原图在新标签页是同等有效的"看大图"
+    路径，对键盘与屏幕阅读器也更友好。这是一处有意偏离，记在此以免后来者误判为漏做。
+  */}
+  {sample.previewImage && (
+    <a href={sample.previewImage} target="_blank" rel="noopener">
+      <img
+        src={sample.previewImage}
+        alt={sample.title[lang]}
+        loading="lazy"
+        class="mb-4 w-full rounded-lg border border-border"
+      />
+    </a>
+  )}
+
+  <Heading class="text-lg font-semibold text-text-hi">{sample.title[lang]}</Heading>
+  <p class="mt-1 font-mono text-xs text-text-mute">{sample.skillId}</p>
+
+  {sample.durationSeconds !== null && (
+    <p class="mt-2 text-sm text-text-body">
+      {t('samples.generatedIn')} {sample.durationSeconds} {t('samples.seconds')}
+    </p>
+  )}
+
+  {ready ? (
+    <a
+      href={sample.file!}
+      download
+      class="mt-4 inline-block rounded-lg border border-accent px-4 py-2 text-sm text-text-hi hover:bg-raised"
+    >{t('samples.download')}</a>
+  ) : (
+    <p class="mt-4 text-sm text-text-mute">{t('samples.pending')}</p>
+  )}
+</article>

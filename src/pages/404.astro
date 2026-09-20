@@ -1,0 +1,30 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { localizePath, type Locale } from '@/i18n/config';
+import { useTranslations } from '@/i18n/t';
+
+// 用于未知语言前缀（spec §8：重定向至 /en）。这里不导出 getStaticPaths——
+// 它是一条固定英文的兜底页，不带语言参数。
+//
+// 这是根错误文档，也是 dist/404.html 的唯一来源：主机层面对没有语言前缀的
+// 未知路径回退到它（Task 14 的 Caddy `handle_errors` 负责接线）。
+const lang: Locale = 'en';
+const t = useTranslations(lang);
+---
+
+<BaseLayout
+  lang={lang}
+  title={`${t('notFound.title')} — TeachFlow-KR`}
+  description={t('notFound.body')}
+  path="/404"
+  alternates={false}
+>
+  <section class="py-32">
+    <h1 class="text-4xl font-semibold text-text-hi">{t('notFound.title')}</h1>
+    <p class="mt-3 text-text-body">{t('notFound.body')}</p>
+    <a
+      href={localizePath('/', lang)}
+      class="mt-6 inline-block rounded-lg bg-accent px-5 py-3 font-medium text-void"
+    >{t('notFound.home')}</a>
+  </section>
+</BaseLayout>

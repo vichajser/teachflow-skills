@@ -1,0 +1,35 @@
+---
+import { LOCALES, localizePath, type Locale } from '@/i18n/config';
+import { useTranslations } from '@/i18n/t';
+
+interface Props {
+  lang: Locale;
+  /** 去掉语言前缀的当前路径 */
+  path: string;
+}
+
+// path 由调用方保证已剥前缀（见 BaseLayout 契约）。若改为接收
+// Astro.url.pathname，必须写成 localizePath(stripLocale(pathname), locale)，
+// 否则切到韩文会得到 /ko/en/... 。
+const { lang, path } = Astro.props;
+const t = useTranslations(lang);
+---
+
+<nav aria-label={t('lang.switch')} class="flex items-center gap-2 text-sm">
+  {LOCALES.map((locale) => (
+    <a
+      href={localizePath(path, locale)}
+      hreflang={locale}
+      lang={locale}
+      aria-current={locale === lang ? 'true' : undefined}
+      class:list={[
+        'px-2 py-1 rounded transition-colors',
+        locale === lang
+          ? 'text-text-hi bg-raised'
+          : 'text-text-mute hover:text-text-body',
+      ]}
+    >
+      {locale === 'en' ? t('lang.en') : t('lang.ko')}
+    </a>
+  ))}
+</nav>

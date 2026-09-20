@@ -1,0 +1,119 @@
+---
+import { SKILLS } from '@/data/skills';
+import type { Locale } from '@/i18n/config';
+
+interface Props {
+  lang: Locale;
+}
+
+const { lang } = Astro.props;
+
+/*
+ * 六个产物标签沿半径 88px 的圆弧均分 `ANGLE_SPAN` 度。
+ *
+ * 100 → 190：原值下**五对相邻叶片全部双轴重叠**。这与视口宽度无关——
+ * 半径 88px 与角距都是常量，不含任何断点，320/360/390/768/1280 下逐像素相同。
+ * 所以这不是响应式问题，按断点修是错误方向。
+ *
+ * 算术（字号 0.7rem = 11.2px，等宽字 advance 0.6em = 6.72px/字符，
+ * 左右 padding 各 0.6rem = 9.6px，边框各 1px，故 n 字符标签宽 6.72n + 21.2）：
+ *   最中间那对是 `.mp3`(4 字 → 48.1px) 与 `.xlsx`(5 字 → 54.8px)，
+ *   它们分居 0° 两侧、**纵向坐标完全相同**，因此只能靠横向拉开：
+ *   需要圆心距 ≥ (48.1 + 54.8) / 2 = 51.4px。
+ *   相邻角距 = SPAN/5，中间那对的横向距离 = 2 × 88 × sin(SPAN/10)。
+ *     SPAN=100 → 2×88×sin10° = 30.6px，短 20.8px，重叠。
+ *     SPAN=170 → 51.46px，比 51.4 只多 0.01px —— 数学上"不重叠"，肉眼是贴着的。
+ *     SPAN=190 → 57.3px，净空 5.9px。取这个。
+ *   其余四对靠纵向拉开：SPAN=190 下最紧的一对纵距 35.3px，叶片高约 24px，
+ *   净空 11.3px。非相邻对全部远离。
+ *
+ * 为什么不动半径（另一条同样可行的路）：88 出现在三处（下面的 keyframes `to`、
+ * reduced-motion 终态，以及本注释所述的几何），三处必须逐字同改，
+ * 否则 motion-budget.test.mjs 的 M3 会红——那是它**正确工作**的表现。
+ * 更硬的约束是版面：这个扇形在桌面端住在 `md:grid-cols-[…_280px]` 的 280px
+ * 栏里，半栏宽 140px。半径每加 1px，最外侧叶片的外缘就外推约 1px，
+ * 半径 115 左右就顶到栏边。半径 88 + 宽角度把最外侧（±95°，标签 `.png`）
+ * 的外缘留在 88·sin95° + 24.0 = 111.7px，余量 28px。
+ * 顶端也没变差：最高点从原来的 -98.7px 收到 -95.2px（容器半高 90px，
+ * `.hero-fan` 没有 overflow:hidden，这点外溢原本就存在，不是本次引入的）。
+ *
+ * 不新增动效也不新增断点：全站动效上限是「关系图之外恰好三处」，这里只改了
+ * 一个几何常量，动效数量不变。
+ */
+const ANGLE_SPAN = 190;
+const fanned = SKILLS.map((skill, i) => ({
+  skill,
+  angle: -ANGLE_SPAN / 2 + (ANGLE_SPAN / (SKILLS.length - 1)) * i,
+  delay: 200 + i * 90,
+}));
+---
+
+{/*
+  Spec §4.5 item 1: the textbook icon fans out into six artifact thumbnails,
+  plays once and stops. Pure CSS `animation` + `animation-fill-mode: forwards`,
+  no JS — so it does not touch the home page JS budget, and the whole site's
+  four-animation ceiling stays intact.
+
+  `aria-hidden="true"`: these file extensions already have a semantic rendering
+  in the /skills section below; reading them out again adds nothing.
+*/}
+<div class="hero-fan" aria-hidden="true" lang={lang}>
+  <span class="hero-fan__source">PDF</span>
+  {fanned.map(({ skill, angle, delay }) => (
+    <span
+      class="hero-fan__leaf font-mono"
+      style={`--angle: ${angle}deg; --delay: ${delay}ms;`}
+    >{skill.outputs[0] ?? '.md'}</span>
+  ))}
+</div>
+
+<style>
+  .hero-fan {
+    position: relative;
+    height: 180px;
+    display: grid;
+    place-items: center;
+  }
+
+  .hero-fan__source {
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    color: var(--color-text-mute);
+    border: 1px solid var(--color-border);
+    border-radius: 0.5rem;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .hero-fan__leaf {
+    position: absolute;
+    font-size: 0.7rem;
+    color: var(--color-text-body);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    padding: 0.25rem 0.6rem;
+    opacity: 0;
+    transform: rotate(var(--angle)) translateY(0) rotate(calc(-1 * var(--angle)));
+    animation: fan-out 600ms ease-out var(--delay) forwards;
+  }
+
+  @keyframes fan-out {
+    to {
+      opacity: 1;
+      transform: rotate(var(--angle)) translateY(-88px) rotate(calc(-1 * var(--angle)));
+    }
+  }
+
+  /*
+    The global reduced-motion backstop in global.css collapses every animation
+    to 0.01ms; this component rule is the real "don't move" — no animation at
+    all, straight to the end state at full opacity.
+  */
+  @media (prefers-reduced-motion: reduce) {
+    .hero-fan__leaf {
+      animation: none;
+      opacity: 1;
+      transform: rotate(var(--angle)) translateY(-88px) rotate(calc(-1 * var(--angle)));
+    }
+  }
+</style>
