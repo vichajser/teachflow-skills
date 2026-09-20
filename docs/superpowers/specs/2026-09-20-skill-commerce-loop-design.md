@@ -42,7 +42,7 @@ tryteachflow.com  ──  Caddy
                        ├─ /api/*           → localhost:8787
                        └─ /download*       → localhost:8787   （服务端渲染）
 
-                               shop-api (Node 20, Fastify)
+                               shop-api (Node 20, node:http)
                                      │
                                PostgreSQL 16   ← 只监听 127.0.0.1
                                      │
@@ -66,16 +66,20 @@ tryteachflow.com  ──  Caddy
 
 ### 1.4 技术选型
 
+**原则：外部依赖收敛到两个，其余用 Node 内建。**
+
 | 关注点 | 选择 | 理由 |
 |---|---|---|
-| HTTP | Fastify 5 | webhook 验签需要原始 body，Fastify 的 `addContentTypeParser` 处理这件事最干净 |
-| PG 客户端 | `pg` (Pool) | pg-boss 依赖它，共用一个 Pool 避免两套连接 |
-| 任务队列 | pg-boss 10 | 复用同一个 Postgres，无需 Redis；自带 cron 调度 |
-| 对象存储 | `@aws-sdk/client-s3` | R2 是 S3 兼容 |
-| 邮件 | `resend` | 官方 SDK |
-| JWT | `jose` | 无原生依赖，HS256 够用 |
-| zip 读写 | `fflate` | 零依赖、同步、纯 JS；230 KB 量级下内存操作是毫秒级 |
-| 测试 | vitest | 与站点仓库一致 |
+| PG 客户端 | `pg` (Pool) | Postgres 线协议无法用内建替代；pg-boss 本就依赖它，共用一个 Pool |
+| 任务队列 | `pg-boss` 10 | 复用同一个 Postgres，无需 Redis；自带 cron 调度 |
+| HTTP | `node:http` + 手写小路由 | webhook 验签需要原始 body，内建拿原始 body 比框架的 content-type parser 更直接；路由面只有 7 条 |
+| JWT | `node:crypto` HMAC-SHA256 | HS256 签发与校验约 30 行，不值得一个依赖 |
+| zip 读写 | `node:zlib` raw deflate/inflate | 校验需要解析中央目录，水印只需追加一个 local header 再重写中央目录；230 KB 量级全内存操作 |
+| 对象存储 | `node:crypto` 手签 SigV4 + 内建 `fetch` | R2 是 S3 兼容；只用到 PUT/GET 两个操作，换掉一个巨型依赖树 |
+| 邮件 | 内建 `fetch` POST `api.resend.com` | 一个 HTTP 调用 |
+| 测试 | vitest（复用站点仓库已装的） | 纯逻辑模块因此无需任何安装即可测 |
+
+这个收敛不只是为了绕开安装限制：它让 zip 校验、水印、token、SigV4 签名、webhook 事件归一这五个最容易出错的模块**完全不依赖外部包**，可以在任何环境下独立测试；真正需要 `npm install` 的只有触库和排队的那部分。
 
 ### 1.5 目录
 
@@ -88,7 +92,8 @@ workspace/
 ├── shop-api/
 │   ├── package.json             独立依赖，独立 test
 │   ├── src/
-│   │   ├── server.ts            Fastify 组装与启动
+│   │   ├── server.ts            node:http 组装与启动
+│   │   ├── http/router.ts       手写小路由（method + 单段参数）
 │   │   ├── worker.ts            pg-boss worker 入口
 │   │   ├── config.ts            环境变量读取与校验（缺一即拒绝启动）
 │   │   ├── db/
