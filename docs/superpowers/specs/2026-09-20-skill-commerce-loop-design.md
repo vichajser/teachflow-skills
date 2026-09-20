@@ -237,7 +237,9 @@ python3 tools/publish.py --skill lesson-workflow --version 1.2.0 \
    - 单文件 < 1 MB，总解压体积 < 5 MB
 3. `SKILL.md` frontmatter 的 `version:` 必须存在且 == 请求里的 `--version`。
 4. semver 必须严格大于该 skill 现有最高版本；`(skill_id, version)` 已存在则返回 **409**，永不覆盖。
-5. 计算 SHA-256，写入 `releases`，同一事务内投递 pg-boss 的 `archive-master` 与 `notify-update`。
+5. 计算 SHA-256，先把母版落到本地盘（反序会让库里留下指向空文件的记录），再写入 `releases`，提交后投递 pg-boss 的 `archive-master` 与 `notify-update`。
+
+   投递在事务之外：pg-boss 10 没有"用调用方的连接"这类 API，要塞进同一事务只能直接写它的私有表，跨版本很脆。代价是提交与投递之间有一个窗口。窗口内进程挂掉的后果是「归档没做、更新邮件没发」，不是「订单出错」；接口对投递失败回 500 并在正文里带上 release id，明确写出记录已写入、不要重传。
 6. 返回回执：`{ skill, version, sha256, size_bytes, published_at }`。
 
 `archive-master` 任务负责把 zip 传到 R2 `masters/<skill>/<version>.zip`。上传先落本地 `MASTER_DIR`（webroot 之外），R2 是归档副本——这样 R2 短暂不可用不会阻断发版或下载。
