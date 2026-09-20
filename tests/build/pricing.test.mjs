@@ -10,7 +10,7 @@ const PAGES = ['en/pricing/index.html', 'ko/pricing/index.html'];
 describe('/pricing', () => {
   it('states the price with an explicit currency code', () => {
     for (const page of PAGES) {
-      expect(read(page)).toContain('USD 19.90');
+      expect(read(page)).toContain('USD 29.90');
     }
   });
 
@@ -33,7 +33,7 @@ describe('/pricing', () => {
   it('gives a direct-purchase path, not only the marketplace', () => {
     // spec §10.3：站内无结算时，若只有跳第三方的按钮，审核员会质疑账户用途
     for (const page of PAGES) {
-      expect(read(page)).toContain('mailto:vichajser@gmail.com');
+      expect(read(page)).toContain('mailto:crossxtop@gmail.com');
     }
   });
 
@@ -88,7 +88,7 @@ describe('/pricing', () => {
     // 同一套理由与同一套诚实注释，写出来免得后来者误以为它在守行为。
     //
     // 它补的是一个实测漏网：把 `PriceBlock.astro` 里的 `{SITE.price.display}`
-    // 换成硬编码 `USD 19.90`，**全套测试与部署闸门一条都不红**。上面那些断言
+    // 换成硬编码 `USD 29.90`，**全套测试与部署闸门一条都不红**。上面那些断言
     // 以及 `scripts/verify-build.mjs` 全都只看产物字符串，而硬编码产出的字符串
     // 与 `SITE.price.display` 今天的值逐字节相同。于是"价格只有一个出口"这条
     // 约束事实上没有守卫：改了 `src/config/site.ts` 的人会以为全站跟着变，

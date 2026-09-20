@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
 import { resolve, join, relative } from 'node:path';
 import { parse } from 'node-html-parser';
+import { SITE } from '@/config/site';
 
 /**
  * 站点级的措辞纪律。
@@ -147,9 +148,20 @@ describe('site-wide wording discipline', () => {
     }
   });
 
-  it('writes the price only as USD 19.90, on any page', () => {
-    // PriceBlock 之外任何地方手写价格都会漂移。`$19.9` / `$19.90` / `19.9 USD`
-    // 全部禁止——spec §10.1 要求币种代码在前、两位小数。
+  it('writes the price only as SITE.price.display, on any page', () => {
+    // PriceBlock 之外任何地方手写价格都会漂移：裸币种符号、少一位小数、
+    // 币种代码写在数字后面，全部禁止——spec §10.1 要求币种代码在前、两位小数。
+    //
+    // 金额从 `SITE.price` **算出来**，不写死。此前这里硬编码着当时的价格，
+    // 于是改价时这一条变成"守着一个已经不存在的数字"——实测：改 site.ts 之后
+    // 本例仍然全绿，因为产物里再没有旧数字可匹配，循环跑零次。一个在它要守的
+    // 东西变了之后自动失效、却仍然显示通过的断言，比没有这条断言更坏。
+    const { amount, currency, display } = SITE.price;
+    // 例：`29.90` → `/29[.,]90?/`：允许买家常见的逗号小数点与吞掉末位零的写法，
+    // 这两种都是要抓的错写法，不是要放过的。
+    const [whole, cents] = amount.split('.');
+    const loose = new RegExp(`${whole}[.,]${cents.replace(/0$/, '0?')}`, 'g');
+
     for (const file of files) {
       const text = visibleText(file);
       const where = relative(DIST, file);
@@ -157,11 +169,11 @@ describe('site-wide wording discipline', () => {
         /\$\s?\d/.test(text),
         `${where} writes a price with a bare $ sign`,
       ).toBe(false);
-      for (const m of text.matchAll(/19[.,]9\d?/g)) {
-        const before = text.slice(Math.max(0, m.index - 4), m.index);
+      for (const m of text.matchAll(loose)) {
+        const before = text.slice(Math.max(0, m.index - currency.length - 1), m.index);
         expect(
-          before.endsWith('USD ') && m[0] === '19.90',
-          `${where} writes the price as ${JSON.stringify(before + m[0])}, not "USD 19.90"`,
+          before.endsWith(`${currency} `) && m[0] === amount,
+          `${where} writes the price as ${JSON.stringify(before + m[0])}, not "${display}"`,
         ).toBe(true);
       }
     }

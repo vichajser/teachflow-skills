@@ -2,8 +2,8 @@
 slug: refund
 lang: en
 title: Refund & Cancellation Policy
-description: How refunds work for TeachFlow, and your statutory right of withdrawal.
-updated: '2026-09-19'
+description: How refunds work for TeachFlow, and your statutory rights of withdrawal in the UK, the EU and Korea.
+updated: '2026-09-20'
 ---
 
 TeachFlow is a one-time purchase. There is **no subscription and no auto-renewal**,
@@ -30,7 +30,7 @@ not need to approve it and we cannot block it.
 We invoice you by email, so this is the path where we are the seller and the refund is
 ours to give.
 
-Email <vichajser@gmail.com> within **14 days** of your purchase and we will refund you
+Email <crossxtop@gmail.com> within **14 days** of your purchase and we will refund you
 in full, provided you have not yet downloaded the files. Once the files are downloaded
 we cannot take them back, which is why the window is tied to download rather than to
 time alone.
@@ -59,6 +59,49 @@ their terms.
 
 This is your statutory right. Nothing above limits it.
 
+## If you are a consumer in the Republic of Korea
+
+If you conclude a mail-order contract as a consumer in Korea, you have a statutory right
+of withdrawal (청약철회) under 「전자상거래 등에서의 소비자보호에 관한 법률」
+(Act on the Consumer Protection in Electronic Commerce) Article 17. The official text is
+on the National Law Information Center:
+<https://www.law.go.kr/lsInfoP.do?ancYnChk=0&lsId=009318>.
+
+The statutory period is **7 days** from the day you receive the written statement of
+contract terms required by Article 13(2). If the files are supplied later than that
+statement, the 7 days run from the day supply starts.
+
+Article 17(1) says that if the parties agree a longer period, that longer period applies.
+For a direct purchase from us, the 14-day term above is that longer period.
+
+Once supply of digital content has begun, Article 17(2)5 says you cannot withdraw against
+the seller's will. That limit applies only if the seller has taken the Article 17(6)
+steps: stating clearly that withdrawal is then unavailable, and providing a trial or
+information as set out in Enforcement Decree Article 21-2. If those steps are missing,
+the 7-day right still applies.
+
+「문화산업진흥 기본법」 Article 2(5) is the definition of digital content that Article
+17(2)5 incorporates. TeachFlow is supplied as downloadable files, so supply begins when
+the download is made available.
+
+For a direct purchase we set this out in the invoice email and ask you to acknowledge it
+there, before we send your download link. If you would rather leave the cooling-off
+period unused, say so in reply and we will hold the link.
+
+If the files differ from the listing or the contract, Article 17(3) gives you a separate
+right: within **3 months** of supply, and within **30 days** of the day you knew or could
+have known of the mismatch. We will replace or refund in that case, as stated above,
+whether or not you have already downloaded the files.
+
+After a valid withdrawal of digital content, Article 18(2) requires a refund within 3
+business days of the withdrawal. Article 18(9) forbids a cancellation fee or damages
+claim for an ordinary Article 17(1) withdrawal.
+
+If a dispute is not resolved, you may apply to the Korea Consumer Agency under the
+「소비자기본법」 (Framework Act on Consumers).
+
+This is your statutory right. Nothing above limits it.
+
 ## Questions
 
-Email <vichajser@gmail.com>. We reply within 2 business days.
+Email <crossxtop@gmail.com>. We reply within 2 business days.

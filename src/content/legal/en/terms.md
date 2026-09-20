@@ -109,7 +109,7 @@ you may bring proceedings there.
 
 ## Contact
 
-Email <vichajser@gmail.com>. We reply within 2 business days.
+Email <crossxtop@gmail.com>. We reply within 2 business days.
 
 See also our [refund policy](/en/legal/refund), our
 [delivery terms](/en/legal/delivery) and our [privacy policy](/en/legal/privacy).

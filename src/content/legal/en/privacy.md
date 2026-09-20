@@ -14,7 +14,7 @@ the skills you buy never send anything anywhere.
 **CROSSXTOP LTD**, registered in England and Wales, company number **16339041**,
 registered office Suite 10890, 61 Bridge Street, Kington, United Kingdom, HR5 3DJ.
 
-For any privacy question, email <vichajser@gmail.com>.
+For any privacy question, email <crossxtop@gmail.com>.
 
 ## This website
 
@@ -101,7 +101,7 @@ Under the UK GDPR and the EU GDPR you have the right to:
 - **Restriction** of, and **objection** to, processing based on legitimate interest
 - **Withdraw consent** at any time, where processing rests on consent
 
-To exercise any of these, email <vichajser@gmail.com>. We respond within one month, as
+To exercise any of these, email <crossxtop@gmail.com>. We respond within one month, as
 the GDPR requires, and we do not charge for it.
 
 ## Transfers outside the UK and EEA

@@ -30,7 +30,7 @@
 
 **文案纪律（违反即为 bug）**
 
-- 价格全站一律写作 `USD 19.90`，含币种代码，不写 `$19.9`、`$19.90`、`19.9 USD`。唯一来源是 `SITE.price.display`。
+- 价格全站一律写作 `USD 29.90`，含币种代码，不写 `$29.9`、`$29.90`、`29.9 USD`。唯一来源是 `SITE.price.display`。
 - 引用 Agensi 退款政策时**只给链接、绝不复述天数**（Agensi 自家两份文件 30 天 / 14 天互相矛盾）。
 - `/security` 只陈述 `_SPEC.md` §3 中确有约束的条目。**不得出现"通过第三方安全审计"等无依据表述。**
 - "节省时间"类数字必须有依据，取自实际运行 skill 的耗时记录。无记录则不显示该数字。
@@ -40,7 +40,7 @@
   Suite 10890, 61 Bridge Street, Kington, United Kingdom, HR5 3DJ
   ```
   与 Companies House 公开记录及提交给 Stripe 的主体信息必须逐字一致。
-- 客服邮箱 `vichajser@gmail.com`，必须是可点击的 `mailto:` 直达链接，不得仅提供表单。
+- 客服邮箱 `crossxtop@gmail.com`，必须是可点击的 `mailto:` 直达链接，不得仅提供表单。
 
 **视觉约束**
 
@@ -98,7 +98,7 @@ workspace/
 │   │   ├── SiteFooter.astro      公司主体 + 客服邮箱 + 法务链接
 │   │   ├── LanguageSwitcher.astro 保持当前路径切换语言
 │   │   ├── SeoHead.astro         canonical + hreflang + og
-│   │   ├── PriceBlock.astro      USD 19.90 唯一渲染出口
+│   │   ├── PriceBlock.astro      USD 29.90 唯一渲染出口
 │   │   ├── SkillCard.astro       /skills 与首页共用
 │   │   ├── SampleCard.astro      含"样例准备中"占位态
 │   │   ├── HeroFan.astro         首屏扇形展开（纯 CSS，演一次即停）
@@ -383,7 +383,7 @@ git commit -m "feat: scaffold Astro 5 + Tailwind 4 static site with bilingual ro
 **Interfaces:**
 - Consumes: Task 1 的 `tsconfig.json` 路径别名 `@/`、`vitest.config.ts`
 - Produces:
-  - `SITE`（`src/config/site.ts`）—— 只读常量对象，字段：`domain: string`、`companyName: string`、`companyNumber: string`、`registeredIn: string`、`address: string`、`supportEmail: string`、`supportResponseDays: number`、`price: { currency: 'USD'; amount: '19.90'; display: 'USD 19.90' }`、`agensiListingUrl: string`、`agensiTermsUrl: string`
+  - `SITE`（`src/config/site.ts`）—— 只读常量对象，字段：`domain: string`、`companyName: string`、`companyNumber: string`、`registeredIn: string`、`address: string`、`supportEmail: string`、`supportResponseDays: number`、`price: { currency: 'USD'; amount: '29.90'; display: 'USD 29.90' }`、`agensiListingUrl: string`、`agensiTermsUrl: string`
   - `LOCALES: readonly ['en','ko']`、`type Locale = 'en'|'ko'`、`DEFAULT_LOCALE: Locale`
   - `isLocale(value: string): value is Locale`
   - `localizePath(path: string, locale: Locale): string`
@@ -497,7 +497,7 @@ import { SITE } from '@/config/site';
 
 describe('SITE constants', () => {
   it('renders the price with an explicit currency code', () => {
-    expect(SITE.price.display).toBe('USD 19.90');
+    expect(SITE.price.display).toBe('USD 29.90');
     expect(SITE.price.display).not.toContain('$');
   });
 
@@ -511,7 +511,7 @@ describe('SITE constants', () => {
   });
 
   it('exposes a reachable support email', () => {
-    expect(SITE.supportEmail).toBe('vichajser@gmail.com');
+    expect(SITE.supportEmail).toBe('crossxtop@gmail.com');
   });
 
   it('keeps the domain in one place, with no trailing slash', () => {
@@ -544,14 +544,14 @@ export const SITE = {
   registeredIn: 'England and Wales',
   address: 'Suite 10890, 61 Bridge Street, Kington, United Kingdom, HR5 3DJ',
 
-  supportEmail: 'vichajser@gmail.com',
+  supportEmail: 'crossxtop@gmail.com',
   supportResponseDays: 2,
 
-  // 全站价格的唯一出口。写作 "USD 19.90"，不写 "$19.9"。
+  // 全站价格的唯一出口。写作 "USD 29.90"，不写 "$29.9"。
   price: {
     currency: 'USD',
-    amount: '19.90',
-    display: 'USD 19.90',
+    amount: '29.90',
+    display: 'USD 29.90',
   },
 
   agensiListingUrl: 'https://www.agensi.io',
@@ -789,7 +789,7 @@ const REQUIRED = [
   'CROSSXTOP LTD',
   'Company No. 16339041',
   'Suite 10890, 61 Bridge Street, Kington, United Kingdom, HR5 3DJ',
-  'mailto:vichajser@gmail.com',
+  'mailto:crossxtop@gmail.com',
 ];
 
 describe('site footer', () => {
@@ -1898,7 +1898,7 @@ const PAGES = ['en/pricing/index.html', 'ko/pricing/index.html'];
 describe('/pricing', () => {
   it('states the price with an explicit currency code', () => {
     for (const page of PAGES) {
-      expect(read(page)).toContain('USD 19.90');
+      expect(read(page)).toContain('USD 29.90');
     }
   });
 
@@ -1921,7 +1921,7 @@ describe('/pricing', () => {
   it('gives a direct-purchase path, not only the marketplace', () => {
     // spec §10.3：站内无结算时，若只有跳第三方的按钮，审核员会质疑账户用途
     for (const page of PAGES) {
-      expect(read(page)).toContain('mailto:vichajser@gmail.com');
+      expect(read(page)).toContain('mailto:crossxtop@gmail.com');
     }
   });
 
@@ -1965,8 +1965,8 @@ const t = useTranslations(lang);
 ---
 
 <!--
-  全站价格的唯一渲染出口。写作 "USD 19.90"，含币种代码——
-  Stripe 要求购买币种无歧义，"$19.9" 会被视为币种不明。
+  全站价格的唯一渲染出口。写作 "USD 29.90"，含币种代码——
+  Stripe 要求购买币种无歧义，"$29.9" 会被视为币种不明。
 -->
 <div class="rounded-xl border border-border bg-surface p-6">
   <p class="text-4xl font-semibold tracking-tight text-text-hi">
@@ -2131,7 +2131,7 @@ const titleById = new Map(skillEntries.map((e) => [e.data.id, e.data.title]));
 - [ ] **Step 6: 构建并运行测试确认通过**
 
 Run: `npm run build && npx vitest run`
-Expected: PASS。`price notation across the whole build` 这条会扫描全部 HTML —— 若有任何页面写了 `$19.9`，它会把文件路径列出来。
+Expected: PASS。`price notation across the whole build` 这条会扫描全部 HTML —— 若有任何页面写了 `$29.9`，它会把文件路径列出来。
 
 - [ ] **Step 7: 提交**
 
@@ -2297,7 +2297,7 @@ on their site is always the one that governs your purchase.
 
 ## If you bought directly from us
 
-Email <vichajser@gmail.com> within **14 days** of your purchase and we will refund you
+Email <crossxtop@gmail.com> within **14 days** of your purchase and we will refund you
 in full, provided you have not yet downloaded the package. Once the files are
 downloaded we cannot take them back, which is why the window is tied to download
 rather than to time alone.
@@ -2319,7 +2319,7 @@ This is your statutory right. Nothing above limits it.
 
 ## Questions
 
-Email <vichajser@gmail.com>. We reply within 2 business days.
+Email <crossxtop@gmail.com>. We reply within 2 business days.
 ```
 
 `src/content/legal/ko/refund.md` 为同一内容的韩文版，`lang: ko`，标题 `환불 및 취소 정책`。法条名称 `UK Consumer Contracts Regulations 2013` 与 `EU Directive 2011/83/EU` 保留英文原名，另附韩文说明 —— 法条名翻译会导致无法检索。
@@ -2352,7 +2352,7 @@ Agensi does not deliver by email — your downloads live in your dashboard.
 ## If you bought directly from us
 
 We email your download link within **2 business days** of confirming payment, to the
-address you paid from. If it has not arrived, email <vichajser@gmail.com> and we will
+address you paid from. If it has not arrived, email <crossxtop@gmail.com> and we will
 resend it.
 
 ## What you need to run it
@@ -2367,7 +2367,7 @@ they run**, and nothing you feed them is sent anywhere. See our
 
 ## If something is wrong with the files
 
-Email <vichajser@gmail.com>. We reply within 2 business days. If the package is
+Email <crossxtop@gmail.com>. We reply within 2 business days. If the package is
 defective, we will replace it or refund you — see our
 [refund policy](/en/legal/refund).
 ```
@@ -2378,7 +2378,7 @@ defective, we will replace it or refund you — see our
 
 `terms.md` 必须涵盖：授权范围（购买者本人及其任教班级使用；不得转售或再分发 skill 文件）、产出物归教师所有（教师用 skill 生成的教案、幻灯片、学习单归教师）、第三方教材版权归原出版社（本产品不授予任何教材权利）、无担保条款、`CROSSXTOP LTD` 主体与英格兰及威尔士法律管辖。
 
-`privacy.md` 必须涵盖：数据控制者为 `CROSSXTOP LTD`（含注册号与地址）；本站为纯静态站点，**不设分析工具、不设 cookie、不做第三方请求**（字体自托管）；我们只在你主动邮件联系时收到你的邮箱与邮件内容，用于回复与开票，保存期限与英国税务记录要求一致；**skill 本身不上传任何数据 —— 教材与学生信息留在教师本机**；GDPR 下的访问、更正、删除、可携权及行使方式（邮件 `vichajser@gmail.com`）；向 ICO 投诉的权利。
+`privacy.md` 必须涵盖：数据控制者为 `CROSSXTOP LTD`（含注册号与地址）；本站为纯静态站点，**不设分析工具、不设 cookie、不做第三方请求**（字体自托管）；我们只在你主动邮件联系时收到你的邮箱与邮件内容，用于回复与开票，保存期限与英国税务记录要求一致；**skill 本身不上传任何数据 —— 教材与学生信息留在教师本机**；GDPR 下的访问、更正、删除、可携权及行使方式（邮件 `crossxtop@gmail.com`）；向 ICO 投诉的权利。
 
 隐私页必须与 `/security` 页一致：两页对"数据不外传"的表述不得互相矛盾。
 
@@ -3099,11 +3099,11 @@ describe('home page', () => {
     const hrefs = root.querySelectorAll('a').map((a) => a.getAttribute('href'));
     expect(hrefs).toContain('/en/pricing');
     expect(hrefs).toContain('/en/legal/refund');
-    expect(hrefs).toContain('mailto:vichajser@gmail.com');
+    expect(hrefs).toContain('mailto:crossxtop@gmail.com');
   });
 
   it('states the price on the home page itself', () => {
-    expect(read('en/index.html')).toContain('USD 19.90');
+    expect(read('en/index.html')).toContain('USD 29.90');
   });
 });
 ```
@@ -4192,7 +4192,7 @@ for (const page of pages) {
   }
 }
 
-// 4. 价格写法。全站唯一合法写法是 "USD 19.90"（Global Constraints）。
+// 4. 价格写法。全站唯一合法写法是 "USD 29.90"（Global Constraints）。
 for (const file of await fg('**/*.html', { cwd: DIST })) {
   const text = readFileSync(join(DIST, file), 'utf8');
   if (/\$\s?19(\.9\d?)?\b/.test(text)) fail('price-notation', `${file} uses a $ price`);
@@ -4214,7 +4214,7 @@ const FOOTER_FACTS = [
   'CROSSXTOP LTD',
   'Company No. 16339041',
   'Suite 10890, 61 Bridge Street, Kington, United Kingdom, HR5 3DJ',
-  'vichajser@gmail.com',
+  'crossxtop@gmail.com',
 ];
 for (const page of pages) {
   const html = readFileSync(join(DIST, page), 'utf8');

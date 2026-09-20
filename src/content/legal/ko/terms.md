@@ -111,7 +111,7 @@ CROSSXTOP LTD에 있습니다. 구매는 사용 권한을 부여하는 것이지
 
 ## 문의
 
-<vichajser@gmail.com> 으로 메일 주세요. 영업일 기준 2일 이내에 답변드립니다.
+<crossxtop@gmail.com> 으로 메일 주세요. 영업일 기준 2일 이내에 답변드립니다.
 
 [환불 정책](/ko/legal/refund), [전달 안내](/ko/legal/delivery),
 [개인정보 처리방침](/ko/legal/privacy)도 함께 확인해 주세요.

@@ -16,7 +16,7 @@ const REQUIRED = [
   'CROSSXTOP LTD',
   'Company No. 16339041',
   ADDRESS,
-  'mailto:vichajser@gmail.com',
+  'mailto:crossxtop@gmail.com',
 ];
 
 describe('site footer', () => {

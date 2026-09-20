@@ -5,7 +5,7 @@ import { SITE } from '@/config/site';
 
 describe('SITE constants', () => {
   it('renders the price with an explicit currency code', () => {
-    expect(SITE.price.display).toBe('USD 19.90');
+    expect(SITE.price.display).toBe('USD 29.90');
     expect(SITE.price.display).not.toContain('$');
   });
 
@@ -19,7 +19,7 @@ describe('SITE constants', () => {
   });
 
   it('exposes a reachable support email', () => {
-    expect(SITE.supportEmail).toBe('vichajser@gmail.com');
+    expect(SITE.supportEmail).toBe('crossxtop@gmail.com');
   });
 
   it('keeps the domain in one place, with no trailing slash', () => {

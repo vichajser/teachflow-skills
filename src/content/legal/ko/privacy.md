@@ -15,7 +15,7 @@ updated: '2026-09-19'
 법인등록번호는 **16339041**, 등록 사무소 주소는 Suite 10890, 61 Bridge Street,
 Kington, United Kingdom, HR5 3DJ 입니다.
 
-개인정보에 관한 문의는 <vichajser@gmail.com> 으로 보내 주세요.
+개인정보에 관한 문의는 <crossxtop@gmail.com> 으로 보내 주세요.
 
 ## 이 웹사이트
 
@@ -101,7 +101,7 @@ UK GDPR 및 EU GDPR에 따라 다음 권리를 가지십니다.
   그에 반대할 권리
 - 동의에 근거한 처리의 경우, 언제든 **동의를 철회할 권리**
 
-행사하실 때는 <vichajser@gmail.com> 으로 메일 주세요. GDPR이 정한 대로 1개월 이내에
+행사하실 때는 <crossxtop@gmail.com> 으로 메일 주세요. GDPR이 정한 대로 1개월 이내에
 회신드리며, 비용은 받지 않습니다.
 
 ## 영국·EEA 밖으로의 이전

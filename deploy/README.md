@@ -98,11 +98,11 @@ SITE_DOMAIN=<域名> caddy reload --config /etc/caddy/Caddyfile
 - [x] **页脚公司信息与提交给 Stripe 的法律主体逐字一致** ——
       `npm run verify` 的 `entity-details` 检查覆盖四项逐字串。
 - [ ] **客服邮箱真实可达并已测试收信** —— **必须人工做。** 脚本只能检查
-      `vichajser@gmail.com` 这个字符串出现在页面上，**不能**检查它收得到信。
+      `crossxtop@gmail.com` 这个字符串出现在页面上，**不能**检查它收得到信。
       发一封测试邮件、确认进收件箱（不是垃圾箱），再确认页脚的 `mailto:` 点开
       预填正确。这一步跳过，Stripe 人工复审会拨回来。
-- [x] **价格全站写作 `USD 19.90`** —— `npm run verify` 的 `price-notation`
-      检查覆盖（任何 `$19` / `$19.9` / `$19.90` 形态都会被判失败）。
+- [x] **价格全站写作 `USD 29.90`** —— `npm run verify` 的 `price-notation`
+      检查覆盖（任何 `$19` / `$29.9` / `$29.90` 形态都会被判失败）。
 
 ---
 

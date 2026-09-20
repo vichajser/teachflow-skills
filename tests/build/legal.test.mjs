@@ -90,9 +90,11 @@ describe('/legal/refund', () => {
   it('links to Agensi terms rather than restating their day count', () => {
     // Agensi 自家 /terms 与 /stripe-terms 互相矛盾（30 天 vs 14 天），
     // 复述等于把别人的错误抄进我们的法律页。
+    // 韩国 전자상거래법 제17조제3항的「안 날부터 30일」是另一件事，
+    // 出现在「대한민국 소비자」节，不得被这条误伤。
     const html = read('en/legal/refund/index.html');
     expect(html).toContain('https://www.agensi.io/terms');
-    expect(html).not.toMatch(/30[- ]day/i);
+    expect(html).not.toMatch(/30-day refund/i);
   });
 
   it('states no day count at all inside the Agensi section, in either locale', () => {
@@ -121,6 +123,31 @@ describe('/legal/refund', () => {
     const html = read('ko/legal/refund/index.html');
     expect(html).toContain('UK Consumer Contracts Regulations 2013');
     expect(html).toContain('EU Directive 2011/83/EU');
+  });
+
+  it('cites the Korean e-commerce consumer act by its official name, in both locales', () => {
+    // 법조명은 번역하면 검색이 안 된다. 영문 페이지에도 한글 원문을 남긴다.
+    for (const page of ['en/legal/refund/index.html', 'ko/legal/refund/index.html']) {
+      const html = read(page);
+      expect(html, page).toContain('전자상거래 등에서의 소비자보호에 관한 법률');
+      expect(html, page).toContain('law.go.kr');
+      expect(html, page).toContain('lsId=009318');
+    }
+    expect(read('ko/legal/refund/index.html')).toContain('제17조');
+    expect(read('ko/legal/refund/index.html')).toContain('대한민국 소비자이신 경우');
+    expect(read('en/legal/refund/index.html')).toMatch(/Article 17/);
+    expect(read('en/legal/refund/index.html')).toMatch(/Republic of Korea/i);
+  });
+
+  it('keeps the Korean statutory day counts out of the Agensi section', () => {
+    // 7일 / 3개월 / 30일은 한국 강행법 고지이지 Agensi 창구 복창이 아니다.
+    const agensiKo = section(
+      read('ko/legal/refund/index.html'),
+      'Agensi에서 구매하신 경우',
+    );
+    expect(agensiKo).not.toMatch(/7일|3개월|30일/);
+    const agensiEn = section(read('en/legal/refund/index.html'), 'If you bought on Agensi');
+    expect(agensiEn).not.toMatch(/\b7\s+days\b/i);
   });
 
   it('says there is no subscription to cancel', () => {

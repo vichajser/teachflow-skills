@@ -65,14 +65,14 @@ describe('home page', () => {
         `/${lang}/legal/refund`,
       );
       expect(hrefs, `${page} offers no support address`).toContain(
-        'mailto:vichajser@gmail.com',
+        'mailto:crossxtop@gmail.com',
       );
     }
   });
 
   it('states the price on the home page itself, in both locales', () => {
     for (const { page } of LOCALES) {
-      expect(read(page), `${page} never names the price`).toContain('USD 19.90');
+      expect(read(page), `${page} never names the price`).toContain('USD 29.90');
     }
   });
 });

@@ -16,14 +16,19 @@ export const SITE = {
   registeredIn: 'England and Wales',
   address: 'Suite 10890, 61 Bridge Street, Kington, United Kingdom, HR5 3DJ',
 
-  supportEmail: 'vichajser@gmail.com',
+  supportEmail: 'crossxtop@gmail.com',
   supportResponseDays: 2,
 
-  // 全站价格的唯一出口。写作 "USD 19.90"，不写 "$19.9"。
+  // 全站价格的唯一出口。写作 "USD 29.90"，不写 "$29.9"。
+  //
+  // 这个数是**六合一套装价**，对应 Agensi 的原生 bundle 商品
+  // （其 /terms §5.4：购买 bundle 即取得其中全部 skill 的所有权）。
+  // 六个 skill 在 Agensi 仍各自独立上架、可单买，官网只卖套装——
+  // 所以官网出现的价格永远只有这一个数，不列单品阶梯。
   price: {
     currency: 'USD',
-    amount: '19.90',
-    display: 'USD 19.90',
+    amount: '29.90',
+    display: 'USD 29.90',
   },
 
   agensiListingUrl: 'https://www.agensi.io',

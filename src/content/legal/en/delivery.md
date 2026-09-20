@@ -29,7 +29,7 @@ Agensi does not deliver by email — your downloads live in your dashboard.
 ## If you bought directly from us
 
 We email your download link within **2 business days** of confirming payment, to the
-address you paid from. If it has not arrived, email <vichajser@gmail.com> and we will
+address you paid from. If it has not arrived, email <crossxtop@gmail.com> and we will
 resend it.
 
 ## What you need to run it
@@ -45,6 +45,6 @@ they run**, and nothing you feed them is sent anywhere. See our
 
 ## If something is wrong with the files
 
-Email <vichajser@gmail.com>. We reply within 2 business days. If a package is
+Email <crossxtop@gmail.com>. We reply within 2 business days. If a package is
 defective, we will replace it or refund you — see our
 [refund policy](/en/legal/refund).

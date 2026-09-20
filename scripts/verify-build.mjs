@@ -38,10 +38,18 @@ const ASTRO_SITE = grab('astro.config.mjs', 'site'); // R-9：从 astro.config.m
 const CONFIG_DOMAIN = grab('src/config/site.ts', 'domain'); // 交叉核对用
 // 全站唯一合法价格写法。与上面同款文本解析：`site.ts` 里 `display` 只出现一次。
 const PRICE_DISPLAY = grab('src/config/site.ts', 'display');
+const PRICE_AMOUNT = grab('src/config/site.ts', 'amount');
+// 带货币符号（含 HTML 实体）的错误写法。整数部分取自 `amount`，小数部分可选：
+// `$29`、`$29.9`、`$29.90` 三种形态都要抓到。
+const DOLLAR_PRICE = new RegExp(
+  String.raw`(?:\$|&#0*36;|&#[xX]0*24;|&dollar;)\s*${(PRICE_AMOUNT ?? '').split('.')[0]}(?:\.\d{1,2})?\b`,
+  'i',
+);
 
 if (!ASTRO_SITE) fail('domain', 'could not read `site` from astro.config.mjs');
 if (!CONFIG_DOMAIN) fail('domain', 'could not read `domain` from src/config/site.ts');
 if (!PRICE_DISPLAY) fail('price-notation', 'could not read `display` from src/config/site.ts');
+if (!PRICE_AMOUNT) fail('price-notation', 'could not read `amount` from src/config/site.ts');
 // 两处独立解析的结果必须一致：若有人只改了一处（或把域名硬编码进第三个文件），
 // 产物里的 canonical 会与配置对不上——这条在下面按页面逐条抓。
 if (ASTRO_SITE && CONFIG_DOMAIN && ASTRO_SITE !== CONFIG_DOMAIN) {
@@ -191,7 +199,7 @@ for (const page of allHtml) {
   }
 }
 
-// ---- 4. 价格写法。全站唯一合法写法是 "USD 19.90"（Global Constraints）。----
+// ---- 4. 价格写法。全站唯一合法写法是 "USD 29.90"（Global Constraints）。----
 // (a) 正向：配置里的价格必须**恰好**出现在四个价格页上。
 //     不要写成“每页都要有价格”——26 个文件里只有 4 个有价格。
 const PRICE_PAGES = [
@@ -219,12 +227,14 @@ for (const file of allHtml) {
   const text = readFileSync(join(DIST, file), 'utf8');
   // (b) 否定，加宽到 HTML 实体形态：`$`、`&#36;`/`&#036;`、`&#x24;`/`&#X024;`、`&dollar;`。
   // 只认字面 `$` 的话，把价格写成实体的页面会溜过去。
-  if (/(?:\$|&#0*36;|&#[xX]0*24;|&dollar;)\s*19(?:\.9\d?)?\b/i.test(text)) {
+  // 金额部分由 PRICE_AMOUNT 拼出，不写死数字——写死的话改价之后这条
+  // 会安静地开始守一个不存在的旧价格（与 claims.test.mjs 同一个坑）。
+  if (DOLLAR_PRICE.test(text)) {
     fail('price-notation', `${file} uses a $ price (literal or HTML entity)`);
   }
   // (c) 全站不得出现 `price.display` 之外的任何 USD 金额写法。
   // 金额形状收窄到 `\d+(?:\.\d+)?`，**不要**用 `[\d.]*`——后者会把句末的句点一并
-  // 吞进来（"costs USD 19.90." → 匹配到 "USD 19.90."），于是与 display 不等而误报。
+  // 吞进来（"costs USD 29.90." → 匹配到 "USD 29.90."），于是与 display 不等而误报。
   for (const m of text.matchAll(/USD\s*\d+(?:\.\d+)?/gi)) {
     if (PRICE_DISPLAY && m[0] !== PRICE_DISPLAY) {
       fail('price-notation', `${file} uses "${m[0]}" — only "${PRICE_DISPLAY}" is allowed`);
@@ -279,7 +289,7 @@ const FOOTER_FACTS = [
   'CROSSXTOP LTD',
   'Company No. 16339041',
   'Suite 10890, 61 Bridge Street, Kington, United Kingdom, HR5 3DJ',
-  'vichajser@gmail.com',
+  'crossxtop@gmail.com',
 ];
 // 整行逐字。分隔符是 U+00B7 `·`，不随语言变化，不许换成 `-` 或 `|`。
 const DISCLOSURE =
@@ -299,7 +309,7 @@ for (const page of allHtml.filter((p) => p !== REDIRECT_SHELL)) {
   const mailtos = parse(raw)
     .querySelectorAll('a[href^="mailto:"]')
     .map((a) => a.getAttribute('href'));
-  if (!mailtos.includes('mailto:vichajser@gmail.com')) {
+  if (!mailtos.includes('mailto:crossxtop@gmail.com')) {
     fail('entity-details', `${page} has no clickable mailto: link to the support email`);
   }
 }
