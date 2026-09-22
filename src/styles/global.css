@@ -20,6 +20,51 @@
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 }
 
+/*
+  Light theme (UX review 2026-09-21, C-1). Token names are unchanged — every
+  component keeps reading var(--color-*) — only the values flip under
+  html[data-theme="light"]. @theme emits its variables on :root inside
+  @layer theme; these unlayered rules beat any layer, so they reliably win.
+
+  Palette chosen for the Korean default locale (토스-style white + one brand
+  blue). Every text/background pair was computed against WCAG AA before
+  landing (contrast script in the review notes):
+    text-hi/surface 16.3 · text-body/surface 8.4 · text-mute/surface 5.0 ·
+    accent/surface 4.7 · white on accent (buttons) 5.0 · accent-glow 4.5 ·
+    accent-warm 5.1
+  accent and accent-glow go slightly darker than the dark-theme neons because
+  #2E7DFF / #22D3EE on white are 3.6:1 / 1.6:1 — both below AA for text.
+  STAGE_COLOR in src/data/skills.ts deliberately keeps the dark-theme hexes
+  (tests/unit/skills.test.ts pins them); the light-theme shift is a
+  presentation-layer adjustment, not a palette redefinition.
+*/
+html[data-theme='light'] {
+  --color-void: #FFFFFF;
+  --color-surface: #F6F8FC;
+  --color-raised: #EAF0F9;
+  --color-border: #C9D6EA;
+
+  --color-accent: #1D6AE0;
+  --color-accent-glow: #0B7C99;
+  --color-accent-warm: #9333EA;
+
+  --color-text-hi: #0E1A30;
+  --color-text-body: #3C4A66;
+  --color-text-mute: #5D6C88;
+}
+
+/*
+  The two fixed glow blobs are tuned for a dark field; at 0.16/0.10 alpha on
+  white they read as stains. Halve them in the light theme — visible tint,
+  no interference with text contrast. The grid texture (body::before, 0.04)
+  works on both fields and stays untouched.
+*/
+html[data-theme='light'] body::after {
+  background-image:
+    radial-gradient(60rem 40rem at 15% -10%, rgba(46, 125, 255, 0.08), transparent 70%),
+    radial-gradient(45rem 35rem at 85% 0%, rgba(34, 211, 238, 0.05), transparent 70%);
+}
+
 html {
   background-color: var(--color-void);
   color: var(--color-text-body);
@@ -45,6 +90,43 @@ html:lang(ko) {
   --text-4xl: 2rem;
   --text-3xl: 1.75rem;
   --text-2xl: 1.375rem;
+}
+
+/*
+  Korean line breaking and spacing (UX review 2026-09-21, P0).
+
+  `word-break: keep-all` — CJK line breaking otherwise allows a break between
+  any two glyphs, so the home H1 wrapped as 「…수업이 나 / 옵니다.」, splitting
+  the word 나옵니다 mid-word. Korean readers register a mid-word break the way
+  English readers register "hel lo": as a defect, not a style. keep-all breaks
+  at spaces/eojeol boundaries only. Scoped to headings and other short UI
+  strings; body copy keeps the default (anywhere) behaviour, which is the
+  correct Korean body-text convention and avoids overflow in narrow cards.
+
+  `overflow-wrap: break-word` is the escape hatch: a heading containing a long
+  unbreakable token (URL, filename) may still overflow-wrap rather than spill.
+
+  `letter-spacing` — the page h1/price use `tracking-tight` (-0.025em), tuned
+  for Latin. Hangul is monospaced by design; negative tracking makes adjacent
+  glyphs collide (보 and 안 visually merge). Korean typographic convention is
+  zero or slightly positive tracking. Utilities live in @layer utilities;
+  these unlayered rules beat any layer, so they reliably win over the utility.
+
+  `line-height` — `leading-tight` (1.25) is tuned for Latin ascender/descender
+  rhythm. Hangul fills the full em square, so multi-line Korean headings need
+  1.35–1.4 to keep lines optically separated.
+*/
+html:lang(ko) :is(h1, h2, h3, h4, summary) {
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+html:lang(ko) .tracking-tight {
+  letter-spacing: 0;
+}
+
+html:lang(ko) :is(h1, h2, h3) {
+  line-height: 1.35;
 }
 
 /* Texture 1: grid texture, fading downward. Pure CSS, no extra DOM node. */
@@ -244,6 +326,19 @@ body[data-quiet] * {
   box-shadow: none !important;
   animation: none !important;
   transition: none !important;
+}
+
+/*
+  Global keyboard focus indicator (UX review 2026-09-21, C-4). Until now only
+  the markdown table-scroll container had a visible :focus-visible ring; every
+  other link/button/card relied on the browser default, which Tailwind's
+  Preflight removes. One unlayered rule covers all interactive elements in
+  both themes — var(--color-accent) is AA-contrasted against surface in each.
+  Mouse users are unaffected (:focus-visible only matches keyboard focus).
+*/
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
 }
 
 /* spec §8：prefers-reduced-motion 下渲染终态，无任何位移 */

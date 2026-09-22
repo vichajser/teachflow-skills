@@ -43,15 +43,21 @@ const metaDescription = t('home.metaDescription');
       </h1>
       <p class="mt-6 max-w-2xl text-lg text-text-body">{t('home.heroBody')}</p>
 
+      {/*
+        CTA hierarchy (UX review 2026-09-21): samples first, pricing second.
+        Visitors who have not yet seen the outputs will not convert on price —
+        value must precede cost. The accent (primary) style therefore goes to
+        the /samples link and the quiet (border) style to /pricing.
+      */}
       <div class="mt-8 flex flex-wrap gap-3">
         <a
-          href={localizePath('/pricing', lang)}
-          class="rounded-lg bg-accent px-5 py-3 font-medium text-void shadow-[0_0_40px_rgba(46,125,255,0.35)] transition-transform hover:-translate-y-0.5 motion-reduce:hover:translate-y-0"
-        >{t('home.ctaPricing')}</a>
-        <a
           href={localizePath('/samples', lang)}
-          class="rounded-lg border border-border px-5 py-3 font-medium text-text-hi transition-colors hover:border-accent"
+          class="rounded-lg bg-accent px-5 py-3 font-medium text-void shadow-[0_0_40px_rgba(46,125,255,0.35)] transition-transform hover:-translate-y-0.5 motion-reduce:hover:translate-y-0"
         >{t('home.ctaSamples')}</a>
+        <a
+          href={localizePath('/pricing', lang)}
+          class="rounded-lg border border-border px-5 py-3 font-medium text-text-hi transition-colors hover:border-accent"
+        >{t('home.ctaPricing')}</a>
       </div>
     </div>
     <HeroFan lang={lang} />
@@ -92,12 +98,50 @@ const metaDescription = t('home.metaDescription');
     spec 第 59 行把首页定为"叙事 + 关系主动画 + **成品预览** + CTA"。
     /samples 本身由 Task 11 建（导航栏已经链过去了），这里只做入口与说明，
     不预先渲染文件列表——那属于 Task 11 的数据。
+
+    UX review 2026-09-21 修订：纯文字入口 + 一个链接，意味着访客在首页
+    看不到任何"真实产出物"——而产出物证据恰是教师购买决策的第一驱动力。
+    这里直接内嵌三张既有的成品预览（幻灯片 / 学习单 / 家长通知，均为
+    /samples 同批素材，不引入新资产），点击仍落到 /samples。
+    16:10 + object-top 与 SampleCard 同一套裁切纪律；lazy + 宽高属性防 CLS。
   */}
   <section class="py-12">
     <h2 class="mb-2 flex items-center gap-2 text-2xl font-semibold text-text-hi">
       <Icon name="layers" size={22} class="text-accent-glow" />{t('home.samplesTitle')}
     </h2>
     <p class="max-w-2xl text-text-body">{t('home.samplesBody')}</p>
+    <div class="mt-6 grid gap-3 sm:grid-cols-3">
+      <a href={localizePath('/samples', lang)} class="group block">
+        <img
+          src="/samples/unit07-slides.png"
+          alt={t('home.previewSlides')}
+          width="2400"
+          height="1516"
+          loading="lazy"
+          class="aspect-[16/10] w-full rounded-lg border border-border object-cover object-top transition-colors group-hover:border-accent"
+        />
+      </a>
+      <a href={localizePath('/samples', lang)} class="group block">
+        <img
+          src="/samples/unit07-worksheets.png"
+          alt={t('home.previewWorksheets')}
+          width="2400"
+          height="1772"
+          loading="lazy"
+          class="aspect-[16/10] w-full rounded-lg border border-border object-cover object-top transition-colors group-hover:border-accent"
+        />
+      </a>
+      <a href={localizePath('/samples', lang)} class="group block">
+        <img
+          src="/samples/unit07-parent-notice.png"
+          alt={t('home.previewNotice')}
+          width="1588"
+          height="2246"
+          loading="lazy"
+          class="aspect-[16/10] w-full rounded-lg border border-border object-cover object-top transition-colors group-hover:border-accent"
+        />
+      </a>
+    </div>
     <a
       href={localizePath('/samples', lang)}
       class="mt-3 inline-block text-accent hover:underline"

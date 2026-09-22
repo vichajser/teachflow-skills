@@ -34,8 +34,8 @@ export const ICON_PATHS = {
   'word-workflow': ['M3 5h18v14H3z', 'M3 10h18', 'M9 10v9'],
   /** worksheet-workflow：逐级变短的三条线 —— 수준별（分层）学习지。 */
   'worksheet-workflow': ['M5 3h14v18H5z', 'M9 8h6', 'M9 12h4', 'M9 16h2'],
-  /** report-workflow：图片框（家长通知书交付为 .png）。 */
-  'report-workflow': ['M3 5h18v14H3z', 'M3 16l5-5 4 4 3-3 6 6'],
+  /** report-workflow：信封（家长通知书是一封发给학부모的信）。比图片框更具象。 */
+  'report-workflow': ['M3 6h18v12H3z', 'M3 7l9 6 9-6'],
 
   /* —— /security 的两条可验证事实 —— */
 

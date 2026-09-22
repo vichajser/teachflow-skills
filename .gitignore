@@ -9,6 +9,9 @@ dist/
 .env.*
 !.env.example
 
+# 含明文密钥的部署信息，永不入库
+docs/重要部署信息.md
+
 # macOS
 .DS_Store
 

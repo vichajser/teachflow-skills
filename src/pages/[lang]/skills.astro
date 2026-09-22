@@ -35,6 +35,25 @@ const sections = await Promise.all(
 >
   <h1 class="pt-16 pb-10 text-4xl font-semibold text-text-hi">{t('nav.skills')}</h1>
 
+  {/*
+    In-page anchor nav (UX review 2026-09-21, C-4): the detail sections below
+    are long; a sticky chip bar lets a teacher jump between skills mid-scroll.
+    Pure anchors + position:sticky — the zero-JS rule is untouched. top-16
+    clears the sticky site header; bg-void/80 + blur matches the header's own
+    treatment and adapts to both themes via the token.
+  */}
+  <nav
+    aria-label={t('skills.anchorNav')}
+    class="sticky top-16 z-40 -mx-4 mb-6 flex flex-wrap gap-2 bg-void/80 px-4 py-3 backdrop-blur-md"
+  >
+    {sections.map(({ skill, data }) => (
+      <a
+        href={`#${skill.id}`}
+        class="rounded-full border border-border bg-surface px-3 py-1.5 text-sm text-text-body transition-colors hover:border-accent hover:text-text-hi"
+      >{data.title}</a>
+    ))}
+  </nav>
+
   <ul class="grid gap-4 pb-12 sm:grid-cols-2 lg:grid-cols-3">
     {sections.map(({ skill, data }) => (
       <li>
@@ -68,9 +87,16 @@ const sections = await Promise.all(
           <p class="text-text-body">{data.tagline}</p>
         </header>
 
-        <div class="md-body max-w-none text-text-body"><Content /></div>
-
-        <div class="mt-6 grid gap-6 md:grid-cols-2">
+        {/*
+          Scannability restructure (UX review 2026-09-21): the page used to
+          render each skill's full Markdown guide inline — six back-to-back
+          text walls. Now the skimmable facts (inputs / checks / outputs) come
+          first and the long-form guide sits in a native <details>, keeping
+          the zero-JS rule while letting a teacher scan six skills in one
+          screen each. Content stays in the DOM, so search-in-page, anchors
+          and the Korean-ratio assertions in pages.test.mjs are unaffected.
+        */}
+        <div class="grid gap-6 md:grid-cols-2">
           <section>
             <h3 class="mb-2 text-sm font-semibold text-text-hi">{t('skills.inputs')}</h3>
             <ul class="list-disc space-y-1 pl-5 text-sm text-text-body">
@@ -90,6 +116,13 @@ const sections = await Promise.all(
             {t('skills.outputs')}: {skill.outputs.join('  ')}
           </p>
         )}
+
+        <details class="mt-5 border-t border-border pt-4">
+          <summary class="cursor-pointer list-none text-sm font-medium text-accent hover:underline [&::-webkit-details-marker]:hidden">
+            {t('skills.more')}
+          </summary>
+          <div class="md-body mt-4 max-w-none text-text-body"><Content /></div>
+        </details>
       </article>
     ))}
   </div>

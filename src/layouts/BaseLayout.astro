@@ -33,11 +33,26 @@ const {
   alternates = true,
 } = Astro.props;
 
+/*
+ * Theme by locale (UX review 2026-09-21, C-1): Korean defaults to the light
+ * theme — the dominant Korean consumer-SaaS aesthetic (토스/Kakao style white
+ * with one brand blue) and the expectation of the teacher audience; English
+ * keeps the original dark developer-tool identity. Token values flip under
+ * html[data-theme] in global.css; no component changes and no JS. There is no
+ * user-facing toggle in v1 — adding one means either a <script> exemption to
+ * the zero-JS rule or per-theme static variants, both deferred by design.
+ *
+ * NOTE: this explanation lives in the frontmatter on purpose. An Astro
+ * comment between <!doctype> and <html> is emitted as literal text and the
+ * parser drops the <html> element itself (motion-budget tests caught it:
+ * "has no <body>"). Same class of pitfall as the <body> comment below.
+ */
+
 const t = useTranslations(lang);
 ---
 
 <!doctype html>
-<html lang={lang}>
+<html lang={lang} data-theme={lang === 'ko' ? 'light' : 'dark'}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -101,6 +116,18 @@ const t = useTranslations(lang);
 
     <SiteHeader lang={lang} path={path} />
     <main id="main" class="mx-auto max-w-6xl px-4"><slot /></main>
+    {/*
+      Back-to-top (UX review 2026-09-21, C-4): long pages (/skills, /install)
+      previously offered no way back except manual scroll. A plain anchor to
+      #main keeps the zero-JS rule; the existing skip link targets the same
+      anchor from the other direction.
+    */}
+    <p class="mx-auto max-w-6xl px-4 pb-2 text-right">
+      <a
+        href="#main"
+        class="text-sm text-text-mute transition-colors hover:text-text-hi"
+      >↑ {t('a11y.backToTop')}</a>
+    </p>
     <SiteFooter lang={lang} path={path} />
   </body>
 </html>

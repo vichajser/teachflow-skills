@@ -82,6 +82,19 @@ const links = [
       </nav>
     </details>
 
-    <div class="ml-auto"><LanguageSwitcher lang={lang} path={path} /></div>
+    {/*
+      Persistent header CTA (UX review 2026-09-21): after the hero scrolls away
+      the page previously offered no action outlet at all. One quiet primary
+      button, pointing at /samples — the trust-building page, not the (still
+      closed) checkout. Kept text-sm and compact so it never competes with the
+      in-page hero CTA; hidden below sm where the 메뉴 panel carries the links.
+    */}
+    <div class="ml-auto flex items-center gap-3">
+      <a
+        href={localizePath('/samples', lang)}
+        class="hidden rounded-lg bg-accent px-3 py-1.5 text-sm font-medium text-void transition-transform hover:-translate-y-0.5 motion-reduce:hover:translate-y-0 sm:inline-block"
+      >{t('nav.cta')}</a>
+      <LanguageSwitcher lang={lang} path={path} />
+    </div>
   </div>
 </header>

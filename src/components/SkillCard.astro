@@ -52,8 +52,14 @@ const resolvedHref = localizePath(stripLocale(href), lang);
     留在外面，那条断言看到的仍然是纯标题文本。
     `ICON_PATHS` 的前六个键与 `SkillId` 逐一同名，所以这里不需要映射表；
     少一个 id 会在构建时报类型错，而不是渲染出一个空 svg。
+
+    UX review 2026-09-21：22px 裸图标在卡片里识别度不足——图标垫一层
+    `bg-raised` 圆角底板并放大到 26px，让六张卡在扫读时先看到色块图标、
+    再读到标题，符合"图标承担识别、扩展名降为辅助"的分工。
   */}
-  <Icon name={skill.id} size={22} class={`mb-3 ${stageIconClass(skill.stage)}`} />
+  <span class={`mb-3 inline-flex rounded-lg bg-raised p-2 ${stageIconClass(skill.stage)}`}>
+    <Icon name={skill.id} size={26} />
+  </span>
   <Heading class="mb-1 text-lg font-semibold text-text-hi">{title}</Heading>
   <p class="mb-3 text-sm text-text-body">{tagline}</p>
   <p class="font-mono text-xs text-text-mute">

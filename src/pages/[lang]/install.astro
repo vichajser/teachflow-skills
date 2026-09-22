@@ -60,6 +60,11 @@ const CLAUDE_HEADING: Record<Locale, string> = {
   ko: 'Claude Code',
 };
 
+const RECOMMENDED_BADGE: Record<Locale, string> = {
+  en: 'Easiest path — recommended',
+  ko: '가장 쉬운 방법 — 추천',
+};
+
 const CLAUDE_LEAD: Record<Locale, string> = {
   en: 'This is the one path that is click-only from start to finish. Anthropic\'s own quickstart for the desktop app states, "No terminal required."',
   ko: '처음부터 끝까지 클릭만으로 되는 방법입니다. 데스크톱 앱에 대한 Anthropic의 안내 문서는 터미널이 필요하지 않다고 명시하고 있습니다.',
@@ -242,8 +247,22 @@ const IFNOT_ITEMS: { en: string; ko: string }[] = [
     </ul>
   </section>
 
-  <section class="mt-12">
-    <h2 class="mb-4 text-2xl font-semibold text-text-hi">{CLAUDE_HEADING[lang]}</h2>
+  {/*
+    Stepper-style restructure (UX review 2026-09-21): the four tool guides used
+    to run one after another at full length, so a Codex user scrolled past the
+    whole Claude walkthrough to reach theirs. Now the recommended click-only
+    path (Claude Code) is an open card with a badge, and the three alternative
+    tools are native <details> cards — same zero-JS discipline as the FAQ and
+    the mobile menu. The verify / troubleshooting sections stay outside the
+    fold: they apply to every tool and must always be visible.
+  */}
+  <section class="mt-12 rounded-xl border border-accent/50 bg-surface p-6">
+    <div class="mb-4 flex flex-wrap items-center gap-3">
+      <h2 class="text-2xl font-semibold text-text-hi">{CLAUDE_HEADING[lang]}</h2>
+      <span class="rounded-full bg-accent px-2.5 py-0.5 text-xs font-medium text-void">
+        {RECOMMENDED_BADGE[lang]}
+      </span>
+    </div>
     <p class="max-w-2xl text-text-body">{CLAUDE_LEAD[lang]}</p>
     <ol class="mt-4 max-w-3xl list-decimal space-y-3 pl-5 text-text-body">
       {CLAUDE_STEPS.map((step) => <li>{step[lang]}</li>)}
@@ -251,32 +270,45 @@ const IFNOT_ITEMS: { en: string; ko: string }[] = [
     <p class="mt-4 max-w-3xl text-sm text-text-mute">{CLAUDE_NOTES[lang]}</p>
   </section>
 
-  <section class="mt-12">
-    <h2 class="mb-4 text-2xl font-semibold text-text-hi">{CODEX_HEADING[lang]}</h2>
-    <p class="max-w-2xl text-text-body">{CODEX_LEAD[lang]}</p>
-    <ol class="mt-4 max-w-3xl list-decimal space-y-3 pl-5 text-text-body">
-      {CODEX_STEPS.map((step) => <li>{step[lang]}</li>)}
-    </ol>
-    <p class="mt-4 max-w-3xl text-sm text-text-mute">{CODEX_NOTE[lang]}</p>
-  </section>
-
-  <section class="mt-12">
-    <h2 class="mb-4 text-2xl font-semibold text-text-hi">{GEMINI_HEADING[lang]}</h2>
-    <div class="max-w-2xl space-y-3 text-text-body">
-      {GEMINI_PARAS.map((para) => <p>{para[lang]}</p>)}
+  <details class="group mt-6 rounded-xl border border-border bg-surface p-6">
+    <summary class="flex cursor-pointer list-none items-center justify-between [&::-webkit-details-marker]:hidden">
+      <h2 class="text-2xl font-semibold text-text-hi">{CODEX_HEADING[lang]}</h2>
+      <span class="text-accent transition-transform group-open:rotate-90">▸</span>
+    </summary>
+    <div class="mt-4">
+      <p class="max-w-2xl text-text-body">{CODEX_LEAD[lang]}</p>
+      <ol class="mt-4 max-w-3xl list-decimal space-y-3 pl-5 text-text-body">
+        {CODEX_STEPS.map((step) => <li>{step[lang]}</li>)}
+      </ol>
+      <p class="mt-4 max-w-3xl text-sm text-text-mute">{CODEX_NOTE[lang]}</p>
     </div>
-    <p class="mt-3">
-      <a
-        href={localizePath('/docs', lang)}
-        class="text-accent hover:underline"
-      >{DOCS_LINK_LABEL[lang]}</a>
-    </p>
-  </section>
+  </details>
 
-  <section class="mt-12">
-    <h2 class="mb-4 text-2xl font-semibold text-text-hi">{CURSOR_HEADING[lang]}</h2>
-    <p class="max-w-2xl text-text-body">{CURSOR_BODY[lang]}</p>
-  </section>
+  <details class="group mt-6 rounded-xl border border-border bg-surface p-6">
+    <summary class="flex cursor-pointer list-none items-center justify-between [&::-webkit-details-marker]:hidden">
+      <h2 class="text-2xl font-semibold text-text-hi">{GEMINI_HEADING[lang]}</h2>
+      <span class="text-accent transition-transform group-open:rotate-90">▸</span>
+    </summary>
+    <div class="mt-4">
+      <div class="max-w-2xl space-y-3 text-text-body">
+        {GEMINI_PARAS.map((para) => <p>{para[lang]}</p>)}
+      </div>
+      <p class="mt-3">
+        <a
+          href={localizePath('/docs', lang)}
+          class="text-accent hover:underline"
+        >{DOCS_LINK_LABEL[lang]}</a>
+      </p>
+    </div>
+  </details>
+
+  <details class="group mt-6 rounded-xl border border-border bg-surface p-6">
+    <summary class="flex cursor-pointer list-none items-center justify-between [&::-webkit-details-marker]:hidden">
+      <h2 class="text-2xl font-semibold text-text-hi">{CURSOR_HEADING[lang]}</h2>
+      <span class="text-accent transition-transform group-open:rotate-90">▸</span>
+    </summary>
+    <p class="mt-4 max-w-2xl text-text-body">{CURSOR_BODY[lang]}</p>
+  </details>
 
   <section class="mt-12">
     <h2 class="mb-4 text-2xl font-semibold text-text-hi">{VERIFY_HEADING[lang]}</h2>
