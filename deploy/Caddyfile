@@ -148,7 +148,7 @@
 }
 
 # www 子域统一跳回裸域：全站 canonical 都是无 www 形态，www 只是拼写容错，
-# 不做内容服务。308 永久跳转，浏览器与搜索引擎都会记住这个归一化。
+# 不做内容服务。301 永久跳转，浏览器与搜索引擎都会记住这个归一化。
 www.{$SITE_DOMAIN} {
 	redir https://{$SITE_DOMAIN}{uri} permanent
 }
