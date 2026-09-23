@@ -16,8 +16,9 @@ const t = useTranslations(lang);
   裸币种符号）。Stripe 要求购买币种无歧义，只写符号会被视为币种不明。
 
   注意：Astro 会把 HTML 注释原样带进产物，所以这里连"错误写法长什么样"都不能
-  举例——tests/build/pricing.test.mjs 的最后一例会扫描全部 HTML 抓那种带符号的
-  写法，注释里出现示例会让构建自己把自己判失败。要举例请写在测试或文档里。
+  举例——构建校验（scripts/verify-build.mjs 的 price-notation 段）会扫描全部
+  HTML 抓那种带符号的写法，注释里出现示例会让构建自己把自己判失败。
+  要举例请写在测试或文档里。
 */}
 {/*
   `edge-gradient` replaces `border-border` outright — the class declares its own
@@ -26,7 +27,7 @@ const t = useTranslations(lang);
   `background-clip: padding-box` (in global.css) is what keeps it from covering
   the `::after`. No `overflow: hidden` may be added to the parent.
 
-  /pricing is a `data-quiet` page: `body[data-quiet] * { box-shadow: none }`
+  /buy is a `data-quiet` page: `body[data-quiet] * { box-shadow: none }`
   kills glow but not the gradient border, so the quiet constraint still holds.
 */}
 <div class="edge-gradient rounded-xl bg-surface p-6">

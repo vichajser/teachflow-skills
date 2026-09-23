@@ -27,7 +27,7 @@ const read = (p) => readFileSync(resolve(process.cwd(), 'dist', p), 'utf8');
 /** Read a cwd-relative path (what fast-glob returns). */
 const readFromCwd = (p) => readFileSync(resolve(process.cwd(), p), 'utf8');
 
-const COMPLIANCE = ['dist/*/pricing/index.html', 'dist/*/legal/**/index.html'];
+const COMPLIANCE = ['dist/*/legal/**/index.html', 'dist/*/buy/index.html'];
 const HOME = ['en/index.html', 'ko/index.html'];
 
 /** All home-page inline `<style>` text, concatenated. */
@@ -102,13 +102,13 @@ const classTokens = (el) => (el.getAttribute('class') ?? '').split(/\s+/).filter
 describe('motion budget', () => {
   it('runs no animation on the compliance pages', async () => {
     // 读 `<body>` 的**属性**，不是在 HTML 原文里找子串。原先的
-    // `expect(html).toContain('data-quiet')` 是永真的：PriceBlock 的注释里就写着
-    // "/pricing is a `data-quiet` page"，于是 /pricing 即便丢掉属性也照样绿，
+    // `expect(html).toContain('data-quiet')` 是永真的：组件注释里就可能写着
+    // "data-quiet" 这个词，于是页面即便丢掉属性也照样绿，
     // 而 /legal/* 没有这个词，同一行断言对一个页面有效、对另一个完全失明。
     //
     // 断言的是**属性存在**，不是等于某个值：`BaseLayout.astro` 写的是
     // `data-quiet={variant === 'legal' ? '' : undefined}`，产物里是裸属性
-    // `<body data-quiet class=…>`（实测 dist/en/pricing/index.html）。
+    // `<body data-quiet class=…>`（实测 dist/en/buy/index.html）。
     // 这与 global.css 的 `body[data-quiet]` 选择器同形——存在即生效，值无关。
     const files = await fg(COMPLIANCE);
     expect(files.length).toBeGreaterThan(0);

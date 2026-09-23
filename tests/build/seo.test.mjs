@@ -109,8 +109,8 @@ describe('sitemap', () => {
 
   it('lists the real pages', () => {
     const urls = locs();
-    expect(urls).toContain(`${DOMAIN}/en/pricing/`);
-    expect(urls).toContain(`${DOMAIN}/ko/pricing/`);
+    expect(urls).toContain(`${DOMAIN}/en/buy/`);
+    expect(urls).toContain(`${DOMAIN}/ko/buy/`);
   });
 
   it('omits every error page, in both locales', () => {

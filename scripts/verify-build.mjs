@@ -109,7 +109,7 @@ const CANONICAL_EXEMPT = new Map([
 ]);
 
 // 由 dist 相对路径推导该页应有的 canonical 路径（无域、无尾斜杠）。
-//   `en/pricing/index.html` → `/en/pricing`
+//   `en/buy/index.html` → `/en/buy`
 //   `en/404/index.html`     → `/en/404`
 //   `404.html`              → `/404`（但它被豁免，见上）
 const canonicalPathOf = (page) =>
@@ -207,14 +207,12 @@ for (const page of allHtml) {
 //     有人复制了一段带价格的组件而没想清楚该页要不要承担价格承诺。
 const PRICE_PAGES = [
   'en/index.html',
-  'en/pricing/index.html',
   'en/buy/index.html',
   // /skills 与 /samples 页尾的购买横幅（CtaBanner）把价格写在按钮上——
   // 这是刻意的购买引导，不是复制漂移，所以登记进清单。
   'en/skills/index.html',
   'en/samples/index.html',
   'ko/index.html',
-  'ko/pricing/index.html',
   'ko/buy/index.html',
   'ko/skills/index.html',
   'ko/samples/index.html',
@@ -351,8 +349,8 @@ for (const page of allHtml.filter((p) => p !== REDIRECT_SHELL)) {
 // ---- 8. Stripe 审核可达性 ---------------------------------------------------
 //
 // spec §9.2 的「两分钟 Stripe 审核模拟」本要人肉交互，沙箱做不了（裁决 4）。
-// 改为对 `dist/` 的站内链接图做 BFS：从每语首页出发，商品（/skills）、价格
-// （/pricing）、退款政策（/legal/refund）须在 ≤2 跳内可达。
+// 改为对 `dist/` 的站内链接图做 BFS：从每语首页出发，商品（/skills）、购买
+// （/buy）、退款政策（/legal/refund）须在 ≤2 跳内可达。
 //
 // 客服邮箱与公司主体信息断言在**首页自身**，不写成“≤2 跳内任意页面”——后者与
 // 它宣称的“从首页出发”不是一回事：把首页页脚整个删掉，只要任意一个二跳页面还
@@ -360,7 +358,7 @@ for (const page of allHtml.filter((p) => p !== REDIRECT_SHELL)) {
 {
   const targets = (lang) => ({
     product: `/${lang}/skills`,
-    pricing: `/${lang}/pricing`,
+    buy: `/${lang}/buy`,
     refund: `/${lang}/legal/refund`,
   });
   const fileFor = (href) => {

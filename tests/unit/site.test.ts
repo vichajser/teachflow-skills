@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { SITE } from '@/config/site';
+import { SITE, buyHref } from '@/config/site';
 
 describe('SITE constants', () => {
   it('renders the price with an explicit currency code', () => {
@@ -45,6 +45,41 @@ describe('SITE constants', () => {
   it('keeps the domain in one place, with no trailing slash', () => {
     expect(SITE.domain.startsWith('https://')).toBe(true);
     expect(SITE.domain.endsWith('/')).toBe(false);
+  });
+});
+
+/**
+ * 全站「购买」按钮的唯一去处是 buyHref()：结账链接配好了直达 Polar，
+ * 没配（本地构建）回落到 /buy 的兜底页。两条路都必须成立——
+ * 回落坏了意味着本地构建的购买按钮是死链。
+ */
+describe('buyHref', () => {
+  it('points straight at checkout when a checkout URL is configured', () => {
+    if (SITE.buyCtaUrl !== '') {
+      expect(buyHref('en')).toBe(SITE.buyCtaUrl);
+      expect(buyHref('ko')).toBe(SITE.buyCtaUrl);
+    }
+  });
+
+  it('falls back to the localized /buy page when no checkout URL is configured', () => {
+    if (SITE.buyCtaUrl === '') {
+      expect(buyHref('en')).toBe('/en/buy');
+      expect(buyHref('ko')).toBe('/ko/buy');
+    }
+  });
+});
+
+/**
+ * 全站价格只从 SITE.price.display 渲染——这是被删掉的 pricing 页测试里
+ * 仍然有价值的守卫：PriceBlock 若改回写字面量价格，这例立刻红。
+ */
+describe('PriceBlock source', () => {
+  it('renders the price from SITE.price.display, never a literal', () => {
+    const src = readFileSync(
+      resolve(process.cwd(), 'src/components/PriceBlock.astro'),
+      'utf8',
+    );
+    expect(src).toMatch(/\{SITE\.price\.display\}/);
   });
 });
 

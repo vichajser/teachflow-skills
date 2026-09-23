@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 // `fs.globSync` 要 Node 22，而 package.json 声明的下限是 20.3.0 ——
 // 在 20.x 上这个具名导入直接抛 SyntaxError，整个文件一条都跑不了。
-// fast-glob 已是声明依赖，tests/build/pricing.test.mjs 也走的它。
+// fast-glob 已是声明依赖，tests/build/motion-budget.test.mjs 也走的它。
 import fg from 'fast-glob';
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';

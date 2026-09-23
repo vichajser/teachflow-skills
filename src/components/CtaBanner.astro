@@ -1,6 +1,6 @@
 ---
-import { SITE } from '@/config/site';
-import { localizePath, type Locale } from '@/i18n/config';
+import { buyHref, SITE } from '@/config/site';
+import type { Locale } from '@/i18n/config';
 import { useTranslations } from '@/i18n/t';
 
 interface Props {
@@ -13,7 +13,8 @@ const t = useTranslations(lang);
 /*
  * 内容页尾部的购买出口。读者看完六个 skill 或五张样品图之后，页面之前
  * 就此结束——最想买的那一刻没有一个按钮。这一条横幅收住那个时刻：
- * 价格直接写在按钮上（SITE.price.display，不写第二份），点过去就是 /buy。
+ * 价格直接写在按钮上（SITE.price.display，不写第二份），点过去直达
+ * Polar 结账页（buyHref 在结账未配置时回落 /buy）。
  */
 ---
 
@@ -21,7 +22,7 @@ const t = useTranslations(lang);
   <h2 class="text-xl font-semibold text-text-hi">{t('ctaBanner.title')}</h2>
   <p class="mx-auto mt-2 max-w-xl text-sm text-text-body">{t('ctaBanner.body')}</p>
   <a
-    href={localizePath('/buy', lang)}
+    href={buyHref(lang)}
     class="mt-4 inline-block rounded-lg bg-accent px-6 py-3 font-semibold text-void transition-transform hover:-translate-y-0.5 motion-reduce:hover:translate-y-0"
   >{t('ctaBanner.button')} — {SITE.price.display}</a>
 </section>

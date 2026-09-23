@@ -6,7 +6,7 @@ import SkillCard from '@/components/SkillCard.astro';
 import HeroFan from '@/components/HeroFan.astro';
 import Icon from '@/components/Icon.astro';
 import PriceBlock from '@/components/PriceBlock.astro';
-import { SITE } from '@/config/site';
+import { SITE, buyHref } from '@/config/site';
 import { SKILLS } from '@/data/skills';
 import { localizePath, type Locale } from '@/i18n/config';
 import { useTranslations } from '@/i18n/t';
@@ -44,20 +44,21 @@ const metaDescription = t('home.metaDescription');
       <p class="mt-6 max-w-2xl text-lg text-text-body">{t('home.heroBody')}</p>
 
       {/*
-        CTA hierarchy (UX review 2026-09-21): samples first, pricing second.
-        Visitors who have not yet seen the outputs will not convert on price —
-        value must precede cost. The accent (primary) style therefore goes to
-        the /samples link and the quiet (border) style to /pricing.
+        CTA hierarchy: buy first, samples second. The owner directive
+        (2026-09-23) is to shorten the path to payment — every purchase
+        button goes straight to the Polar checkout via buyHref(), with
+        /buy as the unconfigured-checkout fallback. Samples stay one
+        click away for visitors who still want proof before price.
       */}
       <div class="mt-8 flex flex-wrap gap-3">
         <a
-          href={localizePath('/samples', lang)}
+          href={buyHref(lang)}
           class="rounded-lg bg-accent px-5 py-3 font-medium text-void shadow-[0_0_40px_rgba(46,125,255,0.35)] transition-transform hover:-translate-y-0.5 motion-reduce:hover:translate-y-0"
-        >{t('home.ctaSamples')}</a>
+        >{t('home.buyCta')} — {SITE.price.display}</a>
         <a
-          href={localizePath('/pricing', lang)}
+          href={localizePath('/samples', lang)}
           class="rounded-lg border border-border px-5 py-3 font-medium text-text-hi transition-colors hover:border-accent"
-        >{t('home.ctaPricing')}</a>
+        >{t('home.ctaSamples')}</a>
       </div>
     </div>
     <HeroFan lang={lang} />
@@ -166,19 +167,14 @@ const metaDescription = t('home.metaDescription');
       </h2>
       <p class="mt-2 text-text-body">{t('home.buyBody')}</p>
       {/*
-        购买区块原先只有三条文字链接——价格看得见，行动却要点进别的页才有。
-        主按钮直接落在 /buy：价格写在按钮上，买家不用先猜"点进去多少钱"。
+        主按钮直达结账（buyHref）：价格写在按钮上，买家不用先猜
+        "点进去多少钱"，也不用再经任何中转页。
       */}
       <a
-        href={localizePath('/buy', lang)}
+        href={buyHref(lang)}
         class="mt-5 inline-block rounded-lg bg-accent px-6 py-3 font-semibold text-void shadow-[0_0_40px_rgba(46,125,255,0.35)] transition-transform hover:-translate-y-0.5 motion-reduce:hover:translate-y-0"
       >{t('home.buyCta')} — {SITE.price.display}</a>
       <ul class="mt-4 space-y-1 text-sm">
-        <li>
-          <a href={localizePath('/pricing', lang)} class="text-accent hover:underline">
-            {t('home.ctaPricing')}
-          </a>
-        </li>
         <li>
           <a href={localizePath('/legal/refund', lang)} class="text-accent hover:underline">
             {t('footer.refund')}

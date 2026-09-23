@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { parse } from 'node-html-parser';
+import { SITE } from '@/config/site';
 
 const read = (p) => readFileSync(resolve(process.cwd(), 'dist', p), 'utf8');
 
@@ -50,17 +51,21 @@ describe('home page', () => {
     }
   });
 
-  it('reaches price, refund policy and support within one click, in the reader’s own language', () => {
+  it('reaches checkout, refund policy and support within one click, in the reader’s own language', () => {
     // 必须限定在 <main> 内。全页查的话 SiteHeader 与页脚在每一页都给出这三个
     // 链接，连当前这个只有一个 <h1> 的占位首页都能通过——那是在测 BaseLayout。
     //
-    // 链接前缀必须跟着 lang 走：写死 `/en/...` 的话韩语读者点退款政策会跳到
+    // 购买按钮直达结账：配了 PUBLIC_BUY_CTA_URL 时是 Polar 链接，否则回落
+    // /buy（两种形态都可能出现在产物里，断言跟着 SITE 分叉）。退款与客服链接
+    // 的前缀必须跟着 lang 走：写死 `/en/...` 的话韩语读者点退款政策会跳到
     // 英文页，而这正是"合规页必须可读"这条要求最容易破的方式。
     for (const { lang, page } of LOCALES) {
       const main = parse(read(page)).querySelector('main');
       expect(main, `no <main> on ${page}`).not.toBeNull();
       const hrefs = main.querySelectorAll('a').map((a) => a.getAttribute('href'));
-      expect(hrefs, `${page} buries /pricing`).toContain(`/${lang}/pricing`);
+      expect(hrefs.some((h) => h === `/${lang}/buy` || (SITE.buyCtaUrl !== '' && h === SITE.buyCtaUrl)),
+        `${page} buries the buy action`,
+      ).toBe(true);
       expect(hrefs, `${page} buries the refund policy`).toContain(
         `/${lang}/legal/refund`,
       );

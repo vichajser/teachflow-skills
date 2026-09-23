@@ -9,10 +9,10 @@ export function isLocale(value: string): value is Locale {
 }
 
 /**
- * '/pricing' + 'ko' → '/ko/pricing'；'/' + 'en' → '/en'
+ * '/buy' + 'ko' → '/ko/buy'；'/' + 'en' → '/en'
  *
- * 只加前缀，**不剥离已有前缀**：`localizePath('/en/pricing', 'ko')` 得到
- * `/ko/en/pricing`。语言切换器这类拿 `Astro.url.pathname` 的调用方，
+ * 只加前缀，**不剥离已有前缀**：`localizePath('/en/buy', 'ko')` 得到
+ * `/ko/en/buy`。语言切换器这类拿 `Astro.url.pathname` 的调用方，
  * 必须写成 `localizePath(stripLocale(pathname), locale)`。
  */
 export function localizePath(path: string, locale: Locale): string {
@@ -20,7 +20,7 @@ export function localizePath(path: string, locale: Locale): string {
   return clean === '' ? `/${locale}` : `/${locale}/${clean}`;
 }
 
-/** '/ko/pricing' → '/pricing'；'/ko' → '/'；无语言前缀则原样返回 */
+/** '/ko/buy' → '/buy'；'/ko' → '/'；无语言前缀则原样返回 */
 export function stripLocale(pathname: string): string {
   const segments = pathname.split('/').filter(Boolean);
   if (segments.length > 0 && isLocale(segments[0]!)) {

@@ -8,7 +8,7 @@ import { SITE } from '@/config/site';
  * 站点级的措辞纪律。
  *
  * `security-claims.test.mjs` 只扫两张 `/security`，`legal.test.mjs` 只扫四张
- * `/legal/*`。首页、`/skills`、`/pricing` 以及今后新增的每一页都在这两张网之外
+ * `/legal/*`。首页、`/skills`、`/buy` 以及今后新增的每一页都在这两张网之外
  * ——实测过：把 "SOC 2 certified" 和 "30-day refund" 写进首页，
  * 131 个用例全绿。而首页恰恰是支付服务商审核员打开的第一页。
  *
@@ -107,7 +107,7 @@ function chunks(el) {
 /**
  * 整页切成读者眼中的小节，供"同现"判定使用。
  *
- * 两层都需要：并列的 `<article>`（/pricing 的两张购买卡）靠区块分开，整页只有
+ * 两层都需要：并列的 `<article>`（/skills 的技能卡片）靠区块分开，整页只有
  * 一个 `<article>` 的 `/legal/*` 靠标题分开。先取所有区块，再在每个区块内按
  * 标题细切；没有任何区块时退回整个 body 再按标题切。
  */

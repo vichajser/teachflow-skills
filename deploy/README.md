@@ -66,8 +66,10 @@ rsync -avz --delete dist/ user@<hetzner-host>:/srv/teachflow/dist/
 SITE_DOMAIN=<域名> caddy reload --config /etc/caddy/Caddyfile
 ```
 
-首次加载或改语法后用 `caddy validate --config /etc/caddy/Caddyfile` 先验证，
-再 `reload`。配置里的 `{$SITE_DOMAIN}` 由该环境变量在启动/重载时注入。
+首次加载或改语法后用 `SITE_DOMAIN=<域名> caddy validate --config /etc/caddy/Caddyfile`
+先验证，再 `reload`。配置里的 `{$SITE_DOMAIN}` 由该环境变量在启动/重载时注入——
+**validate 也必须带这个变量**，否则 `{$SITE_DOMAIN}` 解析为空，Caddy 会报一个
+指向 `root` 的误导性语法错误（实测），让人以为配置写错了。
 
 **不得给站点加 `basicauth`（或任何访问控制）。** Stripe 审核员必须能匿名访问；
 用 Basic Auth "先不让人看到"是预发布站点最常见的驳回原因（spec §6.1 末行、
@@ -198,7 +200,10 @@ PUBLIC_BUY_CTA_URL=https://buy.polar.sh/... npm run build
 DOMAIN=<域名>
 
 # 1) 语法与 matcher 合法性——先过这一步再 reload。
-caddy validate --config /etc/caddy/Caddyfile
+#    必须带 SITE_DOMAIN：不带的话 {$SITE_DOMAIN} 为空，validate 会报一个
+#    指向 `root` 的假错。也不要给这条命令接 `| tail` 之类的管道——管道会
+#    把非零退出码吞掉，假绿。
+SITE_DOMAIN=$DOMAIN caddy validate --config /etc/caddy/Caddyfile
 
 # 2) 无尾斜杠 canonical 必须直接 200，绝不 308 跳到 /en/。
 #    （R-13。对应 Caddyfile 的 `try_files {path}/index.html {path} {path}.html`：

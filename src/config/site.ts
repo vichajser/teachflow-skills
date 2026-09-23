@@ -4,6 +4,8 @@
  * 公司主体信息须与 Companies House 公开记录及提交给 Stripe 的资料逐字一致——
  * Stripe 人工复审会比对，不一致即驳回。
  */
+import { localizePath, type Locale } from '@/i18n/config';
+
 export const SITE = {
   domain: 'https://tryteachflow.com',
 
@@ -40,3 +42,12 @@ export const SITE = {
    */
   buyCtaUrl: import.meta.env.PUBLIC_BUY_CTA_URL ?? '',
 } as const;
+
+/**
+ * 全站「购买」按钮的唯一去处：结账链接配好了就**直达 Polar 托管结账页**，
+ * 不再经 /buy 中转——买家少点一次，就少一次流失。没配（本地构建）时回落
+ * 到 /buy，那一页自己渲染「结账尚未开放」的兜底。
+ */
+export function buyHref(lang: Locale): string {
+  return SITE.buyCtaUrl !== '' ? SITE.buyCtaUrl : localizePath('/buy', lang);
+}

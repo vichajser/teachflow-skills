@@ -53,6 +53,14 @@
 	# 跳到 `/en` 让浏览器第一跳就落在 canonical 上（R-13）。
 	redir / /en 302
 
+	# /pricing 已下线（购买路径缩短为按钮直达结账，不再要中间页）。旧地址
+	# 301 到 /buy：外链与搜索引擎索引里的 `/en/pricing` 不该落成 404。
+	# 尾斜杠形态也要吃掉，所以用 path matcher 而不是精确路径参数。
+	@pricing_en path /en/pricing /en/pricing/*
+	redir @pricing_en /en/buy permanent
+	@pricing_ko path /ko/pricing /ko/pricing/*
+	redir @pricing_ko /ko/buy permanent
+
 	# 未知语言前缀回默认语言（spec §8）。下面这份允许清单只用于**排除**真实存在的
 	# 顶层路径（语言目录、构建产物目录、静态文件），其余一律回 /en。
 	#

@@ -1,5 +1,6 @@
 ---
 import LanguageSwitcher from './LanguageSwitcher.astro';
+import { buyHref } from '@/config/site';
 import { localizePath, type Locale } from '@/i18n/config';
 import { useTranslations } from '@/i18n/t';
 
@@ -12,11 +13,10 @@ const { lang, path } = Astro.props;
 const t = useTranslations(lang);
 
 // href 均为去掉语言前缀的路径，与 BaseLayout 的 path 同源；
-// 经 localizePath 加前缀后成为 /en/skills、/ko/pricing 等。
+// 经 localizePath 加前缀后成为 /en/skills、/ko/samples 等。
 const links = [
   { href: '/skills', label: t('nav.skills') },
   { href: '/samples', label: t('nav.samples') },
-  { href: '/pricing', label: t('nav.pricing') },
   { href: '/security', label: t('nav.security') },
   { href: '/install', label: t('nav.install') },
   { href: '/docs', label: t('nav.docs') },
@@ -84,17 +84,15 @@ const links = [
 
     {/*
       Persistent header CTA: after the hero scrolls away the page would otherwise
-      offer no action outlet at all. It points at /buy — the purchase page —
-      because the samples/pricing pages each carry their own in-context links and
-      the header is the one place the buy action must survive every scroll depth.
-      /buy renders its own fallback when checkout is not configured, so this link
-      is safe in both build shapes. Kept text-sm and compact so it never competes
+      offer no action outlet at all. It goes **straight to checkout** via
+      buyHref() — every extra click between "I want this" and the payment form
+      is a leak in the funnel. Kept text-sm and compact so it never competes
       with the in-page hero CTA; hidden below sm where the 메뉴 panel carries
       the links.
     */}
     <div class="ml-auto flex items-center gap-3">
       <a
-        href={localizePath('/buy', lang)}
+        href={buyHref(lang)}
         class="hidden rounded-lg bg-accent px-3 py-1.5 text-sm font-medium text-void transition-transform hover:-translate-y-0.5 motion-reduce:hover:translate-y-0 sm:inline-block"
       >{t('nav.cta')}</a>
       <LanguageSwitcher lang={lang} path={path} />

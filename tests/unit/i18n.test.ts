@@ -27,7 +27,7 @@ describe('locale config', () => {
 
 describe('localizePath', () => {
   it('prefixes a path with the locale', () => {
-    expect(localizePath('/pricing', 'ko')).toBe('/ko/pricing');
+    expect(localizePath('/buy', 'ko')).toBe('/ko/buy');
     expect(localizePath('/legal/refund', 'en')).toBe('/en/legal/refund');
   });
 
@@ -37,19 +37,19 @@ describe('localizePath', () => {
   });
 
   it('accepts paths with or without a leading slash', () => {
-    expect(localizePath('pricing', 'ko')).toBe('/ko/pricing');
+    expect(localizePath('buy', 'ko')).toBe('/ko/buy');
   });
 
   it('normalises redundant and trailing slashes without doubling the prefix', () => {
-    expect(localizePath('/pricing/', 'ko')).toBe('/ko/pricing');
-    expect(localizePath('//pricing', 'ko')).toBe('/ko/pricing');
+    expect(localizePath('/buy/', 'ko')).toBe('/ko/buy');
+    expect(localizePath('//buy', 'ko')).toBe('/ko/buy');
     expect(localizePath('', 'en')).toBe('/en');
   });
 });
 
 describe('stripLocale', () => {
   it('removes the locale prefix', () => {
-    expect(stripLocale('/ko/pricing')).toBe('/pricing');
+    expect(stripLocale('/ko/buy')).toBe('/buy');
     expect(stripLocale('/en/legal/terms')).toBe('/legal/terms');
   });
 
@@ -59,14 +59,14 @@ describe('stripLocale', () => {
   });
 
   it('leaves unprefixed paths untouched', () => {
-    expect(stripLocale('/pricing')).toBe('/pricing');
+    expect(stripLocale('/buy')).toBe('/buy');
   });
 
   // '/english/' merely *starts with* a locale-like segment; treating it as
   // prefixed would corrupt every path whose first segment is not exactly 'en'/'ko'.
   it('does not mistake a locale-like segment for a real locale prefix', () => {
     expect(stripLocale('/english/')).toBe('/english');
-    expect(stripLocale('/english/pricing')).toBe('/english/pricing');
+    expect(stripLocale('/english/buy')).toBe('/english/buy');
   });
 
   it('maps the site root to the site root', () => {
@@ -92,8 +92,8 @@ describe('localeFromPath', () => {
 
 describe('useTranslations', () => {
   it('returns the string for the requested locale', () => {
-    expect(useTranslations('en')('nav.pricing')).toBe('Pricing');
-    expect(useTranslations('ko')('nav.pricing')).toBe('가격');
+    expect(useTranslations('en')('nav.skills')).toBe('Skills');
+    expect(useTranslations('ko')('nav.skills')).toBe('스킬');
   });
 
   it('never returns an empty string for a known key', () => {
@@ -108,7 +108,6 @@ describe('useTranslations', () => {
       'site.tagline',
       'nav.skills',
       'nav.samples',
-      'nav.pricing',
       'nav.security',
       'nav.docs',
       'nav.faq',
@@ -138,7 +137,7 @@ describe('useTranslations', () => {
 
 /**
  * `src/i18n/t.ts` 的 JSDoc 立了规矩：「韩文缺键时回落英文，绝不返回空串或裸键
- * ——页面上出现 "nav.pricing" 这样的裸键比显示英文更糟」。这一段是那条规矩的
+ * ——页面上出现 "nav.skills" 这样的裸键比显示英文更糟」。这一段是那条规矩的
  * 测试。
  *
  * 它补的是一个实测漏网：把 `?? en[key]` 改成 `?? (key as string)`，
@@ -162,15 +161,15 @@ describe('useTranslations falls back to English instead of leaking a bare key', 
   it('serves the English string when the Korean one is missing', async () => {
     const ko = (await import('@/i18n/ko.json')).default as Record<string, string>;
     const en = (await import('@/i18n/en.json')).default as Record<string, string>;
-    const KEY = 'nav.pricing';
+    const KEY = 'nav.skills';
     const saved = ko[KEY];
     try {
       delete ko[KEY];
       const t = useTranslations('ko');
-      expect(t('nav.pricing')).toBe(en[KEY]);
+      expect(t('nav.skills')).toBe(en[KEY]);
       // 反面写死：回落结果不能是键名本身，也不能是空串。
-      expect(t('nav.pricing')).not.toBe(KEY);
-      expect(t('nav.pricing').length).toBeGreaterThan(0);
+      expect(t('nav.skills')).not.toBe(KEY);
+      expect(t('nav.skills').length).toBeGreaterThan(0);
     } finally {
       ko[KEY] = saved;
     }
@@ -185,7 +184,7 @@ describe('useTranslations falls back to English instead of leaking a bare key', 
     //
     // 断言的是 `undefined` 而不是某个字符串：`?? en[key]` 在双缺时给出
     // `undefined`，渲染成 Astro 表达式就是**什么都不显示**——一个空位。
-    // 而 `?? (key as string)` 会把 "nav.pricing" 这样的裸键印在页面上给买家看。
+    // 而 `?? (key as string)` 会把 "nav.skills" 这样的裸键印在页面上给买家看。
     // 空位是个显眼的 bug，裸键看上去像是"内容"，后者更糟。这条锁死前者。
     const t = useTranslations('ko');
     expect(t('this.key.does.not.exist' as TranslationKey)).toBeUndefined();
