@@ -39,6 +39,15 @@ const CONFIG_DOMAIN = grab('src/config/site.ts', 'domain'); // 交叉核对用
 // 全站唯一合法价格写法。与上面同款文本解析：`site.ts` 里 `display` 只出现一次。
 const PRICE_DISPLAY = grab('src/config/site.ts', 'display');
 const PRICE_AMOUNT = grab('src/config/site.ts', 'amount');
+// 结账链接：env 覆盖优先，否则取 site.ts 里的 `POLAR_CHECKOUT_URL` 默认值。
+// 不能用 grab()——它是 `const X = '...'` 顶层声明，不是对象属性。
+// 空串（显式覆盖）= 全站回落到 /buy 兜底页，下面的可达性检查随之分叉。
+const BUY_CTA_URL =
+  process.env.PUBLIC_BUY_CTA_URL ??
+  (readFileSync(resolve(ROOT, 'src/config/site.ts'), 'utf8').match(
+    /POLAR_CHECKOUT_URL\s*=\s*'([^']+)'/,
+  )?.[1] ??
+    '');
 // 带货币符号（含 HTML 实体）的错误写法。整数部分取自 `amount`，小数部分可选：
 // `$29`、`$29.9`、`$29.90` 三种形态都要抓到。
 const DOLLAR_PRICE = new RegExp(
@@ -349,8 +358,10 @@ for (const page of allHtml.filter((p) => p !== REDIRECT_SHELL)) {
 // ---- 8. Stripe 审核可达性 ---------------------------------------------------
 //
 // spec §9.2 的「两分钟 Stripe 审核模拟」本要人肉交互，沙箱做不了（裁决 4）。
-// 改为对 `dist/` 的站内链接图做 BFS：从每语首页出发，商品（/skills）、购买
-// （/buy）、退款政策（/legal/refund）须在 ≤2 跳内可达。
+// 改为对 `dist/` 的站内链接图做 BFS：从每语首页出发，商品（/skills）、
+// 退款政策（/legal/refund）须在 ≤2 跳内可达。购买路径分两种形态：
+// 配了结账链接时首页按钮**直达站外结账**（一跳，比经 /buy 中转更短），
+// 断言首页出现该链接；显式置空时回落 /buy 兜底页，BFS 须 ≤2 跳可达。
 //
 // 客服邮箱与公司主体信息断言在**首页自身**，不写成“≤2 跳内任意页面”——后者与
 // 它宣称的“从首页出发”不是一回事：把首页页脚整个删掉，只要任意一个二跳页面还
@@ -358,7 +369,9 @@ for (const page of allHtml.filter((p) => p !== REDIRECT_SHELL)) {
 {
   const targets = (lang) => ({
     product: `/${lang}/skills`,
-    buy: `/${lang}/buy`,
+    // 直达结账时 /buy 不再出现在首页，BFS 查不到它不是缺陷——购买路径由
+    // 下面的站外链接断言接管。只有回落形态才把 /buy 列入两跳清单。
+    ...(BUY_CTA_URL === '' ? { buy: `/${lang}/buy` } : {}),
     refund: `/${lang}/legal/refund`,
   });
   const fileFor = (href) => {
@@ -392,6 +405,9 @@ for (const page of allHtml.filter((p) => p !== REDIRECT_SHELL)) {
     }
     if (parse(homeRaw).querySelectorAll('a[href^="mailto:"]').length === 0) {
       fail('audit-reachability', `${lang} home page itself carries no clickable mailto: link`);
+    }
+    if (BUY_CTA_URL !== '' && !homeRaw.includes(BUY_CTA_URL)) {
+      fail('audit-reachability', `${lang} home does not link straight to the checkout`);
     }
     if (!homeRaw.includes('CROSSXTOP LTD')) {
       fail('audit-reachability', `${lang} home page itself carries no entity details`);

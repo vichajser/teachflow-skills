@@ -155,18 +155,23 @@ shop-api 的 `PUBLIC_BASE_URL`（在 `/etc/teachflow/shop-api.env` 里）是第�
 
 ### 构建期变量：`PUBLIC_BUY_CTA_URL`
 
-`/buy` 上的结账按钮指向 Polar 的托管结账页。这个 URL 在 **构建时** 读入：
+购买按钮指向 Polar 的托管结账页。线上正式链接已作为默认值提交在
+`src/config/site.ts` 的 `POLAR_CHECKOUT_URL` 里（它是公开值，本来就印在
+每页 HTML 中），常规构建**不需要**设任何变量：
 
 ```bash
-PUBLIC_BUY_CTA_URL=https://buy.polar.sh/... npm run build
+npm run build
 ```
 
-不设的话 `/buy` 会渲染成「直接结账尚未开放」，把读者指向邮件咨询——
-这是刻意的，一条通往不存在的结账页的死链比没有链接坏得多。所以在 Polar 上
-把商品建起来之前，**不要**随便填一个值让按钮"看起来正常"。
+`PUBLIC_BUY_CTA_URL` 只剩覆盖用途：支付演练时传 sandbox 链接
+（`PUBLIC_BUY_CTA_URL=https://sandbox-api.polar.sh/... npm run build`），
+或显式设空串（`PUBLIC_BUY_CTA_URL= npm run build`）把全站打回
+「直接结账尚未开放」、把读者指向邮件咨询的兜底形态。
 
 它与 shop-api 的运行时变量是两套东西：这一个进的是静态产物，改了必须重新
-`npm run build` 并重新 rsync，重启服务没有任何作用。
+`npm run build` 并重新 rsync，重启服务没有任何作用。换正式商品（新的
+checkout link）时改 `POLAR_CHECKOUT_URL` 一处即可，测试里的形状断言
+不绑定具体值，不用跟着动。
 
 ---
 
