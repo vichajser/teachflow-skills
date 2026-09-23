@@ -2,6 +2,7 @@
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import { SITE } from '@/config/site';
 import SampleCard from '@/components/SampleCard.astro';
+import CtaBanner from '@/components/CtaBanner.astro';
 import { SAMPLES } from '@/data/samples';
 import { useTranslations } from '@/i18n/t';
 import type { Locale } from '@/i18n/config';
@@ -31,9 +32,15 @@ const t = useTranslations(lang);
   */}
   <p class="mt-3 max-w-2xl text-sm text-text-mute">{t('samples.note')}</p>
 
-  <div class="mt-10 grid gap-4 pb-16 md:grid-cols-2 lg:grid-cols-3">
+  <div class="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
     {SAMPLES.map((sample) => (
       <SampleCard lang={lang} sample={sample} headingLevel={2} />
     ))}
   </div>
+
+  {/*
+    看完真实产出物的读者只差一个动作。横幅把价格与入口一起给出来，
+    避免"想买但得自己去找购买页"这段最容易流失的路。
+  */}
+  <CtaBanner lang={lang} />
 </BaseLayout>

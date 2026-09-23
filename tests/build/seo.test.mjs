@@ -13,7 +13,7 @@ const read = (p) => parse(readFileSync(resolve(process.cwd(), 'dist', p), 'utf8'
 /**
  * dist 下每一个 index.html，相对 dist 的 posix 路径。
  *
- * 下面两条守的是硬性合规要求（Stripe 与 Agensi 都要求站点不得被 noindex；
+ * 下面两条守的是硬性合规要求（支付服务商审核要求站点不得被 noindex；
  * description 是 SEO 的基本盘），而构建产物是 26 页。原先它们只读两张首页，
  * 任何子页面被加上 noindex 都无人察觉。枚举全量之后，404.html 不是
  * index.html，自然落在枚举之外——它同样不该 noindex，但没有目录索引形态。

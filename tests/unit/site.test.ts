@@ -104,7 +104,7 @@ describe('domain discipline', () => {
 
 /**
  * 产品名同样只有一个出口。改名时最容易漏的是 `<title>`——它不在正文里，
- * 肉眼扫页面看不见，而那正是 Stripe 与 Agensi 审核会读的地方。
+ * 肉眼扫页面看不见，而那正是支付服务商审核会读的地方。
  */
 describe('product name discipline', () => {
   it('is TeachFlow, with no locale suffix', () => {

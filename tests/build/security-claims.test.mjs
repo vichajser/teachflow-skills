@@ -24,7 +24,7 @@ describe('/security wording discipline', () => {
     }
   });
 
-  it('names all eight Agensi scans on the English page', () => {
+  it('names all eight risk rows on the English page', () => {
     const html = read('en/security/index.html');
     for (const scan of [
       'Prompt injection',

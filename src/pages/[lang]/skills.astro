@@ -3,6 +3,7 @@ import { getCollection, render } from 'astro:content';
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import { SITE } from '@/config/site';
 import SkillCard from '@/components/SkillCard.astro';
+import CtaBanner from '@/components/CtaBanner.astro';
 import { SKILLS, stageClass } from '@/data/skills';
 import { useTranslations } from '@/i18n/t';
 import type { Locale } from '@/i18n/config';
@@ -126,4 +127,10 @@ const sections = await Promise.all(
       </article>
     ))}
   </div>
+
+  {/*
+    六个详情各带一大段折叠正文，读者滚到底时购买意愿最高——
+    页尾给一个直接的购买出口，而不是让他滚回顶部找导航。
+  */}
+  <CtaBanner lang={lang} />
 </BaseLayout>

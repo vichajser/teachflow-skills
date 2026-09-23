@@ -118,29 +118,40 @@
 	try_files {path}/index.html {path} {path}.html
 
 	handle_errors {
-		# 各语言的未命中路由进对应的本地化 404，保持语言上下文（spec §8 末行）。
-		# 其余（含根级语言中立兜底）走 `/404.html`。三个 `rewrite` 是互斥组：
-		# 带 matcher 的排在前面，只有第一个命中的会执行；最后一条无 matcher 用
-		# `*` 兜底——**不能**写成 `rewrite /404.html`，那会把 `/404.html` 当成
-		# matcher 而漏掉目标参数，Caddy 直接报错。
-		@en path /en/*
-		rewrite @en /en/404/index.html
-		@ko path /ko/*
-		rewrite @ko /ko/404/index.html
-		rewrite * /404.html
+		# route 块强制按书写顺序执行：Caddy 的默认指令顺序里 rewrite 排在
+		# respond **之前**，不写 route 的话，兜底的 `rewrite * /404.html`
+		# 会先把 /api/* 改写成 /404.html，下面的 @shop_err 永远匹配不到——
+		# shop-api 宕机时访客看到的是一页假装正常的 404，排障时完全误导。
+		route {
+			# shop-api 的故障**不进**本地化错误页：原样透传状态码。
+			# 这一条必须排在所有 rewrite 之前。
+			@shop_err path /api/* /download /download/*
+			respond @shop_err "{err.status_code} {err.status_text}" {err.status_code}
 
-		# `status {err.status_code}` 不是可有可无的：`rewrite` 把路径改写到错误页后，
-		# 裸 `file_server` 会把这次投递当成**成功**，返回 **200**（软 404）。`file_server`
-		# 的 `status` 子指令正是为“以正确的状态码投递自定义错误页”而存在的——用
-		# `{err.status_code}` 把原始错误码（这里是 404）带回来（R-50 后半）。
-		#
-		# 早先这里写的是“`file_server` 在 `handle_errors` 内会自动保留错误状态码”，
-		# 那句话是错的，别再改回去。
-		#
-		# 上线后**必须**用 `curl -sI https://<域名>/en/does-not-exist` 复核：应为
-		# `404`，**不是 `200`**，且响应体是对应语言的 404 页。见 deploy/README.md §6。
-		file_server {
-			status {err.status_code}
+			# 各语言的未命中路由进对应的本地化 404，保持语言上下文（spec §8 末行）。
+			# 其余（含根级语言中立兜底）走 `/404.html`。三个 `rewrite` 是互斥组：
+			# 带 matcher 的排在前面，只有第一个命中的会执行；最后一条无 matcher 用
+			# `*` 兜底——**不能**写成 `rewrite /404.html`，那会把 `/404.html` 当成
+			# matcher 而漏掉目标参数，Caddy 直接报错。
+			@en path /en/*
+			rewrite @en /en/404/index.html
+			@ko path /ko/*
+			rewrite @ko /ko/404/index.html
+			rewrite * /404.html
+
+			# `status {err.status_code}` 不是可有可无的：`rewrite` 把路径改写到错误页后，
+			# 裸 `file_server` 会把这次投递当成**成功**，返回 **200**（软 404）。`file_server`
+			# 的 `status` 子指令正是为“以正确的状态码投递自定义错误页”而存在的——用
+			# `{err.status_code}` 把原始错误码（这里是 404）带回来（R-50 后半）。
+			#
+			# 早先这里写的是“`file_server` 在 `handle_errors` 内会自动保留错误状态码”，
+			# 那句话是错的，别再改回去。
+			#
+			# 上线后**必须**用 `curl -sI https://<域名>/en/does-not-exist` 复核：应为
+			# `404`，**不是 `200`**，且响应体是对应语言的 404 页。见 deploy/README.md §6。
+			file_server {
+				status {err.status_code}
+			}
 		}
 	}
 

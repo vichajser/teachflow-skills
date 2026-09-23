@@ -165,6 +165,14 @@ const metaDescription = t('home.metaDescription');
         <Icon name="cart" size={22} class="text-accent" />{t('home.buyTitle')}
       </h2>
       <p class="mt-2 text-text-body">{t('home.buyBody')}</p>
+      {/*
+        购买区块原先只有三条文字链接——价格看得见，行动却要点进别的页才有。
+        主按钮直接落在 /buy：价格写在按钮上，买家不用先猜"点进去多少钱"。
+      */}
+      <a
+        href={localizePath('/buy', lang)}
+        class="mt-5 inline-block rounded-lg bg-accent px-6 py-3 font-semibold text-void shadow-[0_0_40px_rgba(46,125,255,0.35)] transition-transform hover:-translate-y-0.5 motion-reduce:hover:translate-y-0"
+      >{t('home.buyCta')} — {SITE.price.display}</a>
       <ul class="mt-4 space-y-1 text-sm">
         <li>
           <a href={localizePath('/pricing', lang)} class="text-accent hover:underline">

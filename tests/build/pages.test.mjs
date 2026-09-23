@@ -78,10 +78,11 @@ function hangulRatio(text) {
   return hangul / chars.length;
 }
 
-// `buy` 是后来加的（skill 商业闭环 T14）。它进这份清单而不是单开一套，
-// 是因为语言对等与"页面真的建出来了"这两件事对它的要求与其余页面一字不差。
-const LOCALIZED = ['faq', 'docs', 'samples', 'install', 'buy', '404'].flatMap((slug) =>
-  ['en', 'ko'].map((lang) => ({ lang, slug, file: `${lang}/${slug}/index.html` })),
+// `buy` 是后来加的（skill 商业闭环 T14），`buy/success` 是支付完成的落地页。
+// 它们进这份清单而不是单开一套，是因为语言对等与"页面真的建出来了"这两件事
+// 对它们的要求与其余页面一字不差。
+const LOCALIZED = ['faq', 'docs', 'samples', 'install', 'buy', 'buy/success', '404'].flatMap(
+  (slug) => ['en', 'ko'].map((lang) => ({ lang, slug, file: `${lang}/${slug}/index.html` })),
 );
 
 describe('the nine new pages exist in both locales', () => {
@@ -433,11 +434,10 @@ describe('/buy links out to checkout instead of hosting one', () => {
         .map((a) => a.getAttribute('href'));
 
       if (SITE.buyCtaUrl === '') {
-        // 结账未开放：不得出现任何指向站外结账的链接，且必须留下两条
+        // 结账未开放：不得出现任何指向站外结账的链接，且必须留下邮件这条
         // 现在就走得通的路——否则这一页等于把买家送进死胡同。
         expect(hrefs, `${file} links to an unconfigured checkout`)
           .not.toContain(SITE.buyCtaUrl);
-        expect(hrefs, `${file} drops the Agensi route`).toContain(SITE.agensiListingUrl);
         expect(hrefs, `${file} drops the email route`)
           .toContain(`mailto:${SITE.supportEmail}`);
       } else {

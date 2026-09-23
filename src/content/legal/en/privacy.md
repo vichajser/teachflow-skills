@@ -29,10 +29,10 @@ from our own server.
   that way: if this site ever uses a web font, we will serve it ourselves.
 - **No advertising and no profiling.**
 
-Some of our pages carry ordinary text links to other organisations — our Agensi listing,
-and the ICO below. A link is not a request: your browser contacts those sites only if you
-click one, and from that point their own privacy policies apply. Simply opening a page on
-this site contacts nobody but us.
+Some of our pages carry ordinary text links to other organisations — the ICO below, and
+the statutes linked from our refund policy. A link is not a request: your browser
+contacts those sites only if you click one, and from that point their own privacy
+policies apply. Simply opening a page on this site contacts nobody but us.
 
 Our web server keeps standard request logs — IP address, timestamp, requested path, user
 agent — which exist to keep the server running and secure. Our lawful basis is legitimate
@@ -82,9 +82,10 @@ deleted once the matter is closed and there is no longer a reason to keep it.
 
 ## When you buy
 
-If you buy on Agensi, Agensi takes your payment as merchant of record and is the
-controller of the data you give them at checkout. Their privacy policy governs that; see
-<https://www.agensi.io/terms>. We receive a payout record, not your card details.
+If you buy through our hosted checkout, Polar takes your payment as merchant of record
+and is the controller of the data you give at checkout. Their privacy policy governs
+that. We receive the order details we need to deliver your purchase — your email
+address and what you bought — never your card details.
 
 If you buy directly from us, we invoice you by email and take payment through a regulated
 payment provider. **We never see or store your full card number** — the provider handles

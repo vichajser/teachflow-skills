@@ -4,10 +4,12 @@ import { createStorage } from './lib/storage.ts';
 import { pruneRateLimits } from './lib/ratelimit.ts';
 import { archiveMaster } from './jobs/archive-master.ts';
 import { notifyUpdate, type NotifyData } from './jobs/notify-update.ts';
+import { sendDelivery, type DeliveryData } from './jobs/send-delivery.ts';
 import { reconcile } from './jobs/reconcile.ts';
 import {
   ARCHIVE_MASTER,
   NOTIFY_UPDATE,
+  SEND_DELIVERY,
   PRUNE_RATE_LIMITS,
   RECONCILE,
   createBoss,
@@ -75,6 +77,7 @@ async function main(): Promise<void> {
           mailer: {
             apiKey: config.resendApiKey,
             from: config.mailFrom,
+            replyTo: config.mailReplyTo,
             pool,
             dailyBudget: config.dailyMailBudget,
           },
@@ -90,6 +93,28 @@ async function main(): Promise<void> {
         `[notify] release ${job.data.releaseId} sent=${result.sent} dropped=${result.dropped}` +
           (result.rescheduledAt ? ` 顺延至 ${result.rescheduledAt.toISOString()}，还欠 ${result.remaining} 封` : ''),
       );
+    }
+  });
+
+  await boss.work(SEND_DELIVERY, { batchSize: 1 }, async (arg: unknown) => {
+    for (const job of jobsOf<DeliveryData>(arg)) {
+      const result = await sendDelivery(
+        {
+          pool,
+          mailer: {
+            apiKey: config.resendApiKey,
+            from: config.mailFrom,
+            replyTo: config.mailReplyTo,
+            pool,
+            dailyBudget: config.dailyMailBudget,
+          },
+          tokenSecret: config.downloadTokenSecret,
+          ttlDays: config.downloadTokenTtlDays,
+          publicBaseUrl: config.publicBaseUrl,
+        },
+        job.data,
+      );
+      console.log(`[delivery] order ${job.data.orderId} ${result}`);
     }
   });
 

@@ -1,7 +1,11 @@
 # 部署到 Hetzner
 
-静态站，`dist/` 由服务器上的 Caddy 直接托管，**服务器上不需要 Node 运行时**
-（spec §2）。构建在本地或 CI 完成，只把产物 rsync 过去。
+静态站，`dist/` 由服务器上的 Caddy 直接托管。构建在本地或 CI 完成，只把产物 rsync 过去。
+
+> 2026-09-23 起服务器上**需要** Node 运行时：shop-api（发版 / 履约 / 下载）
+> 以 systemd 单元常驻，要求 Node ≥ 22.18（`shop-api/package.json` 的 engines；
+> `start` 直接跑 `node src/server.ts`，靠 Node 内建的 TypeScript 剥离）。
+> 与站点仓库的 `>=20.3.0` 不同，装错版本的症状是启动时一个看不懂的语法错误。
 
 ---
 
@@ -155,7 +159,7 @@ shop-api 的 `PUBLIC_BASE_URL`（在 `/etc/teachflow/shop-api.env` 里）是第�
 PUBLIC_BUY_CTA_URL=https://buy.polar.sh/... npm run build
 ```
 
-不设的话 `/buy` 会渲染成「直接结账尚未开放」，把读者指回 Agensi 与邮件——
+不设的话 `/buy` 会渲染成「直接结账尚未开放」，把读者指向邮件咨询——
 这是刻意的，一条通往不存在的结账页的死链比没有链接坏得多。所以在 Polar 上
 把商品建起来之前，**不要**随便填一个值让按钮"看起来正常"。
 

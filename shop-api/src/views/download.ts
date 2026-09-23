@@ -99,6 +99,8 @@ export interface PageArgs {
   orderId: string;
   expiresAt: Date;
   items: readonly DownloadItem[];
+  /** 「下载全部」的地址；一个可下的条目都没有时为 null，按钮不出现。 */
+  downloadAllHref: string | null;
 }
 
 const PAGE = {
@@ -107,6 +109,8 @@ const PAGE = {
     heading: 'Your TeachFlow downloads',
     meta: (a: PageArgs) => `Order ${a.orderId}. This page works until ${day(a.expiresAt)}.`,
     get: 'Download',
+    getAll: 'Download all as one zip',
+    getAllNote: 'One click, one file: every skill below, each as its own zip inside.',
     noteHead: 'About these files',
     note: (a: PageArgs) =>
       [
@@ -120,6 +124,8 @@ const PAGE = {
     heading: 'TeachFlow 다운로드',
     meta: (a: PageArgs) => `주문번호 ${a.orderId}. 이 페이지는 ${day(a.expiresAt)}까지 유효합니다.`,
     get: '내려받기',
+    getAll: '전체를 zip 하나로 내려받기',
+    getAllNote: '한 번의 클릭으로 파일 하나. 아래 스킬 전부가 각자의 zip으로 들어 있습니다.',
     noteHead: '파일 안내',
     note: (a: PageArgs) =>
       [
@@ -147,12 +153,26 @@ export function downloadPage(a: PageArgs): string {
     )
     .join('\n');
 
+  // 六个包一个一个点，是买家收到邮件后最先抱怨的事。这个按钮与逐项下载
+  // 走同一条签名链接、同一套权利校验，只是服务器把六次往返合成一个 zip。
+  const all =
+    a.downloadAllHref === null
+      ? ''
+      : [
+          '<div class="item" style="border-color:' + PALETTE.accent + '">',
+          `<h2>${escapeHtml(t.getAll)}</h2>`,
+          `<p class="ver">${escapeHtml(t.getAllNote)}</p>`,
+          `<a class="get" href="${escapeHtml(a.downloadAllHref)}">${escapeHtml(t.getAll)}</a>`,
+          '</div>',
+        ].join('\n');
+
   return shell(
     a.lang,
     t.title,
     [
       `<h1>${escapeHtml(t.heading)}</h1>`,
       `<p class="meta">${escapeHtml(t.meta(a))}</p>`,
+      all,
       items,
       '<div class="note">',
       `<h2>${escapeHtml(t.noteHead)}</h2>`,

@@ -30,49 +30,38 @@ describe('/pricing', () => {
     }
   });
 
-  it('gives a direct-purchase path, not only the marketplace', () => {
-    // spec §10.3：站内无结算时，若只有跳第三方的按钮，审核员会质疑账户用途
+  it('gives a direct-purchase path with an email fallback', () => {
     for (const page of PAGES) {
       expect(read(page)).toContain('mailto:crossxtop@gmail.com');
     }
   });
 
-  it('gives the direct-purchase card its own refund remedy, with equal layout weight', () => {
-    // 缺口：`/legal/delivery` 承诺直售"2 个工作日内发链接"，`/legal/refund`
-    // 要求全额退款"14 天内且尚未下载"——最坏情况买家在等待中花掉 14 天里的
-    // 2 天。退款页已写了补救（回信可要求暂缓发链接以保全整段窗口），
-    // 但补救写在退款页上，而买家做决定是在 /pricing 的直售卡前。
-    //
-    // 断言读的是**卡内**，不是整页：页面底部本来就有一组全页级政策链接，
-    // 按整页扫会永真。两个 `<article>` 按出现顺序是 Agensi 卡、直售卡。
-    //
-    // 同时守 spec §10.3 的"两条路径版面权重相等"：两张卡的类必须逐字相同，
-    // 且各自恰好一条政策链接。把直售卡做厚（多一段、加个按钮样式）会让
-    // 审核员读出"这才是我们想让你走的路"，那正是 §10.3 要避免的。
+  it('gives the single purchase card a checkout link and its own refund remedy', () => {
+    // 购买路径只剩官网直售一条，市场卡已随该渠道下线移除。
+    // 缺口背景：`/legal/delivery` 承诺发票路径"2 个工作日内发链接"，
+    // `/legal/refund` 要求全额退款"14 天内且尚未下载"——最坏情况买家在等待中
+    // 花掉 14 天里的 2 天。补救（回信可要求暂缓发链接）必须出现在买家做决定的
+    // 地方，所以断言读的是**卡内**，不是整页：页面底部本来就有一组全页级政策
+    // 链接，按整页扫会永真。
     for (const page of PAGES) {
       const lang = page.slice(0, 2);
       const root = parse(read(page));
       const cards = root.querySelectorAll('article');
-      expect(cards.length, `${page} does not show exactly two purchase cards`).toBe(2);
-      const [agensi, direct] = cards;
+      expect(cards.length, `${page} does not show exactly one purchase card`).toBe(1);
+      const card = cards[0];
 
       expect(
-        direct.querySelector(`a[href="/${lang}/legal/refund"]`),
-        `${page}: the direct-purchase card offers no refund remedy`,
+        card.querySelector(`a[href="/${lang}/buy"]`),
+        `${page}: the purchase card lost its checkout link`,
       ).not.toBeNull();
       expect(
-        agensi.querySelector(`a[href="/${lang}/legal/delivery"]`),
-        `${page}: the Agensi card lost its delivery link`,
+        card.querySelector(`a[href="/${lang}/legal/refund"]`),
+        `${page}: the purchase card offers no refund remedy`,
       ).not.toBeNull();
-
       expect(
-        direct.getAttribute('class'),
-        `${page}: the two purchase cards no longer carry equal layout weight (spec §10.3)`,
-      ).toBe(agensi.getAttribute('class'));
-      expect(
-        direct.querySelectorAll('a').length,
-        `${page}: the direct card has more links than the Agensi card`,
-      ).toBe(agensi.querySelectorAll('a').length);
+        card.querySelector('a[href="mailto:crossxtop@gmail.com"]'),
+        `${page}: the purchase card lost its invoice-by-email fallback`,
+      ).not.toBeNull();
     }
   });
 

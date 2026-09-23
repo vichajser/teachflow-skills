@@ -8,7 +8,7 @@ export const SITE = {
   domain: 'https://tryteachflow.com',
 
   // 产品名的唯一出口。曾以字面量散落在十余个 `<title>` 里，改名时漏一处
-  // 就是一页标题与全站不一致——那是 Stripe 与 Agensi 审核会看的地方。
+  // 就是一页标题与全站不一致——那是支付服务商审核会看的地方。
   productName: 'TeachFlow',
 
   companyName: 'CROSSXTOP LTD',
@@ -21,9 +21,7 @@ export const SITE = {
 
   // 全站价格的唯一出口。写作 "USD 29.90"，不写 "$29.9"。
   //
-  // 这个数是**六合一套装价**，对应 Agensi 的原生 bundle 商品
-  // （其 /terms §5.4：购买 bundle 即取得其中全部 skill 的所有权）。
-  // 六个 skill 在 Agensi 仍各自独立上架、可单买，官网只卖套装——
+  // 这个数是**六合一套装价**：六个 skill 只在官网成套出售，不单卖——
   // 所以官网出现的价格永远只有这一个数，不列单品阶梯。
   price: {
     currency: 'USD',
@@ -38,11 +36,7 @@ export const SITE = {
    * 构建时从 `PUBLIC_BUY_CTA_URL` 取，没设就是空串：商品还没在 Polar
    * 建起来之前链过去只会落到一个不存在的结账页，而一条死的结账链接
    * 比没有结账链接坏得多。空串时 `/buy` 渲染成「直接结账尚未开放」，
-   * 把读者指回 Agensi 与邮件这两条已经能走通的路。
+   * 把读者指向邮件这条已经能走通的路。
    */
   buyCtaUrl: import.meta.env.PUBLIC_BUY_CTA_URL ?? '',
-
-  agensiListingUrl: 'https://www.agensi.io',
-  // 只链接，不复述其退款天数：Agensi 自家 /terms 与 /stripe-terms 互相矛盾。
-  agensiTermsUrl: 'https://www.agensi.io/terms',
 } as const;

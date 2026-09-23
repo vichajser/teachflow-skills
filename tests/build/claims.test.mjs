@@ -9,8 +9,8 @@ import { SITE } from '@/config/site';
  *
  * `security-claims.test.mjs` 只扫两张 `/security`，`legal.test.mjs` 只扫四张
  * `/legal/*`。首页、`/skills`、`/pricing` 以及今后新增的每一页都在这两张网之外
- * ——实测过：把 "SOC 2 certified" 和 "30-day refund via Agensi" 写进首页，
- * 131 个用例全绿。而首页恰恰是 Stripe 与 Agensi 审核员打开的第一页。
+ * ——实测过：把 "SOC 2 certified" 和 "30-day refund" 写进首页，
+ * 131 个用例全绿。而首页恰恰是支付服务商审核员打开的第一页。
  *
  * 这张网按页面**渲染后的可见文本**扫（剥掉 script/style），不扫原始 HTML：
  * 扫 HTML 的话 Tailwind 的任意值（`w-[50%]`）和 data 属性会把百分号一类的
@@ -36,7 +36,7 @@ function htmlFiles(dir = DIST) {
  * 实测过——在 `PriceBlock.astro` 顶层插一条
  * `<!-- MUT7B: SOC 2 certified and penetration-tested by a third party. -->`，
  * 它进入 4 个生产页面，而全部测试仍然全绿、`verify-build.mjs` 仍然 exit 0。
- * 注释对读者不可见，但 `view-source` 与爬虫都能看到，Stripe / Agensi 审核员
+ * 注释对读者不可见，但 `view-source` 与爬虫都能看到，支付服务商审核员
  * 恰恰会看源码；"绝不声称第三方审计"这条纪律不能靠注释绕过去。
  *
  * 本轮已把 `src/**` 的 `<!-- -->` 全部改成 `{/* *\/}`（后者不进产物），
@@ -79,8 +79,7 @@ function regionOf(el) {
  * 把一个区块按标题切成读者眼中的小节。
  *
  * 光按 DOM 区块切不够：四张 `/legal/*` 整页只有**一个** `<article>`，切完还是
- * 整页，于是"Agensi 小节"与八百字外"直销小节"的 14 天又被判成同现。标题是
- * 读者实际感知的分界，`legal.test.mjs` 的 `section()` 用的也是这条线。
+ * 整页，分处两节的两个天数会被判成同现。标题是读者实际感知的分界。
  */
 function chunks(el) {
   const text = el.structuredText;
@@ -145,14 +144,14 @@ const DAY_COUNT = /\d+\s*(?:-|\s)?\s*(?:days?\b|일|개월)/i;
  * 说不出证据的话。
  *
  * 前两组来自 spec §3：`_SPEC.md` 约束的是"本地运行、无网络、白名单命令"，
- * 没有任何一条能撑起"通过了第三方审计/认证"——Stripe 和 Agensi 都会去查。
+ * 没有任何一条能撑起"通过了第三方审计/认证"——支付服务商审核会去查。
  * 后三组是凭空数字：运行时间百分比、省下多少小时、多少老师在用。
  *
  * 刻意**没有**收进来的几类（都是产品事实，不是营销数字，逐条验过）：
  *   - `30 days`（日志留存期，/legal/privacy）
  *   - `45분 × 3차시` / `1분 분량` / `30초` （音频与课时设置，/skills）
  *   - 我们自己的 14 天退款窗口与 2 个工作日响应（/legal/refund，已由
- *     legal.test.mjs 按区块校验，且从不挂在 Agensi 名下）
+ *     legal.test.mjs 校验，且从不挂在任何第三方名下）
  * 用 `\d+%` 或 `\d+ hours` 一类的泛式会把上面全部打成误报。
  */
 const UNSUPPORTED = [
@@ -167,8 +166,8 @@ const UNSUPPORTED = [
   {
     // `[^.!?\n]{0,40}` 限定在同一个句子内：跨句子匹配会把 "saved to your
     // computer …" 与邻句里任何一个时长数字凑成一条并不存在的"省时"宣称。
-    // （曾经的实例是 /legal/delivery 的 "valid for 24 hours"；那句话已按
-    // §6.8 改成指向 Agensi 条款，但句内限定这个设计本身仍然必要。）
+    // （曾经的实例是 /legal/delivery 的 "valid for 24 hours"；那句话早已
+    // 移除，但句内限定这个设计本身仍然必要。）
     name: 'invented time-saved figures',
     re: /\bsaves?\b[^.!?\n]{0,40}?\d+\s*(?:hours?|minutes?)|\d+\s*(?:hours?|시간)[^.!?\n]{0,12}?(?:saved|절약)/i,
   },
@@ -239,23 +238,16 @@ describe('site-wide wording discipline', () => {
     }
   });
 
-  it('never attributes a refund day count to Agensi, on any page', () => {
-    // Agensi 自己的 /terms §5.5 写 30 天、/stripe-terms 写 14 天，两者矛盾。
-    // 我们只给链接、不复述天数；我们自己的 14 天窗口可以写，但不能挂在
-    // Agensi 名下。规则因此是"Agensi 与天数同现"，不是"出现天数"。
-    //
-    // "同现"按**区块**判，不按字符距离判。原先取前后各 120 字符，跨得过
-    // `</article><article>` 边界：/pricing 上两张并列的购买卡片——一张写
-    // Agensi 不含天数，另一张写"영업일 기준 2일"（发货时限，与退款无关）
-    // 且不含 Agensi——被拍平成一个字符串后凑成了一条并不存在的违规。
-    // 读者不会把 A 卡的天数读成 B 卡的条款，断言也不该。
+  it('never mentions the retired marketplace channel, on any page', () => {
+    // skill 包只在官网销售。市场渠道下线后，任何一处残留都会把买家指向
+    // 一个不再承接订单的第三方。这条断言取代原先"渠道名与退款天数同现"
+    // 的判定——规则从「不该怎么说」收紧为「根本不该出现」。
     for (const file of files) {
       const where = relative(DIST, file);
       for (const text of readerSections(visibleRoot(file))) {
-        if (!/Agensi/i.test(text)) continue;
         expect(
-          DAY_COUNT.test(text) && /refund|환불/i.test(text),
-          `${where} states a refund day count next to Agensi: ${JSON.stringify(text.replace(/\s+/g, ' ').slice(0, 240))}`,
+          /agensi/i.test(text),
+          `${where} still mentions the retired channel: ${JSON.stringify(text.replace(/\s+/g, ' ').slice(0, 240))}`,
         ).toBe(false);
       }
     }

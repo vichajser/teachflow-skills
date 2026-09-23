@@ -49,54 +49,34 @@ const titleById = new Map(skillEntries.map((e) => [e.data.id, e.data.title]));
   <section class="mt-16">
     <h2 class="mb-4 text-2xl font-semibold text-text-hi">{t('pricing.howToBuy')}</h2>
     {/*
-      spec §10.3：两条购买路径版面权重必须相等——审核员会把"哪条路被做成
-      默认"当作账户用途的线索。所以两张卡是同一个容器、同一组类、
-      各自恰好一条正文 + 一条主链接 + 一条政策链接。
-      `md:grid-cols-2` 的两列等宽，`items-start` 不做等高拉伸，
-      高度差只来自文案本身。
-
-      直售卡的政策链接指向 `/legal/refund`：那一页写着全额退款要求
-      「14 天内且尚未下载」，而本卡承诺的是「2 个工作日内发链接」——
-      最坏情况买家在等待中花掉 14 天里的 2 天。退款页已经写了补救
-      （回信可要求暂缓发链接以保全整段窗口），`pricing.viaDirectBody`
-      现在把那句补救搬到了买家做决定的地方，这条链接给出全文。
-
-      Agensi 卡对称地链到 `/legal/delivery`（两条路径的交付方式都在那一页，
-      且 Agensi 的退款归 Agensi 管，往我们的退款页引会误导）。
+      购买路径只剩一条：官网直售。原先的市场卡已随该渠道下线一并移除。
+      卡内三条链接各管一件事：/buy 是主行动（结账页）、mailto 是发票路径、
+      /legal/refund 给出退款补救的全文——`/legal/delivery` 承诺直售
+      「2 个工作日内发链接」，而 `/legal/refund` 要求全额退款「14 天内且尚未
+      下载」，最坏情况买家在等待中花掉 14 天里的 2 天；补救（回信可要求暂缓
+      发链接以保全整段窗口）必须出现在买家做决定的地方。
       页面底部那组政策链接原样保留：那是全页级入口，与卡内链接不冲突。
     */}
-    <div class="grid items-start gap-4 md:grid-cols-2">
-      <article class="rounded-xl border border-border bg-surface p-5">
-        <h3 class="mb-2 text-lg font-semibold text-text-hi">{t('pricing.viaMarketplace')}</h3>
-        <p class="text-sm text-text-body">{t('pricing.viaMarketplaceBody')}</p>
-        <a
-          href={SITE.agensiListingUrl}
-          rel="noopener"
-          class="mt-3 inline-block text-sm text-accent hover:underline"
-        >{SITE.agensiListingUrl}</a>
-        <p class="mt-3 text-sm">
-          <a
-            href={localizePath('/legal/delivery', lang)}
-            class="text-accent hover:underline"
-          >{t('pricing.deliveryLink')}</a>
-        </p>
-      </article>
-
-      <article class="rounded-xl border border-border bg-surface p-5">
-        <h3 class="mb-2 text-lg font-semibold text-text-hi">{t('pricing.viaDirect')}</h3>
-        <p class="text-sm text-text-body">{t('pricing.viaDirectBody')}</p>
+    <article class="max-w-xl rounded-xl border border-border bg-surface p-5">
+      <h3 class="mb-2 text-lg font-semibold text-text-hi">{t('pricing.viaDirect')}</h3>
+      <p class="text-sm text-text-body">{t('pricing.viaDirectBody')}</p>
+      <a
+        href={localizePath('/buy', lang)}
+        class="mt-4 inline-block rounded-lg bg-accent px-5 py-2.5 text-sm font-semibold text-void transition-transform hover:-translate-y-0.5 motion-reduce:hover:translate-y-0"
+      >{t('pricing.buyNow')} — {SITE.price.display}</a>
+      <p class="mt-3 text-sm">
         <a
           href={`mailto:${SITE.supportEmail}`}
-          class="mt-3 inline-block font-mono text-sm text-accent hover:underline"
+          class="font-mono text-accent hover:underline"
         >{SITE.supportEmail}</a>
-        <p class="mt-3 text-sm">
-          <a
-            href={localizePath('/legal/refund', lang)}
-            class="text-accent hover:underline"
-          >{t('pricing.refundLink')}</a>
-        </p>
-      </article>
-    </div>
+      </p>
+      <p class="mt-3 text-sm">
+        <a
+          href={localizePath('/legal/refund', lang)}
+          class="text-accent hover:underline"
+        >{t('pricing.refundLink')}</a>
+      </p>
+    </article>
   </section>
 
   <section class="mt-16">

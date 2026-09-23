@@ -1,15 +1,22 @@
 import PgBoss from 'pg-boss';
 
 // 这是整个工程里唯一 import pg-boss 的地方。任务本身（archive-master、
-// notify-update、reconcile）只收依赖、不认队列，所以它们能在没有队列的
+// notify-update、send-delivery、reconcile）只收依赖、不认队列，所以它们能在没有队列的
 // 情况下被直接调用和测试。
 
 export const ARCHIVE_MASTER = 'archive-master';
 export const NOTIFY_UPDATE = 'notify-update';
+export const SEND_DELIVERY = 'send-delivery';
 export const RECONCILE = 'reconcile';
 export const PRUNE_RATE_LIMITS = 'prune-rate-limits';
 
-export const QUEUES = [ARCHIVE_MASTER, NOTIFY_UPDATE, RECONCILE, PRUNE_RATE_LIMITS] as const;
+export const QUEUES = [
+  ARCHIVE_MASTER,
+  NOTIFY_UPDATE,
+  SEND_DELIVERY,
+  RECONCILE,
+  PRUNE_RATE_LIMITS,
+] as const;
 
 /**
  * 每个队列的重试策略。

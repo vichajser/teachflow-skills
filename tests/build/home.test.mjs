@@ -12,7 +12,7 @@ const read = (p) => readFileSync(resolve(process.cwd(), 'dist', p), 'utf8');
  * 退款链接写死 `'en'`（韩语用户被送去英文退款政策）、`lang === 'ko'` 时整段
  * 购买区块不渲染（韩语页没有价格、没有退款链接、没有客服邮箱）、韩语页零张
  * SkillCard 零个 PriceBlock。韩语页是韩国教师唯一会看的那一版，也是
- * Agensi 审核员会看的那一版——它不能靠"英文版过了"来间接保证。
+ * 支付服务商审核会看的那一版——它不能靠"英文版过了"来间接保证。
  */
 const LOCALES = [
   { lang: 'en', page: 'en/index.html' },

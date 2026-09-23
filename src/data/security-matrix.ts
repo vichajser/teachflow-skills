@@ -1,7 +1,7 @@
 import type { Locale } from '@/i18n/config';
 
 export interface SecurityRow {
-  /** Agensi 扫描项名称，逐字不改——审核员按名称对照 */
+  /** 风险项名称，逐字不改——/security 页面的行名与既有测试都按它对照 */
   scan: string;
   practice: Record<Locale, string>;
   verify: Record<Locale, string>;
@@ -120,7 +120,7 @@ export const SECURITY_MATRIX: readonly SecurityRow[] = [
  * 替换的这条只复述 `_SPEC.md` 已经约束住的东西（零网络访问），
  * 并且与上面 `External fetch` 那行的 verify 列是同一个检查。
  * **不新造任何可验证性声明**：本站从不声称通过了第三方审计、渗透测试
- * 或任何形式的安全认证——那些我们拿不出证据，而 Agensi 与 Stripe 会去查。
+ * 或任何形式的安全认证——那些我们拿不出证据，而支付服务商审核会去查。
  *
  * 第一条的"32 个 Markdown 文档"已按六个 zip 核对：6 份 SKILL.md +
  * 26 份 references/*.md = 32，属实。

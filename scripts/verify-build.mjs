@@ -209,9 +209,15 @@ const PRICE_PAGES = [
   'en/index.html',
   'en/pricing/index.html',
   'en/buy/index.html',
+  // /skills 与 /samples 页尾的购买横幅（CtaBanner）把价格写在按钮上——
+  // 这是刻意的购买引导，不是复制漂移，所以登记进清单。
+  'en/skills/index.html',
+  'en/samples/index.html',
   'ko/index.html',
   'ko/pricing/index.html',
   'ko/buy/index.html',
+  'ko/skills/index.html',
+  'ko/samples/index.html',
 ];
 if (PRICE_DISPLAY) {
   for (const page of PRICE_PAGES) {

@@ -16,21 +16,16 @@ skill file, its reference documents, a licence and a security notice.
 The zips you download contain **no executable code**. Every file inside them is a text
 document you can open and read before you run anything.
 
-## If you bought on Agensi
+## How the files reach you
 
-Agensi gives you a signed download link immediately after payment. That link expires
-after a while — the current validity period is stated at checkout and in your Agensi
-dashboard, and their terms at <https://www.agensi.io/terms> are what governs it. You
-can generate a fresh link at any time from the dashboard, so an expired link costs you
-nothing. When we publish a new version, you can download it again at no extra cost.
+If you pay at our hosted checkout, your download link is emailed to the address you
+enter at checkout as soon as the payment is confirmed. If you pay an invoice we sent
+you, we email the link within **2 business days** of confirming payment. If it has not
+arrived, email <crossxtop@gmail.com> and we will resend it.
 
-Agensi does not deliver by email — your downloads live in your dashboard.
-
-## If you bought directly from us
-
-We email your download link within **2 business days** of confirming payment, to the
-address you paid from. If it has not arrived, email <crossxtop@gmail.com> and we will
-resend it.
+The download page lists all six skills. You can fetch each zip on its own, or use the
+**download all** button to get the whole bundle as a single zip. When we publish a new
+version of a skill, the same page gives you the update at no extra cost.
 
 ## What you need to run it
 

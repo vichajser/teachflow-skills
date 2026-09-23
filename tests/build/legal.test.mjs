@@ -14,18 +14,6 @@ const LEGAL_PAGES = ['en', 'ko'].flatMap((lang) =>
   SLUGS.map((slug) => `${lang}/legal/${slug}/index.html`),
 );
 
-/**
- * 切出某个 h2 小节的正文。用于断言"这一节里不准出现什么"——
- * 整页断言做不到这件事，因为同一个数字在别的小节是合法的
- * （直销 14 天是我们自己的承诺，Agensi 那一节则一个天数都不能写）。
- */
-const section = (html, heading) => {
-  const start = html.indexOf(heading);
-  if (start < 0) throw new Error(`heading not found: ${heading}`);
-  const end = html.indexOf('<h2', start);
-  return html.slice(start, end < 0 ? html.length : end);
-};
-
 describe('/legal pages', () => {
   it('exists in both locales', () => {
     for (const lang of ['en', 'ko']) {
@@ -37,11 +25,19 @@ describe('/legal pages', () => {
   });
 
   it('never claims a security certification we do not hold', () => {
-    // Stripe 与 Agensi 都会核验这类声明；写了就是虚假陈述。
+    // 支付服务商审核会核验这类声明；写了就是虚假陈述。
     for (const page of LEGAL_PAGES) {
       expect(read(page), page).not.toMatch(
         /SOC\s?2|ISO\s?27001|penetration test|pen[- ]tested|third[- ]party audit|security certif/i,
       );
+    }
+  });
+
+  it('never mentions the retired marketplace channel', () => {
+    // skill 包只在官网销售。任何一处残留都会把买家指向一个不再承接
+    // 订单的渠道，也会让其退款条款在我们的法务页里继续"生效"。
+    for (const page of LEGAL_PAGES) {
+      expect(read(page), page).not.toMatch(/agensi/i);
     }
   });
 
@@ -87,26 +83,14 @@ describe('/legal pages', () => {
 });
 
 describe('/legal/refund', () => {
-  it('links to Agensi terms rather than restating their day count', () => {
-    // Agensi 自家 /terms 与 /stripe-terms 互相矛盾（30 天 vs 14 天），
-    // 复述等于把别人的错误抄进我们的法律页。
-    // 韩国 전자상거래법 제17조제3항的「안 날부터 30일」是另一件事，
-    // 出现在「대한민국 소비자」节，不得被这条误伤。
-    const html = read('en/legal/refund/index.html');
-    expect(html).toContain('https://www.agensi.io/terms');
-    expect(html).not.toMatch(/30-day refund/i);
-  });
-
-  it('states no day count at all inside the Agensi section, in either locale', () => {
-    expect(section(read('en/legal/refund/index.html'), 'If you bought on Agensi'))
-      .not.toMatch(/\d+\s*(?:-|&#8209;|\s)?\s*(?:day|business day)/i);
-    expect(section(read('ko/legal/refund/index.html'), 'Agensi에서 구매하신 경우'))
-      .not.toMatch(/\d+\s*일/);
-  });
-
-  it('names Agensi as the merchant of record on both refund and terms', () => {
-    expect(read('en/legal/refund/index.html')).toMatch(/merchant of record/i);
-    expect(read('en/legal/terms/index.html')).toMatch(/merchant of record/i);
+  it('names Polar as the merchant of record on both refund and terms', () => {
+    // 托管结账页的销售主体是 Polar——买家在退款页与条款页都该读得到
+    // 这个名字，而不是一个已不再承接订单的渠道。
+    for (const page of ['en/legal/refund/index.html', 'en/legal/terms/index.html']) {
+      const html = read(page);
+      expect(html, page).toMatch(/merchant of record/i);
+      expect(html, page).toContain('Polar');
+    }
   });
 
   it('states our own 14-day term for the direct-purchase path', () => {
@@ -139,17 +123,6 @@ describe('/legal/refund', () => {
     expect(read('en/legal/refund/index.html')).toMatch(/Republic of Korea/i);
   });
 
-  it('keeps the Korean statutory day counts out of the Agensi section', () => {
-    // 7일 / 3개월 / 30일은 한국 강행법 고지이지 Agensi 창구 복창이 아니다.
-    const agensiKo = section(
-      read('ko/legal/refund/index.html'),
-      'Agensi에서 구매하신 경우',
-    );
-    expect(agensiKo).not.toMatch(/7일|3개월|30일/);
-    const agensiEn = section(read('en/legal/refund/index.html'), 'If you bought on Agensi');
-    expect(agensiEn).not.toMatch(/\b7\s+days\b/i);
-  });
-
   it('says there is no subscription to cancel', () => {
     expect(read('en/legal/refund/index.html')).toMatch(/no subscription/i);
   });
@@ -164,45 +137,22 @@ describe('/legal/refund', () => {
 });
 
 describe('/legal/delivery', () => {
-  it('explains both delivery paths', () => {
+  it('explains how the files reach the buyer', () => {
     const html = read('en/legal/delivery/index.html');
-    expect(html).toMatch(/download link/i);   // Agensi 路径：签名链接
-    expect(html).toMatch(/2 business days/i); // 直销路径承诺
+    expect(html).toMatch(/download link/i);   // 链接经邮件送达
+    expect(html).toMatch(/2 business days/i); // 发票路径承诺
     expect(html).toMatch(/no physical/i);     // 无实体配送
   });
 
-  it('does not restate Agensi’s link validity window, only points at their terms', () => {
-    // 这一条**取代**了原先的 `expect(html).toMatch(/24 hours/i)`，不是放宽它。
-    //
-    // 原断言钉的是"页面上写着 24 hours"。那个数字本身有依据
-    // （`PUBLISHING.md:21`），不是编造——但它复述的是**第三方的条款**，
-    // 而 `/legal/refund` 自己立过纪律："We do not restate their refund window
-    // here: their terms can change, and the version on their site is always the
-    // one that governs your purchase." 同一个理由对链接有效期同样成立，
-    // 而这写在**合同性页面**上：Agensi 哪天把 24 小时改成 1 小时，我们的
-    // 合同页就在对买家陈述一个不成立的事实。
-    //
-    // 所以断言方向反了过来：不再要求某个具体数字在场，而是要求**任何**
-    // 挂在 Agensi 链接上的时长数字**不在场**，同时必须给出他们条款的出处。
-    // 这比原断言更严——原断言只要有 "24 hours" 就绿，改成 "48 hours" 才红；
-    // 现在写任何时长都红。
-    //
-    // 韩文页一并守：合规纪律不分语言。
+  it('tells the buyer the whole bundle can be fetched in one zip', () => {
+    // 「下载全部」按钮是买家体验的保底路径，交付页必须告诉买家它存在。
     for (const page of ['en/legal/delivery/index.html', 'ko/legal/delivery/index.html']) {
-      const html = read(page);
-      expect(
-        html,
-        `${page} restates Agensi’s link validity window — their terms can change`,
-      ).not.toMatch(/\d+\s*(?:hours?|시간)/i);
-      expect(html, `${page} does not point at Agensi’s terms`).toContain(
-        'https://www.agensi.io/terms',
-      );
+      expect(read(page), page).toMatch(/download all|전체 내려받기/i);
     }
   });
 
-  it('still never restates Agensi’s refund day count, on any page', () => {
-    // 既有的全站纪律：退款天数只说我们自己的 14 天（直销路径），
-    // Agensi 的窗口一个字都不复述。上面那条新纪律不得把这条挤掉。
+  it('never restates a refund window on the delivery page', () => {
+    // 既有的全站纪律：退款天数只在 /legal/refund 上说，交付页一个字都不复述。
     for (const page of ['en/legal/delivery/index.html', 'ko/legal/delivery/index.html']) {
       const html = read(page);
       expect(html, `${page} mentions a refund window it should not`).not.toMatch(
@@ -316,9 +266,8 @@ describe('/legal/privacy', () => {
   });
 
   it('does not miscount its own outbound links', () => {
-    // 该页自身就带 Agensi 与 ICO 两个站外链接。写"唯一的站外链接是 Agensi"
-    // 会被下面一段当场证伪。可辩护的说法是区分「链接」与「请求」：
-    // 页面不向任何第三方发请求，链接则要点了才走。
+    // 该页自身就带 ICO 与法条原文两类站外链接。可辩护的说法是区分
+    // 「链接」与「请求」：页面不向任何第三方发请求，链接则要点了才走。
     for (const lang of ['en', 'ko']) {
       const html = read(`${lang}/legal/privacy/index.html`);
       const article = html.slice(html.indexOf('<article'), html.indexOf('</article>'));

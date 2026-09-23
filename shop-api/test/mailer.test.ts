@@ -139,6 +139,23 @@ describe('发信', () => {
     });
   });
 
+  it('配置了 replyTo 时带上 Resend 的 reply_to 字段', async () => {
+    const f = fakeFetch(ok);
+    const res = await sendMail(
+      mailer({ replyTo: 'support@example.com', fetch: f.fn }),
+      ENVELOPE,
+    );
+
+    expect(res).toEqual({ sent: true, id: 'msg_1' });
+    expect(JSON.parse(f.calls[0]!.init.body as string)).toEqual({
+      from: 'TeachFlow <noreply@tryteachflow.com>',
+      to: ['teacher@example.com'],
+      subject: '제목',
+      text: '본문',
+      reply_to: 'support@example.com',
+    });
+  });
+
   it('群发用完当日预算后返回 quota，而不是抛错', async () => {
     const { pool } = fakeQuotaPool();
     const deps = mailer({ pool, dailyBudget: 2 });
@@ -252,7 +269,7 @@ describe('法定告知取自站点原文', () => {
 
   it('不含退款政策里与法定权利无关的小节', () => {
     const notice = withdrawalNotice('en');
-    expect(notice).not.toContain('If you bought on Agensi');
+    expect(notice).not.toContain('How to get a refund');
     expect(notice).not.toContain('## Questions');
   });
 

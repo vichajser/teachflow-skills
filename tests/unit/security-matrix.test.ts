@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { SECURITY_MATRIX, VERIFIABLE_FACTS } from '@/data/security-matrix';
 
-const AGENSI_SCANS = [
+const RISK_ROWS = [
   'Prompt injection',
   'Data exfiltration',
   'Secret detection',
@@ -13,8 +13,8 @@ const AGENSI_SCANS = [
 ];
 
 describe('SECURITY_MATRIX', () => {
-  it("mirrors Agensi's eight scans, in their order and wording", () => {
-    expect(SECURITY_MATRIX.map((row) => row.scan)).toEqual(AGENSI_SCANS);
+  it('keeps the eight risk rows, in their order and wording', () => {
+    expect(SECURITY_MATRIX.map((row) => row.scan)).toEqual(RISK_ROWS);
   });
 
   it('answers every scan in both locales', () => {

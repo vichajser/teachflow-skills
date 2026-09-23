@@ -4,6 +4,7 @@ import { sendError, sendHtml } from '../http/respond.ts';
 import { verifyToken, type VerifyFailure } from '../lib/token.ts';
 import { StorageError, type Storage } from '../lib/storage.ts';
 import { injectLicenceHolder } from '../lib/watermark.ts';
+import { buildZip, type ZipFileInput } from '../lib/zip.ts';
 import type { Lang } from '../lib/legal.ts';
 import { entitledSkillIds, getOrder, hasEntitlement, type OrderRow } from '../db/orders.ts';
 import { latestRelease } from '../db/releases.ts';
@@ -101,7 +102,18 @@ export function downloadPageRoute(deps: DownloadDeps): Handler {
     sendHtml(
       ctx.res,
       200,
-      downloadPage({ lang, orderId: order.id, expiresAt: resolved.expiresAt, items }),
+      downloadPage({
+        lang,
+        orderId: order.id,
+        expiresAt: resolved.expiresAt,
+        items,
+        // 一个有货的条目都没有时，「下载全部」只会打包出一个空 zip——
+        // 那种按钮不如不出现。
+        downloadAllHref:
+          items.length === 0
+            ? null
+            : `/api/download/all?t=${encodeURIComponent(token)}`,
+      }),
     );
   };
 }
@@ -179,4 +191,88 @@ export function downloadFileRoute(deps: DownloadDeps): Handler {
 function headerOf(value: string | string[] | undefined): string | null {
   if (Array.isArray(value)) return value[0] ?? null;
   return value ?? null;
+}
+
+/**
+ * 「下载全部」：把订单有权下载的每个 skill 的最新版各自打好水印，
+ * 再原样装进一个外层 zip。每个内层 zip 与单独下载逐字节一致——
+ * 买家不会因为走了捷径而拿到一份少带了什么的包。
+ */
+export function downloadAllRoute(deps: DownloadDeps): Handler {
+  return async (ctx: RequestContext) => {
+    const resolved = await resolve(deps, ctx);
+    // 与单文件接口同一套判定、同一组状态码：两条路的权利语义不能分叉。
+    if (!resolved.ok) {
+      sendError(ctx.res, FAILURE_STATUS[resolved.kind], resolved.kind, FAILURE_MESSAGE[resolved.kind]);
+      return;
+    }
+
+    const { order } = resolved;
+    const skillIds = await entitledSkillIds(deps.pool, order.id);
+    const at = deps.now ? deps.now() : new Date();
+
+    const files: ZipFileInput[] = [];
+    const records: { skillId: string; version: string }[] = [];
+    for (const skillId of skillIds) {
+      const release = await latestRelease(deps.pool, skillId);
+      // 与页面同一规则：还没发过版的 skill 不进包，也不占位。
+      if (!release) continue;
+
+      let master: Buffer;
+      try {
+        master = await deps.storage.getMaster(skillId, release.version);
+      } catch (err) {
+        if (err instanceof StorageError) {
+          sendError(ctx.res, 503, 'master_unavailable', '文件暂时取不到，请稍后再试。', { skill: skillId });
+          return;
+        }
+        throw err;
+      }
+
+      const watermarked = injectLicenceHolder(
+        master,
+        {
+          skillId,
+          version: release.version,
+          orderId: order.id,
+          email: order.buyerEmail,
+          purchasedAt: order.createdAt,
+        },
+        at,
+      );
+      files.push({
+        name: `${skillId.replace(/[^a-zA-Z0-9._-]/g, '-')}-${release.version}.zip`,
+        content: watermarked,
+      });
+      records.push({ skillId, version: release.version });
+    }
+
+    if (files.length === 0) {
+      sendError(ctx.res, 404, 'no_release', '该订单包含的 skill 还没有发布过版本。');
+      return;
+    }
+
+    // 先记账再交付，与单文件接口同一纪律：每个 skill 各记一条，
+    // 退款争议时账上看到的是这次「全部下载」实际带走了哪几份。
+    for (const r of records) {
+      await recordDownload(deps.pool, {
+        orderId: order.id,
+        skillId: r.skillId,
+        version: r.version,
+        ip: ctx.clientIp,
+        userAgent: headerOf(ctx.req.headers['user-agent']),
+      });
+    }
+
+    const bundle = buildZip(files, at);
+    const filename = `teachflow-bundle-${order.id.replace(/[^a-zA-Z0-9._-]/g, '-')}.zip`;
+    ctx.res.writeHead(200, {
+      'content-type': 'application/zip',
+      'content-length': bundle.length,
+      'content-disposition': `attachment; filename="${filename}"`,
+      'cache-control': 'no-store',
+      'x-content-type-options': 'nosniff',
+    });
+    ctx.res.end(bundle);
+  };
 }

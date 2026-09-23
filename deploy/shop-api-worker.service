@@ -32,7 +32,7 @@ WorkingDirectory=/srv/teachflow/shop-api
 # 与 API 共用同一份环境：两个进程连同一个库、同一个 R2 桶、同一个发信域名。
 EnvironmentFile=/etc/teachflow/shop-api.env
 
-ExecStart=/usr/bin/node src/worker.ts
+ExecStart=/usr/local/bin/node src/worker.ts
 
 Restart=always
 RestartSec=10

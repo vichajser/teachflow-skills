@@ -15,12 +15,11 @@ TeachFlow의 발행 주체는 **CROSSXTOP LTD** 입니다. England and Wales(잉
 웨일스)에 등록된 법인이며, 법인등록번호는 **16339041**, 등록 사무소 주소는
 Suite 10890, 61 Bridge Street, Kington, United Kingdom, HR5 3DJ 입니다.
 
-Agensi에서 구매하신 경우 해당 거래의 **판매 주체(merchant of record)는 Agensi** 입니다.
-Agensi가 자기 명의로 판매하며 청구서 발행, 환불, 차지백을 처리합니다. 파일을 어떻게
-사용하실 수 있는지는 그래도 이 페이지의 라이선스 조항이 정합니다. Agensi의 플랫폼
-약관은 <https://www.agensi.io/terms> 에 있습니다.
+호스팅 결제 페이지에서 구매하신 경우 해당 거래의 **판매 주체(merchant of record)는
+Polar**입니다. Polar가 자기 명의로 판매하며 청구서 발행, 환불, 차지백을 처리합니다.
+파일을 어떻게 사용하실 수 있는지는 그래도 이 페이지의 라이선스 조항이 정합니다.
 
-저희에게 직접 구매하신 경우에는 CROSSXTOP LTD가 판매자입니다.
+이메일 청구서를 통해 저희에게 직접 구매하신 경우에는 CROSSXTOP LTD가 판매자입니다.
 
 ## 이 상품은 무엇인가
 

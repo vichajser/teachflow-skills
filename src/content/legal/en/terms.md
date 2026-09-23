@@ -15,12 +15,12 @@ TeachFlow is published by **CROSSXTOP LTD**, registered in England and Wales,
 company number **16339041**, registered office Suite 10890, 61 Bridge Street, Kington,
 United Kingdom, HR5 3DJ.
 
-If you bought on Agensi, **Agensi is the merchant of record** for that transaction:
-Agensi sells to you in its own name and handles invoicing, refunds and chargebacks. The
-licence terms on this page still describe what you may do with the files. Their platform
-terms are at <https://www.agensi.io/terms>.
+If you bought through our hosted checkout, **Polar is the merchant of record** for that
+transaction: Polar sells to you in its own name and handles invoicing, refunds and
+chargebacks. The licence terms on this page still describe what you may do with the
+files.
 
-If you bought directly from us, CROSSXTOP LTD is the seller.
+If you bought by invoice from us, CROSSXTOP LTD is the seller.
 
 ## What the product is
 

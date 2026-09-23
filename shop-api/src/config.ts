@@ -18,6 +18,8 @@ export interface Config {
   };
   resendApiKey: string;
   mailFrom: string;
+  /** 可选。买家回复交付邮件时的收件地址（Resend 的 reply_to）。 */
+  mailReplyTo?: string;
   masterDir: string;
   bundleSkillIds: readonly string[];
   /** Resend 免费额度是每 UTC 日历日 100 封；留 20 封给交易邮件。 */
@@ -124,6 +126,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     },
     resendApiKey: env.RESEND_API_KEY!,
     mailFrom: env.MAIL_FROM!,
+    mailReplyTo: env.MAIL_REPLY_TO?.trim() || undefined,
     masterDir: env.MASTER_DIR!,
     bundleSkillIds: bundle,
     dailyMailBudget: budget,

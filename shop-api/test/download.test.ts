@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { Pool } from 'pg';
-import { downloadPageRoute, downloadFileRoute, type DownloadDeps } from '../src/routes/download.ts';
+import { downloadPageRoute, downloadAllRoute, downloadFileRoute, type DownloadDeps } from '../src/routes/download.ts';
 import { signToken } from '../src/lib/token.ts';
 import { buildZip, readCentralDirectory, readEntry } from '../src/lib/zip.ts';
 import { StorageError, type Storage } from '../src/lib/storage.ts';
@@ -153,7 +153,7 @@ function token(over: { orderId?: string; ttlDays?: number; now?: number } = {}):
   });
 }
 
-async function call(which: 'page' | 'file', opts: CallOptions = {}) {
+async function call(which: 'page' | 'file' | 'all', opts: CallOptions = {}) {
   const db = opts.db ?? fakeDb();
   const deps: DownloadDeps = {
     pool: db.pool,
@@ -170,7 +170,9 @@ async function call(which: 'page' | 'file', opts: CallOptions = {}) {
   const path =
     which === 'page'
       ? `/download?${params}`
-      : `/api/download/${encodeURIComponent(skillId)}?${params}`;
+      : which === 'all'
+        ? `/api/download/all?${params}`
+        : `/api/download/${encodeURIComponent(skillId)}?${params}`;
   const url = new URL(path, 'https://tryteachflow.com');
 
   const req = {
@@ -180,7 +182,12 @@ async function call(which: 'page' | 'file', opts: CallOptions = {}) {
   } as unknown as IncomingMessage;
 
   const { res, state } = fakeRes();
-  const handler = which === 'page' ? downloadPageRoute(deps) : downloadFileRoute(deps);
+  const handler =
+    which === 'page'
+      ? downloadPageRoute(deps)
+      : which === 'all'
+        ? downloadAllRoute(deps)
+        : downloadFileRoute(deps);
   await handler({
     req,
     res,
@@ -321,11 +328,110 @@ describe('下载页', () => {
     expect(r.text).toContain('name="robots" content="noindex,nofollow"');
   });
 
-  it('权利为空时页面仍然打得开', async () => {
+  it('权利为空时页面仍然打得开，但不出现「下载全部」', async () => {
     const r = await call('page', { db: fakeDb({ entitled: [] }) });
     expect(r.status).toBe(200);
     expect(r.text).toContain('TeachFlow 다운로드');
     expect(r.text).toContain('class="note"');
+    expect(r.text).not.toContain('/api/download/all');
+  });
+
+  it('页面给出带同一 token 的「下载全部」按钮，两种语言各有自己的文案', async () => {
+    const t = token();
+    const ko = await call('page', { token: t });
+    expect(ko.text).toContain(`/api/download/all?t=${encodeURIComponent(t)}`);
+    expect(ko.text).toContain('전체를 zip 하나로 내려받기');
+
+    const en = await call('page', { token: t, lang: 'en' });
+    expect(en.text).toContain(`/api/download/all?t=${encodeURIComponent(t)}`);
+    expect(en.text).toContain('Download all as one zip');
+  });
+});
+
+describe('下载全部接口', () => {
+  it('把每个有权 skill 的最新版各装成一个内层 zip', async () => {
+    const r = await call('all');
+    expect(r.status).toBe(200);
+    expect(r.headers['content-type']).toBe('application/zip');
+    expect(r.headers['content-disposition']).toBe(
+      'attachment; filename="teachflow-bundle-ord_abc.zip"',
+    );
+    expect(r.headers['content-length']).toBe(r.body.length);
+
+    const names = readCentralDirectory(r.body).map((e) => e.name).sort();
+    expect(names).toEqual(['lesson-workflow-1.1.0.zip', 'ppt-workflow-1.0.0.zip']);
+  });
+
+  it('内层 zip 与单独下载一样带买家水印', async () => {
+    const r = await call('all');
+    const outer = readCentralDirectory(r.body);
+    const inner = readEntry(r.body, outer.find((e) => e.name === 'lesson-workflow-1.1.0.zip')!);
+    const innerEntries = readCentralDirectory(inner);
+    const holder = readEntry(
+      inner,
+      innerEntries.find((e) => e.name.endsWith('LICENSE-HOLDER.txt'))!,
+    ).toString('utf8');
+    expect(holder).toContain(EMAIL);
+    expect(holder).toContain('ord_abc');
+  });
+
+  it('每个 skill 各记一条下载，与逐个下载的账目一致', async () => {
+    const r = await call('all', { ip: '198.51.100.9', userAgent: 'curl/8.4.0' });
+    expect(r.db.downloads).toEqual([
+      {
+        order_id: 'ord_abc',
+        skill_id: 'lesson-workflow',
+        version: '1.1.0',
+        ip: '198.51.100.9',
+        user_agent: 'curl/8.4.0',
+      },
+      {
+        order_id: 'ord_abc',
+        skill_id: 'ppt-workflow',
+        version: '1.0.0',
+        ip: '198.51.100.9',
+        user_agent: 'curl/8.4.0',
+      },
+    ]);
+  });
+
+  it('一个发版的都没有：404，而不是发一个空 zip', async () => {
+    const r = await call('all', { db: fakeDb({ releases: [] }) });
+    expect(r.status).toBe(404);
+    expect(JSON.parse(r.text).error.code).toBe('no_release');
+  });
+
+  it('退款后整包也取不到，状态码与单文件接口一致', async () => {
+    const r = await call('all', { db: fakeDb({ status: 'refunded' }) });
+    expect(r.status).toBe(403);
+    expect(JSON.parse(r.text).error.code).toBe('revoked');
+  });
+
+  it('母版取不到：503，不是 500', async () => {
+    const storage = fakeStorage({
+      async getMaster() {
+        throw new StorageError('R2 504');
+      },
+    });
+    const r = await call('all', { storage });
+    expect(r.status).toBe(503);
+    expect(JSON.parse(r.text).error.code).toBe('master_unavailable');
+  });
+
+  it('路由表把 /api/download/all 分给它自己，而不是名叫 all 的 skill', async () => {
+    // 回归守卫：all 路由若排在 :skillId 之后，这里会吃到 403 not_entitled。
+    const { createRouter } = await import('../src/http/router.ts');
+    const router = createRouter('https://tryteachflow.com');
+    const deps: DownloadDeps = {
+      pool: fakeDb().pool,
+      storage: fakeStorage(),
+      tokenSecret: SECRET,
+      now: () => NOW,
+    };
+    router.add('GET', '/api/download/all', downloadAllRoute(deps));
+    router.add('GET', '/api/download/:skillId', downloadFileRoute(deps));
+    const found = router.match('GET', '/api/download/all');
+    expect(found?.params).toEqual({});
   });
 });
 

@@ -26,7 +26,8 @@ WorkingDirectory=/srv/teachflow/shop-api
 EnvironmentFile=/etc/teachflow/shop-api.env
 
 # 没有构建步骤：Node 22 直接跑 .ts（见 shop-api/README.md「为什么没有构建」）。
-ExecStart=/usr/bin/node src/server.ts
+# 注意路径：/usr/bin/node 是 apt 的 v20，Node 22 官方包装在 /usr/local。
+ExecStart=/usr/local/bin/node src/server.ts
 
 # 进程崩了就拉起来。RestartSec 给 5 秒，免得配置错误时每秒重启刷满日志；
 # StartLimit 让「怎么重启都起不来」变成一个会停下来的、看得见的失败状态，

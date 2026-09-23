@@ -13,6 +13,8 @@ export type SendResult =
 export interface MailerDeps {
   apiKey: string;
   from: string;
+  /** 客服回信地址。买家直接回复交付邮件时落到这个邮箱，而不是 noreply。 */
+  replyTo?: string;
   pool: Pool;
   /** 群发当天的上限。剩下到硬顶之间的额度留给交易邮件。 */
   dailyBudget: number;
@@ -61,6 +63,8 @@ export async function sendMail(deps: MailerDeps, env: Envelope): Promise<SendRes
         to: [env.to],
         subject: env.subject,
         text: env.text,
+        // 未配置时不带这个字段：Resend 对空字符串 reply_to 会报 422。
+        ...(deps.replyTo ? { reply_to: deps.replyTo } : {}),
       }),
     });
   } catch (err) {

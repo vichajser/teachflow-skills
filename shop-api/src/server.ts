@@ -7,7 +7,7 @@ import { createStorage } from './lib/storage.ts';
 import { loadNotices } from './lib/legal.ts';
 import { getAdapter } from './mor/index.ts';
 import { healthRoute } from './routes/health.ts';
-import { downloadPageRoute, downloadFileRoute } from './routes/download.ts';
+import { downloadPageRoute, downloadAllRoute, downloadFileRoute } from './routes/download.ts';
 import { resendLinkRoute } from './routes/resend-link.ts';
 import { adminReleasesRoute, releasesListRoute } from './routes/admin-releases.ts';
 import { webhookRoute } from './routes/webhooks.ts';
@@ -46,6 +46,7 @@ async function main(): Promise<void> {
   const mailer = {
     apiKey: config.resendApiKey,
     from: config.mailFrom,
+    replyTo: config.mailReplyTo,
     pool,
     dailyBudget: config.dailyMailBudget,
   };
@@ -60,6 +61,9 @@ async function main(): Promise<void> {
     tokenSecret: config.downloadTokenSecret,
   };
   router.add('GET', '/download', downloadPageRoute(download));
+  // 「下载全部」必须先于 :skillId 注册——路由表按添加顺序匹配，
+  // 否则 /api/download/all 会被当成一个名叫 "all" 的 skill 而 403。
+  router.add('GET', '/api/download/all', downloadAllRoute(download));
   router.add('GET', '/api/download/:skillId', downloadFileRoute(download));
 
   router.add(
