@@ -93,7 +93,7 @@
   "home.previewNotice": "Preview of the parent notice a skill produced",
   "home.samplesBody": "One real textbook unit, so you can see what each skill produces before you buy.",
   "home.privacyTitle": "Your students' data stays on your computer",
-  "home.privacyBody": "The skills make no network requests — run them offline and they work the same. Your agent and its model are a separate product with its own data policy.",
+  "home.privacyBody": "The skills do not phone home — they make no network requests of their own. You still need the internet, because your agent talks to its model. That agent is a separate product with its own data policy.",
   "home.privacyLink": "How you can verify that",
   "home.buyTitle": "TeachFlow Complete Bundle",
   "home.buyBody": "All six skills, one payment, no subscription.",

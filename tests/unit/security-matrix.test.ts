@@ -31,14 +31,13 @@ describe('SECURITY_MATRIX', () => {
 
 describe('VERIFIABLE_FACTS', () => {
   it('offers the two facts a reader can check for themselves', () => {
-    // `verify-script` 换成了 `runs-offline`：六个 zip 里没有 verify.py
-    // （`unzip -l` 实测——只有 SKILL.md / references/ / README / SECURITY / LICENSE），
-    // 承诺一个随包不存在的检查工具，买家解压第一眼就会发现。
+    // `runs-offline` 换成了 `no-phone-home`：产品跑在编码代理里，代理要连
+    // 模型，断网就不能用。承诺「断网也能跑」是买家一试就会发现的不实陈述。
     // 断言仍是**逐字全等**，不是"包含"或"长度为 2"：这里要锁住的正是
     // "这两条各是什么"，放宽成计数就等于把本轮修的这个缺陷放回去。
     expect(VERIFIABLE_FACTS.map((f) => f.id)).toEqual([
       'no-executable-code',
-      'runs-offline',
+      'no-phone-home',
     ]);
   });
 

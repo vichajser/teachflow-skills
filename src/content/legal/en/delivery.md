@@ -3,7 +3,7 @@ slug: delivery
 lang: en
 title: Digital Delivery
 description: How TeachFlow reaches you after purchase, and what you need to run it.
-updated: '2026-09-19'
+updated: '2026-09-28'
 ---
 
 TeachFlow is digital. There is **no physical shipment** and nothing is posted to you.
@@ -34,9 +34,9 @@ version of a skill, the same page gives you the update at no extra cost.
 - A desktop computer (macOS or Windows)
 - The pages of the textbook unit you are teaching, in a form your agent can read
 
-The skills run entirely on your own machine. **No internet connection is required while
-they run**, and nothing you feed them is sent anywhere. See our
-[security page](/en/security) for the detail.
+The skills run on your own machine, inside your own agent. **An internet connection is
+required while they run**, because the agent talks to its model. The skills themselves
+do not send your files to us. See our [security page](/en/security) for the detail.
 
 ## If something is wrong with the files
 

@@ -3,7 +3,7 @@ slug: privacy
 lang: en
 title: Privacy Policy
 description: What we collect, what we do not, and how the skills keep your students' material on your own machine.
-updated: '2026-09-19'
+updated: '2026-09-28'
 ---
 
 Short version: this site has no analytics, no cookies and no third-party requests, and
@@ -46,8 +46,8 @@ The skills are text files that run on your own computer, inside your own agent.
 **Your textbooks, your lesson material and anything identifying your students stay on your
 own machine.** They are never uploaded to us. We have no server that receives them, no
 account to sync them to, and no telemetry in the package. The skills make no network
-requests at all — you can run them with the machine offline and they work exactly the
-same.
+requests of their own. You still need the internet while they run, because your agent
+talks to its model.
 
 We therefore never see, store or process student personal data. There is no processing
 agreement to sign with us, because we act as processor for nothing.

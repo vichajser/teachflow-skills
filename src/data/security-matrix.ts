@@ -75,12 +75,12 @@ export const SECURITY_MATRIX: readonly SecurityRow[] = [
   {
     scan: 'External fetch',
     practice: {
-      en: 'No network access at all: no external URLs, no remote script downloads, no external API calls.',
-      ko: '네트워크 접근이 전혀 없습니다. 외부 URL 요청, 원격 스크립트 다운로드, 외부 API 호출을 하지 않습니다.',
+      en: 'The skill files make no network requests of their own: no external URLs, no remote script downloads, no API calls. Your agent still needs the internet to reach its model.',
+      ko: '스킬 파일 자체는 네트워크 요청을 하지 않습니다. 외부 URL, 원격 스크립트 다운로드, API 호출이 없습니다. 다만 에이전트가 모델에 연결하려면 인터넷이 필요합니다.',
     },
     verify: {
-      en: 'Run the skills with your machine offline — everything still works.',
-      ko: '인터넷을 끊은 상태에서 실행해 보세요. 그대로 동작합니다.',
+      en: 'Search the package for URLs and HTTP calls. Nothing is invoked. You will still need the internet, because the agent talks to its model.',
+      ko: '패키지에서 URL과 HTTP 호출을 검색해 보세요. 실제로 실행되는 곳은 없습니다. 다만 에이전트가 모델과 대화하므로 인터넷은 필요합니다.',
     },
   },
   {
@@ -117,8 +117,10 @@ export const SECURITY_MATRIX: readonly SecurityRow[] = [
  * **没有 verify.py，也没有 skills/ 或 docs/ 目录**。承诺一个随包不存在的
  * 检查工具，是买家打开压缩包第一眼就会发现的不实陈述。
  *
- * 替换的这条只复述 `_SPEC.md` 已经约束住的东西（零网络访问），
- * 并且与上面 `External fetch` 那行的 verify 列是同一个检查。
+ * 第二条曾经写成「断网也能跑」。那是把「技能文件自己不发请求」说成了
+ * 「产品可以离线」——技能跑在编码代理里，代理要连模型，断网就不能用。
+ * 现在这条只承诺两件能核对的事：技能不向 TeachFlow 回传；运行仍需要
+ * 网络，因为流量走的是模型提供商，不是我们。
  * **不新造任何可验证性声明**：本站从不声称通过了第三方审计、渗透测试
  * 或任何形式的安全认证——那些我们拿不出证据，而支付服务商审核会去查。
  *
@@ -140,11 +142,15 @@ export const VERIFIABLE_FACTS = [
     },
   },
   {
-    id: 'runs-offline',
-    icon: 'cloud-off',
+    id: 'no-phone-home',
+    /*
+     * 不用 `cloud-off`：那张图在说「离线」，而产品做不到离线。
+     * `lock` 说的是「不把文件交给我们」，和这条事实一致。
+     */
+    icon: 'lock',
     text: {
-      en: 'You can disconnect from the internet before you run them. The skills make no network request of any kind, so nothing you feed them can leave your machine — and the check costs you one click.',
-      ko: '실행하기 전에 인터넷을 끊어 보셔도 됩니다. 스킬은 어떤 네트워크 요청도 하지 않으므로 입력하신 자료가 컴퓨터 밖으로 나갈 수 없습니다. 확인에 드는 수고는 클릭 한 번뿐입니다.',
+      en: 'The skills do not phone home — no URLs, no API calls, no telemetry. You still need the internet to run them, because your agent talks to its model. That traffic is between you and the model provider, not TeachFlow.',
+      ko: '스킬은 저희 쪽으로 아무것도 보내지 않습니다. URL, API 호출, 원격 측정이 없습니다. 다만 실행하려면 인터넷이 필요합니다. 에이전트가 모델과 대화하기 때문이며, 그 트래픽은 선생님과 모델 제공사 사이이지 TeachFlow가 아닙니다.',
     },
   },
 ] as const;
