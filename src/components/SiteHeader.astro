@@ -1,6 +1,6 @@
 ---
 import LanguageSwitcher from './LanguageSwitcher.astro';
-import { buyHref } from '@/config/site';
+import { SITE, buyHref } from '@/config/site';
 import { localizePath, type Locale } from '@/i18n/config';
 import { useTranslations } from '@/i18n/t';
 
@@ -28,10 +28,19 @@ const links = [
   class="sticky top-0 z-50 border-b border-border bg-void/70 backdrop-blur-md"
 >
   <div class="mx-auto flex max-w-6xl items-center gap-6 px-4 py-3">
-    <a
-      href={localizePath('/', lang)}
-      class="font-mono text-text-hi tracking-tight"
-    >Teach<span class="text-accent-glow">Flow</span></a>
+    <a href={localizePath('/', lang)} class="shrink-0">
+      {/*
+        品牌 logo（logo.png，441×128）：蓝色透明底横向组合标。width/height
+        写死为原始尺寸 + h-7 w-auto——比例由属性锁定，不参与 CLS。
+      */}
+      <img
+        src="/logo.png"
+        alt={SITE.productName}
+        width="441"
+        height="128"
+        class="h-7 w-auto"
+      />
+    </a>
 
     <nav aria-label={t('nav.home')} class="hidden gap-5 text-sm md:flex">
       {links.map((link) => (

@@ -21,7 +21,7 @@ const paths = ICON_PATHS[name];
   `aria-hidden` 宿主内部出现可聚焦元素正是 `scripts/aria-hidden-scan.mjs`
   与 axe aria-hidden-focus 判失败的形态。本组件不含任何 a/button/tabindex。
 
-  `stroke="currentColor"` 而不是 favicon 那个 `url(#g)` 渐变：渐变要求每个
+  `stroke="currentColor"` 而不是写死的渐变：渐变要求每个
   `<svg>` 自带 `<defs>`，同一 id 在一页里出现 N 次就是 N 个重复 id（HTML 无效，
   且 Chrome 按文档序取第一个）。改用 currentColor 后，颜色由调用方的
   `text-accent-glow` / `text-accent` / `text-accent-warm` 给出——这正好让图标
