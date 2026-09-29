@@ -84,8 +84,15 @@
 	#
 	# `/api/*`、`/download`、`/download/*` 在这里排除，理由见文件上方 @shop 的
 	# 第 2 条：`redir` 排在 `handle` 之前，不排除就永远到不了反代。
-	@unknown_locale not path / /en /en/* /ko /ko/* /api/* /download /download/* /_astro/* /fonts/* /samples/* /favicon.svg /robots.txt /sitemap* /404.html
+	@unknown_locale not path / /en /en/* /ko /ko/* /api/* /download /download/* /_astro/* /fonts/* /samples/* /favicon.png /apple-touch-icon.png /logo.png /og.png /robots.txt /sitemap* /404.html
 	redir @unknown_locale /en 302
+
+	# 顶层静态图片（favicon / apple-touch-icon / 页头 logo / og 分享卡）与
+	# HTML 一样按"每次回源校验"缓存：它们没有内容哈希，`immutable` 一年缓存
+	# 会让换 logo 后老访客长期看不到新版。`logo.png` 每页都加载，10 KB 上下，
+	# 回源校验的开销可以接受。
+	@siteimg path /favicon.png /apple-touch-icon.png /logo.png /og.png
+	header @siteimg Cache-Control "public, max-age=0, must-revalidate"
 
 	@immutable path /_astro/* /fonts/*
 	header @immutable Cache-Control "public, max-age=31536000, immutable"
@@ -98,7 +105,7 @@
 	# 反向排除对“除了静态资源以外的一切”生效，改写前后都成立。
 	# `/api/*` 与 `/download*` 也排除：见 @shop 的第 3 条——接口自己决定缓存
 	# 语义，签名下载绝不能被打上 `public`。
-	@html not path /api/* /download /download/* /_astro/* /fonts/* /favicon.svg /robots.txt /sitemap*
+	@html not path /api/* /download /download/* /_astro/* /fonts/* /favicon.png /apple-touch-icon.png /logo.png /og.png /robots.txt /sitemap*
 	header @html Cache-Control "public, max-age=0, must-revalidate"
 
 	header {
@@ -118,7 +125,7 @@
 	# 命中，根本走不到“改写文件名”那一步，规范化跳照发不误。把 `{path}/index.html`
 	# 提到最前，强制走“改写文件名”的路径。
 	#
-	# 静态资源不受影响：`/favicon.svg/index.html`、`/robots.txt/index.html` 都不存在，
+	# 静态资源不受影响：`/favicon.png/index.html`、`/robots.txt/index.html` 都不存在，
 	# 落到第二个候选 `{path}` 命中。
 	#
 	# 上线后**必须**用 `curl -sI https://<域名>/en` 复核：应为 `200`，**不是 `308`**。
