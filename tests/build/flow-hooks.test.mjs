@@ -353,10 +353,12 @@ describe('the sample link follows the samples that actually exist (N2)', () => {
     expect(sampleHref('audio-workflow', 'en', [pending])).toBeNull();
   });
 
-  it('gives lesson-workflow no sample, in the real data', () => {
-    // lesson-workflow 不在 SAMPLES 里（产物是 Markdown 文本不是可下载文件），
-    // 所以它永远没有样例链接。这是对的，不为它伪造一个。
-    expect(sampleHref('lesson-workflow', 'en', SAMPLES)).toBeNull();
+  it('gives lesson-workflow a real sample link, in the real data', () => {
+    // 2026-09-28 起 lesson-workflow 有了真实样例：eng2 Lesson 1 备课文档
+    // （.md ×6 的 zip，是 skill 的真实交付格式，不是截图）。所以它应当产出
+    // 指向自己锚点的样例链接——这条断言同时守住"链接跟着真实样例走"。
+    expect(sampleHref('lesson-workflow', 'en', SAMPLES))
+      .toBe('/en/samples#eng2-lesson1-docs');
   });
 
   it('keeps the sample link wired into the card template (N2, source guard)', () => {

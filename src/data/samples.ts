@@ -17,9 +17,10 @@ export interface Sample {
  * 生成后把 file / previewImage / durationSeconds 填上即可，页面自动从占位切换为真卡片。
  *
  * **`file` 与 `previewImage` 的界线**（本轮填数据时定下的纪律）：
- * `previewImage` 是"长什么样"，`file` 是"你下载到的东西"。五个样例现在都有
- * 真实渲染的预览图，但只有听力音频的**实际交付格式**（.mp3）以原格式存在；
- * 另外四个标题写的是 .pptx/.xlsx/.docx/.png，而我们手上只有截图。
+ * `previewImage` 是"长什么样"，`file` 是"你下载到的东西"。
+ * 以真实交付格式存在的：听力音频（.mp3）、eng2 全套幻灯片（.pptx ×6 的 zip）、
+ * eng2 备课文档（.md ×6 的 zip）——这三张卡给下载按钮，下载到的与标题所写一致。
+ * unit07 的另外四个标题写的是 .pptx/.xlsx/.docx/.png，而我们手上只有截图。
  * 把 `file` 指向截图，"Download" 按钮就会在标题写着 .pptx 的卡片上递出一张
  * PNG——那是对买家的虚假陈述，和编造数字是同一类错误。所以那四张卡
  * `file` 保持 null：有预览可看，但不谎称可下载。
@@ -34,10 +35,34 @@ export interface Sample {
  *
  * 隐私约束（spec §7.4）：样例文件中不得出现任何真实学生姓名或学校名。
  *
- * `lesson-workflow` 的产物（차시 분할、수업 지도안）是 Markdown 文本而非可下载文件，
- * 因此不在此列表中——`tests/unit/samples.test.ts` 只要求"产出文件的 skill"有条目。
+ * `lesson-workflow` 的产物（차시 분할、수업 지도안）是 Markdown 文本。2026-09-28 起，
+ * eng2 Lesson 1 的整套 .md（6 份）以 zip 形式作为真实下载条目加入——Markdown 同样是
+ * skill 的真实交付格式，zip 只是打包方式，内容未做任何改写。
+ * `tests/unit/samples.test.ts` 要求"产出文件的 skill"有条目。
  */
 export const SAMPLES: readonly Sample[] = [
+  {
+    id: 'eng2-lesson1-slides',
+    skillId: 'ppt-workflow',
+    file: '/samples/eng2-lesson1-slides-pptx.zip',
+    previewImage: '/samples/eng2-lesson1-slides.png',
+    durationSeconds: null,
+    title: {
+      en: 'MS English 2 Lesson 1 slide decks (.pptx ×6)',
+      ko: '중2 영어2 1과 전 차시 슬라이드 (.pptx ×6)',
+    },
+  },
+  {
+    id: 'eng2-lesson1-docs',
+    skillId: 'lesson-workflow',
+    file: '/samples/eng2-lesson1-lesson-docs.zip',
+    previewImage: '/samples/eng2-lesson1-docs.png',
+    durationSeconds: null,
+    title: {
+      en: 'MS English 2 Lesson 1 lesson documents (.md ×6)',
+      ko: '중2 영어2 1과 수업 설계 문서 (.md ×6)',
+    },
+  },
   {
     id: 'unit07-slides',
     skillId: 'ppt-workflow',

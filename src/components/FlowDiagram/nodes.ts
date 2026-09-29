@@ -229,8 +229,9 @@ export function nodeColor(stage: SkillStage): string {
  * 一条样例链接都不会出现，只扫 `dist/` 的话"删掉链接渲染"这个变异完全不可见。
  *
  * 未生成（`file === null`）时不给链接，与 `/samples` 同一条纪律：宁可没有入口，
- * 也不给一个指向空文件的下载地址。`lesson-workflow` 不在 `SAMPLES` 里，因此
- * 它的卡片永远没有样例链接——这是对的，不为它伪造一个。
+ * 也不给一个指向空文件的下载地址。一个 skill 有多个样例时取第一个就绪的
+ * （`find` 顺序即 `SAMPLES` 顺序）。2026-09-28 起 `lesson-workflow` 有了真实样例
+ * （eng2 备课文档 zip），它的卡片因此开始产出样例链接。
  */
 export function sampleHref(
   id: SkillId,
