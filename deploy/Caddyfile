@@ -106,14 +106,19 @@
 	#
 	# `/api/*`、`/download`、`/download/*` 在这里排除，理由见文件上方 @shop 的
 	# 第 2 条：`redir` 排在 `handle` 之前，不排除就永远到不了反代。
-	@unknown_locale not path / /en /en/* /ko /ko/* /api/* /download /download/* /_astro/* /fonts/* /samples/* /favicon.png /apple-touch-icon.png /logo.png /og.png /robots.txt /sitemap* /404.html
+	#
+	# `/favicon.ico`（2026-09-30，SEO 卫生项）：浏览器与部分爬虫会自动请求
+	# 这个路径，哪怕页面只声明了 PNG favicon。它是 public/ 里的真实文件，
+	# 不进排除清单就会被下面这条 302 到 /en——爬虫拿到一页 HTML 而不是图标。
+	# `/llms.txt` 同理：它是真实路由（src/pages/llms.txt.ts），供 AI 爬虫取用。
+	@unknown_locale not path / /en /en/* /ko /ko/* /api/* /download /download/* /_astro/* /fonts/* /samples/* /favicon.png /favicon.ico /apple-touch-icon.png /logo.png /og.png /robots.txt /llms.txt /sitemap* /404.html
 	redir @unknown_locale /en 302
 
 	# 顶层静态图片（favicon / apple-touch-icon / 页头 logo / og 分享卡）与
 	# HTML 一样按"每次回源校验"缓存：它们没有内容哈希，`immutable` 一年缓存
 	# 会让换 logo 后老访客长期看不到新版。`logo.png` 每页都加载，10 KB 上下，
 	# 回源校验的开销可以接受。
-	@siteimg path /favicon.png /apple-touch-icon.png /logo.png /og.png
+	@siteimg path /favicon.png /favicon.ico /apple-touch-icon.png /logo.png /og.png
 	header @siteimg Cache-Control "public, max-age=0, must-revalidate"
 
 	@immutable path /_astro/* /fonts/*

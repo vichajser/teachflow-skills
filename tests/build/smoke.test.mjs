@@ -46,11 +46,39 @@ describe('build output', () => {
 // 断言完整正文（而非"含 Sitemap 字样"）：少了尾换行、多一行 Disallow
 // 之类的回归都会被抓到。这是构建产物的检查，故归 tests/build/。
 // 域名的"只此两处"纪律另由 tests/unit/site.test.ts 在源码层面无需构建地钉死。
+//
+// 2026-09-30 起正文多了第二个组：生成式引擎爬虫的显式放行（GEO）。
+// 名单语义（每个 UA 为什么在）由 tests/build/geo.test.mjs 守；这里守的
+// 仍是字节级正文——改 robots.txt.ts 而不同步更新这里的期望，本用例即红，
+// 迫使改动者 conscious 地过一遍全文。
 describe('robots.txt', () => {
   it('lands at dist/robots.txt with the exact body, domain taken from SITE', () => {
     const txt = readFileSync(dist('robots.txt'), 'utf8');
     expect(txt).toBe(
-      `User-agent: *\nAllow: /\n\nSitemap: ${SITE.domain}/sitemap-index.xml\n`,
+      [
+        'User-agent: *',
+        'Allow: /',
+        '',
+        '# Generative-engine crawlers are explicitly welcome (GEO).',
+        '# See src/pages/robots.txt.ts before adding any rule here.',
+        'User-agent: GPTBot',
+        'User-agent: OAI-SearchBot',
+        'User-agent: ChatGPT-User',
+        'User-agent: ClaudeBot',
+        'User-agent: Claude-Web',
+        'User-agent: Claude-SearchBot',
+        'User-agent: PerplexityBot',
+        'User-agent: Perplexity-User',
+        'User-agent: Google-Extended',
+        'User-agent: Amazonbot',
+        'User-agent: Applebot-Extended',
+        'User-agent: meta-externalagent',
+        'User-agent: CCBot',
+        'Allow: /',
+        '',
+        `Sitemap: ${SITE.domain}/sitemap-index.xml`,
+        '',
+      ].join('\n'),
     );
   });
 

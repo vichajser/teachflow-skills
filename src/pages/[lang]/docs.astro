@@ -4,6 +4,7 @@ import Icon from '@/components/Icon.astro';
 import { SITE } from '@/config/site';
 import { useTranslations } from '@/i18n/t';
 import type { Locale } from '@/i18n/config';
+import { breadcrumbs } from '@/lib/schema';
 
 export { localeStaticPaths as getStaticPaths } from '@/i18n/paths';
 
@@ -135,6 +136,7 @@ const codeClass = 'font-mono text-accent-glow';
   title={`${t('docs.title')} — ${SITE.productName}`}
   description={DESCRIPTION[lang]}
   path="/docs"
+  schema={[breadcrumbs(lang, '/docs')]}
 >
   <h1 class="pt-16 text-4xl font-semibold text-text-hi">{t('docs.title')}</h1>
   <p class="mt-3 max-w-2xl text-lg text-text-body">{LEAD[lang]}</p>

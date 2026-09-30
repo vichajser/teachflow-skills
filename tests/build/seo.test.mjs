@@ -128,4 +128,46 @@ describe('sitemap', () => {
       );
     }
   });
+
+  it('omits the post-purchase thank-you page', () => {
+    // /buy/success 是转化漏斗的终点，不是搜索目的地；页面照常构建
+    // （pages.test.mjs 守它的存在），只是不提交给搜索引擎。这条守的是
+    // astro.config.mjs filter 里的第二个正则——删掉它本用例即红。
+    for (const url of locs()) {
+      expect(url, `sitemap lists a checkout funnel page: ${url}`).not.toMatch(
+        /\/buy\/success\/?$/,
+      );
+    }
+  });
+
+  it('carries a git-derived lastmod on every URL', () => {
+    // lastmod 由 astro.config.mjs 的 serialize 从 git 历史按页注入（页面
+    // 原料 = 路由文件 + 本语言字典 + 内容集合 + 共享布局组件）。构建环境
+    // 必须有 git 历史——本仓库的构建流程（deploy/README.md：本地或 CI 从
+    // 仓库构建）满足；tarball 解包构建会静默缺 lastmod，这条会当场红出来。
+    const raw = readFileSync(resolve(process.cwd(), 'dist/sitemap-0.xml'), 'utf8');
+    const urls = [...raw.matchAll(/<url>([\s\S]*?)<\/url>/g)];
+    expect(urls.length, 'dist looks empty — did the build run?').toBeGreaterThan(10);
+    for (const [block] of urls) {
+      const loc = block.match(/<loc>([^<]*)<\/loc>/)[1];
+      const mod = block.match(/<lastmod>([^<]*)<\/lastmod>/)?.[1];
+      expect(mod, `${loc} has no lastmod`).toBeTruthy();
+      expect(mod, `${loc} lastmod is not ISO datetime: ${mod}`).toMatch(
+        /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/,
+      );
+    }
+  });
+});
+
+describe('og:site_name', () => {
+  it('names the site on every content page', () => {
+    // og:site_name 是社交分享卡的站点署名字段。漏了它，分享卡只剩页面
+    // 标题、没有出处。抽查三页（两语首页 + 购买页）——它由 SeoHead 统一
+    // 渲染，不存在只漏一页的变异面。
+    for (const page of ['en/index.html', 'ko/index.html', 'en/buy/index.html']) {
+      expect(
+        read(page).querySelector('meta[property="og:site_name"]')?.getAttribute('content'),
+      ).toBe(SITE.productName);
+    }
+  });
 });

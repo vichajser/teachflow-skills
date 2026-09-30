@@ -4,6 +4,7 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
 import { SITE } from '@/config/site';
 import { useTranslations } from '@/i18n/t';
 import type { Locale } from '@/i18n/config';
+import { breadcrumbs, faqPage, mdToText } from '@/lib/schema';
 
 export { localeStaticPaths as getStaticPaths } from '@/i18n/paths';
 
@@ -16,6 +17,21 @@ const answers = await Promise.all(
     .sort((a, b) => a.data.order - b.data.order)
     .map(async (entry) => ({ entry, Content: (await render(entry)).Content })),
 );
+
+/*
+ * FAQPage 的问答与页面渲染同一批条目、同一个顺序（answers 这张表），
+ * 答案文本从源 markdown 减去语法噪音——schema 里的是纯文本字段。
+ * AI 引擎对 FAQPage 的抽取是结构化的：问题原样、答案可被整句摘录。
+ */
+const schema = [
+  breadcrumbs(lang, '/faq'),
+  faqPage(
+    answers.map(({ entry }) => ({
+      question: entry.data.question,
+      answer: mdToText(entry.body ?? ''),
+    })),
+  ),
+];
 ---
 
 <BaseLayout
@@ -23,6 +39,7 @@ const answers = await Promise.all(
   title={`${t('faq.title')} — ${SITE.productName}`}
   description={t('faq.lead')}
   path="/faq"
+  schema={schema}
 >
   <h1 class="pt-16 text-4xl font-semibold text-text-hi">{t('faq.title')}</h1>
   <p class="mt-3 max-w-2xl text-lg text-text-body">{t('faq.lead')}</p>

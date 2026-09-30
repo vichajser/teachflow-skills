@@ -1,5 +1,5 @@
 ---
-import { SITE } from '@/config/site';
+import { SITE, SITE_VERIFICATION } from '@/config/site';
 import { LOCALES, localizePath, type Locale } from '@/i18n/config';
 
 interface Props {
@@ -35,6 +35,7 @@ const url = (locale: Locale) => `${SITE.domain}${localizePath(path, locale)}`;
 {alternates && <link rel="alternate" hreflang="x-default" href={url('en')} />}
 
 <meta property="og:type" content="website" />
+<meta property="og:site_name" content={SITE.productName} />
 <meta property="og:title" content={title} />
 <meta property="og:description" content={description} />
 <meta property="og:url" content={url(lang)} />
@@ -44,3 +45,15 @@ const url = (locale: Locale) => `${SITE.domain}${localizePath(path, locale)}`;
 <meta property="og:image:height" content="630" />
 <meta property="og:image:alt" content={SITE.productName} />
 <meta name="twitter:card" content="summary_large_image" />
+{/*
+  站长平台验证 meta：只在构建时注入了验证码才渲染（见 SITE_VERIFICATION 的
+  注释）。四家平台里 Google 用 DNS / HTML 文件 / meta 三选一，meta 是唯一
+  不需要碰 DNS 与 Caddy 路由的方式。
+*/}
+{SITE_VERIFICATION.google && (
+  <meta name="google-site-verification" content={SITE_VERIFICATION.google} />
+)}
+{SITE_VERIFICATION.bing && <meta name="msvalidate.01" content={SITE_VERIFICATION.bing} />}
+{SITE_VERIFICATION.naver && (
+  <meta name="naver-site-verification" content={SITE_VERIFICATION.naver} />
+)}

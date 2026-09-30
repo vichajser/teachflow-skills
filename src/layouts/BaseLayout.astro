@@ -3,6 +3,7 @@ import '@/styles/global.css';
 import SeoHead from '@/components/SeoHead.astro';
 import SiteHeader from '@/components/SiteHeader.astro';
 import SiteFooter from '@/components/SiteFooter.astro';
+import { ldJson } from '@/lib/schema';
 import { useTranslations } from '@/i18n/t';
 import type { Locale } from '@/i18n/config';
 
@@ -22,6 +23,13 @@ interface Props {
    * （404 不是语言的另一种呈现，两语 404 互为备选是 SEO 脏数据）。
    */
   alternates?: boolean;
+  /**
+   * 本页的 schema.org JSON-LD 节点（Organization / WebSite / SoftwareApplication
+   * / FAQPage / BreadcrumbList），由 `src/lib/schema.ts` 构建。渲染成
+   * `<script type="application/ld+json">`——它是给爬虫的数据，不是可执行 JS，
+   * `no-js.test.mjs` 与 `/buy` 的零脚本断言都只豁免这一个 type。
+   */
+  schema?: readonly object[];
 }
 
 const {
@@ -31,6 +39,7 @@ const {
   path,
   variant = 'marketing',
   alternates = true,
+  schema,
 } = Astro.props;
 
 /*
@@ -65,6 +74,9 @@ const t = useTranslations(lang);
       path={path}
       alternates={alternates}
     />
+    {schema?.map((node) => (
+      <script type="application/ld+json" set:html={ldJson(node)} />
+    ))}
     {/*
       Preload only the body weight of the reader's own language — five files
       preloaded would compete for first-paint bandwidth, and the 600 cut is not

@@ -7,6 +7,7 @@ import CtaBanner from '@/components/CtaBanner.astro';
 import { SKILLS, stageClass } from '@/data/skills';
 import { useTranslations } from '@/i18n/t';
 import type { Locale } from '@/i18n/config';
+import { breadcrumbs } from '@/lib/schema';
 
 export { localeStaticPaths as getStaticPaths } from '@/i18n/paths';
 
@@ -33,8 +34,15 @@ const sections = await Promise.all(
   title={`${t('nav.skills')} — ${SITE.productName}`}
   description={t('site.tagline')}
   path="/skills"
+  schema={[breadcrumbs(lang, '/skills')]}
 >
-  <h1 class="pt-16 pb-10 text-4xl font-semibold text-text-hi">{t('nav.skills')}</h1>
+  <h1 class="pt-16 pb-4 text-4xl font-semibold text-text-hi">{t('nav.skills')}</h1>
+  {/*
+    GEO：问题式导语 + 一句话直答。AI 引擎检索「六个技能各做什么」这类查询时，
+    倾向摘录「设问 + 紧随其后的完整回答句」；这句话与 hero/metaDescription
+    说同一件事，但以可整句引用的形态出现。语言纪律与 heroBody 一致。
+  */}
+  <p class="mb-10 max-w-2xl text-lg text-text-body">{t('skills.lead')}</p>
 
   {/*
     In-page anchor nav (UX review 2026-09-21, C-4): the detail sections below

@@ -300,6 +300,9 @@ curl -s  "https://$DOMAIN/ko/does-not-exist" | grep -q '찾을 수 없' || echo 
 
 - `curl -sI https://<域名>/` 返回 **302** 到 `/en`（`redir / /en 302`）。
 - 未知语言前缀（如 `https://<域名>/fr`）302 到 `/en`（`@unknown_locale`）。
+- `curl -sI https://<域名>/llms.txt` 与 `/favicon.ico` 返回 **200**
+  （两者都在 `@unknown_locale` 的排除清单里；漏登记会被 302 到 `/en`，
+  AI 爬虫与浏览器拿到的是 HTML 而不是它们要的文件）。
 - HTML 页面真的拿到 `Cache-Control: public, max-age=0, must-revalidate`
   （`@html` 用反向排除写成；`curl -sI https://<域名>/en | grep -i cache-control`），
   静态资源拿到 `max-age=31536000, immutable`。

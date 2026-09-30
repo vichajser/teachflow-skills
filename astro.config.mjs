@@ -59,6 +59,65 @@ function rehypeScrollableTables() {
 
 // 域名尚未购买：占位域名只允许出现在这里与 src/config/site.ts。
 // 确定域名后，两处同步改动即可，其余代码不得硬编码域名。
+
+// ---- sitemap lastmod：从 git 历史取每个页面真实的最后修改时间 ----------------
+//
+// 单一的 `lastmod: new Date()` 选项会把"构建时间"钉给所有页面——每次构建
+// 全站 lastmod 都刷新，搜索引擎很快学会忽略它。`serialize` 按页喂：
+// 一个 URL 的 lastmod = 改过它任何原料的最后一次提交时间（路由文件、
+// 本语言字典、页面消费的内容集合、共享布局/组件/样式/常量）。
+//
+// git 不可用（如源码以 tarball 解包）或文件从未提交时，返回 null，
+// 该 URL 静默不带 lastmod——sitemap 不因此失效。
+import { execFileSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
+
+const SHARED_SRC = [
+  'src/layouts/BaseLayout.astro',
+  'src/layouts/LegalLayout.astro',
+  'src/components',
+  'src/config/site.ts',
+  'src/styles/global.css',
+];
+
+/** sitemap URL → 这页的原料文件。path 形如 '/en/faq'、'/'。 */
+function pageSources(path) {
+  if (path === '' || path === '/') return ['src/pages/index.astro', ...SHARED_SRC];
+
+  const m = path.match(/^\/(en|ko)(?:\/(.+))?$/);
+  if (!m) return [...SHARED_SRC];
+
+  const lang = m[1];
+  const rest = m[2] ?? '';
+  const files = rest
+    ? [`src/pages/[lang]/${rest}.astro`, `src/pages/[lang]/${rest}/index.astro`]
+    : ['src/pages/[lang]/index.astro'];
+  files.push(`src/i18n/${lang}.json`);
+
+  // 页面消费的内容集合：内容变了，页面就是变了，lastmod 必须跟着走。
+  if (rest === '') files.push(`src/content/skills/${lang}`); // 首页的技能卡
+  if (rest === 'faq') files.push(`src/content/faq/${lang}`);
+  if (rest === 'skills') files.push(`src/content/skills/${lang}`, 'src/data/skills.ts');
+  if (rest === 'samples') files.push('src/data/samples.ts');
+  if (rest === 'security') files.push('src/data/security-matrix.ts');
+  if (rest.startsWith('legal/')) files.push(`src/content/legal/${lang}`);
+
+  return [...files, ...SHARED_SRC];
+}
+
+function gitLastCommit(paths) {
+  const real = paths.filter((p) => existsSync(p));
+  if (real.length === 0) return null;
+  try {
+    const out = execFileSync('git', ['log', '-1', '--format=%cI', '--', ...real], {
+      encoding: 'utf8',
+    });
+    return out.trim() ? new Date(out.trim()) : null;
+  } catch {
+    return null;
+  }
+}
+
 export default defineConfig({
   site: 'https://tryteachflow.com',
   output: 'static',
@@ -71,7 +130,21 @@ export default defineConfig({
   // i18n 配置块（语言路由由 `src/pages/[lang]/` 显式生成）。名单因此塌成裸
   // `{"404","500"}`，只挡得住根 `/404`，`/en/404` 与 `/ko/404` 照收不误。
   // 守卫在 tests/build/seo.test.mjs。
-  integrations: [sitemap({ filter: (page) => !/\/(404|500)\/?$/.test(page) })],
+  //
+  // `/buy/success` 是购后确认页，不是搜索目的地：把它提交给搜索引擎只会在
+  // 索引里堆一个转化漏斗终点。页面照常构建（tests/build/pages.test.mjs 仍
+  // 要求它在两语都存在），只是不再出现在 sitemap。
+  integrations: [
+    sitemap({
+      filter: (page) => !/\/(404|500)\/?$/.test(page) && !/\/buy\/success\/?$/.test(page),
+      serialize: (item) => {
+        const path = item.url.replace(/^https?:\/\/[^/]+/, '').replace(/\/+$/, '');
+        const lastmod = gitLastCommit(pageSources(path));
+        return lastmod ? { ...item, lastmod } : item;
+      },
+    }),
+  ],
   markdown: { rehypePlugins: [rehypeScrollableTables] },
   vite: { plugins: [tailwindcss()] },
 });
+

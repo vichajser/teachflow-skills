@@ -396,9 +396,15 @@ describe('/buy links out to checkout instead of hosting one', () => {
   it('ships no script, in either locale', () => {
     // 与 no-js.test.mjs 重叠是故意的：那一条守全站，这一条守的是
     // "别人家的结账 widget 被贴到这一页上"这个具体的诱惑。
+    //
+    // 豁免 `application/ld+json`（2026-09-30）：/buy 现在携带 SoftwareApplication
+    // + BreadcrumbList 结构化数据。它是给爬虫的数据、浏览器不执行，与
+    // no-js.test.mjs 的 SCRIPT_TAG 豁免同一判据——零 JS 规则禁的是可执行脚本。
     for (const file of BOTH) {
-      expect(parse(read(file)).querySelectorAll('script'), `${file} ships a script`)
-        .toHaveLength(0);
+      const executable = parse(read(file))
+        .querySelectorAll('script')
+        .filter((s) => s.getAttribute('type') !== 'application/ld+json');
+      expect(executable, `${file} ships an executable script`).toHaveLength(0);
     }
   });
 

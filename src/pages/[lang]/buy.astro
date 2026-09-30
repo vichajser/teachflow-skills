@@ -4,6 +4,7 @@ import PriceBlock from '@/components/PriceBlock.astro';
 import { SITE, buyHref } from '@/config/site';
 import { localizePath, type Locale } from '@/i18n/config';
 import { useTranslations } from '@/i18n/t';
+import { breadcrumbs, softwareApp } from '@/lib/schema';
 
 export { localeStaticPaths as getStaticPaths } from '@/i18n/paths';
 
@@ -13,6 +14,11 @@ const t = useTranslations(lang);
 // 空串 = Polar 商品还没建起来。见 `SITE.buyCtaUrl` 的注释：这一页因此
 // 有两个形态，而不是一条会落到 404 结账页的链接。
 const open = SITE.buyCtaUrl !== '';
+
+const schema = [
+  breadcrumbs(lang, '/buy'),
+  softwareApp(lang, { description: t('buy.metaDescription') }),
+];
 ---
 
 <BaseLayout
@@ -21,6 +27,7 @@ const open = SITE.buyCtaUrl !== '';
   description={t('buy.metaDescription')}
   path="/buy"
   variant="legal"
+  schema={schema}
 >
   <h1 class="pt-16 text-4xl font-semibold text-text-hi">{t('buy.title')}</h1>
   <p class="mt-3 max-w-2xl text-text-body">{t('buy.lead')}</p>

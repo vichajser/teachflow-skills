@@ -20,6 +20,21 @@ import { localizePath, type Locale } from '@/i18n/config';
 export const POLAR_CHECKOUT_URL =
   'https://buy.polar.sh/polar_cl_sE7Dgs4mL2RhSttmxJ44TvRNIuTRnYDi2vylc18I4Kq';
 
+/**
+ * 搜索引擎站长平台的站点验证码（GSC / Bing / Naver）。
+ *
+ * 与 `PUBLIC_BUY_CTA_URL` 同一套约定：默认不设 → 页面不渲染任何验证 meta；
+ * 构建时注入 → SeoHead 渲染对应 meta。验证码不是机密（它只会出现在
+ * 公开 HTML 里）。**拿到后长期保留在构建环境**（建议写进仓库根目录的
+ * .env，Astro 构建时自动读取）：平台会定期复检，meta 消失会最终丢失
+ * 已验证的所有者身份。完整操作流程见 `docs/2026-09-30-seo-geo-tutorial.md`。
+ */
+export const SITE_VERIFICATION = {
+  google: import.meta.env.PUBLIC_SITE_VERIFICATION_GOOGLE,
+  bing: import.meta.env.PUBLIC_SITE_VERIFICATION_BING,
+  naver: import.meta.env.PUBLIC_SITE_VERIFICATION_NAVER,
+} as const;
+
 export const SITE = {
   domain: 'https://tryteachflow.com',
 

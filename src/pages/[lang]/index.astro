@@ -10,6 +10,7 @@ import { SITE, buyHref } from '@/config/site';
 import { SKILLS } from '@/data/skills';
 import { localizePath, type Locale } from '@/i18n/config';
 import { useTranslations } from '@/i18n/t';
+import { organization, softwareApp, website } from '@/lib/schema';
 
 export { localeStaticPaths as getStaticPaths } from '@/i18n/paths';
 
@@ -28,6 +29,20 @@ const byId = new Map(entries.map((e) => [e.data.id, e.data]));
  * 上界由 `tests/build/seo.test.mjs` 守着。
  */
 const metaDescription = t('home.metaDescription');
+
+/*
+ * JSON-LD 实体三件套（发布方 / 站点 / 商品）。featureList 用六个技能的
+ * **本语言**标题——ko 首页的 featureList 必须是韩文，与页面渲染同源
+ * （byId 这张表），不另抄一份英文清单。schema 组装纪律见 src/lib/schema.ts。
+ */
+const schema = [
+  organization(),
+  website(lang),
+  softwareApp(lang, {
+    description: metaDescription,
+    featureList: SKILLS.map((skill) => byId.get(skill.id)!.title),
+  }),
+];
 ---
 
 <BaseLayout
@@ -35,6 +50,7 @@ const metaDescription = t('home.metaDescription');
   title="TeachFlow"
   description={metaDescription}
   path="/"
+  schema={schema}
 >
   <section class="grid items-center gap-8 pt-20 pb-8 md:grid-cols-[minmax(0,1fr)_280px]">
     <div>
