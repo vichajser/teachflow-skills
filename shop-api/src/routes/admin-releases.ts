@@ -1,7 +1,8 @@
-import { createHash, timingSafeEqual } from 'node:crypto';
+import { createHash } from 'node:crypto';
 import type { Pool } from 'pg';
 import type { Handler, RequestContext } from '../http/router.ts';
 import { BodyTooLarge, readRawBody, sendError, sendJson } from '../http/respond.ts';
+import { bearerAuthorized as authorized } from '../lib/authorize.ts';
 import { fieldOf, fileOf, MultipartError, parseMultipart } from '../lib/multipart.ts';
 import { validateSkillZip } from '../lib/zip-validate.ts';
 import { compareSemver, isSemver } from '../lib/frontmatter.ts';
@@ -30,15 +31,6 @@ export interface ReleaseDeps {
    * 带上 release id，worker 的 reconcile 任务也会补做归档。
    */
   enqueue(job: string, data: Record<string, unknown>): Promise<void>;
-}
-
-function authorized(header: string | string[] | undefined, expected: string): boolean {
-  const raw = Array.isArray(header) ? header[0] : header;
-  if (!raw || !raw.startsWith('Bearer ')) return false;
-  const provided = Buffer.from(raw.slice(7), 'utf8');
-  const want = Buffer.from(expected, 'utf8');
-  // 先比长度再定长比较：timingSafeEqual 长度不等会抛错。
-  return provided.length === want.length && timingSafeEqual(provided, want);
 }
 
 /**

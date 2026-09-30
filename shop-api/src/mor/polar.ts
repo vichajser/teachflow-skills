@@ -10,8 +10,10 @@ const TOLERANCE_SECONDS = 300;
 /**
  * 供应商事件名到我们三种状态的映射。退款与争议的事件名以 Polar 后台
  * 「Webhook → Events」列表为准；这里列了目前已知的别名。
- * 没列上的事件会被安全忽略（返回 event: null 并回 200），所以万一名字对不上，
- * 后果是「订单状态没自动翻转」而不是「接口报错、供应商无限重投」。
+ * checkout.created 在 normalize 里单独分流成 checkout_open（只进漏斗统计），
+ * 不在这张表里。没列上的事件会被安全忽略（返回 event: null 并回 200），
+ * 所以万一名字对不上，后果是「订单状态没自动翻转」而不是「接口报错、
+ * 供应商无限重投」。
  */
 const EVENT_KINDS: Record<string, 'paid' | 'refunded' | 'chargeback'> = {
   'order.paid': 'paid',
@@ -111,6 +113,22 @@ function orderIdOf(data: Record<string, unknown>): string | undefined {
 }
 
 function normalize(type: string, data: Record<string, unknown>): NormalizedOrderEvent | null {
+  // checkout.created 只做漏斗信号，不进 EVENT_KINDS 的订单状态机——
+  // 分流原因见 types.ts 的 checkout_open 注释。
+  if (type === 'checkout.created') {
+    const checkoutId = typeof data.id === 'string' ? data.id : undefined;
+    if (!checkoutId) return null;
+    const attribution = attributionOf(data);
+    return {
+      kind: 'checkout_open',
+      checkoutId,
+      amountCents: amountOf(data),
+      currency: typeof data.currency === 'string' ? data.currency.toUpperCase() : undefined,
+      ...attribution,
+      lang: attribution.lang ?? pickLocale(data),
+    };
+  }
+
   const kind = EVENT_KINDS[type];
   if (!kind) return null;
 
@@ -120,12 +138,33 @@ function normalize(type: string, data: Record<string, unknown>): NormalizedOrder
     const amountCents = amountOf(data);
     const currency = typeof data.currency === 'string' ? data.currency.toUpperCase() : undefined;
     if (!orderId || !email || amountCents === undefined || !currency) return null;
-    return { kind: 'paid', orderId, email, amountCents, currency, locale: pickLocale(data) };
+    return { kind: 'paid', orderId, email, amountCents, currency, locale: pickLocale(data), ...attributionOf(data) };
   }
 
   const orderId = orderIdOf(data);
   if (!orderId) return null;
   return { kind, orderId };
+}
+
+/**
+ * checkout / order 载荷里的 metadata：/api/checkout/start 建 Polar 会话时写入的
+ * src / vid / lang 会原样回流到 webhook。静态 checkout link 的流量没有这些
+ * 字段——attribution 为空是常态而不是异常。
+ */
+function attributionOf(data: Record<string, unknown>): {
+  src?: string;
+  vid?: string;
+  lang?: 'en' | 'ko';
+} {
+  const metadata = (data.metadata ?? {}) as Record<string, unknown>;
+  const src = typeof metadata.src === 'string' && metadata.src !== '' ? metadata.src.slice(0, 64) : undefined;
+  const vid = typeof metadata.vid === 'string' && metadata.vid !== '' ? metadata.vid.slice(0, 64) : undefined;
+  const lang = metadata.lang === 'ko' ? ('ko' as const) : metadata.lang === 'en' ? ('en' as const) : undefined;
+  const out: { src?: string; vid?: string; lang?: 'en' | 'ko' } = {};
+  if (src) out.src = src;
+  if (vid) out.vid = vid;
+  if (lang) out.lang = lang;
+  return out;
 }
 
 export const polarAdapter: MorAdapter = {

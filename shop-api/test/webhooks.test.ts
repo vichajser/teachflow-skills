@@ -385,3 +385,89 @@ describe('连接管理', () => {
     expect(db.leaked).toBe(0);
   });
 });
+
+describe('漏斗旁路', () => {
+  function collector() {
+    const events: { step: string; checkoutId?: string; orderId?: string; src?: string; vid?: string; lang?: string }[] = [];
+    let openOnceResult = true;
+    const funnel = {
+      async record(evt: { step: string; orderId?: string; src?: string; vid?: string; lang?: string }) {
+        events.push({ step: evt.step, orderId: evt.orderId, src: evt.src, vid: evt.vid, lang: evt.lang });
+      },
+      async recordCheckoutOpenOnce(evt: { step: string; checkoutId?: string; src?: string; vid?: string; lang?: string }) {
+        events.push({ step: evt.step, checkoutId: evt.checkoutId, src: evt.src, vid: evt.vid, lang: evt.lang });
+        return openOnceResult;
+      },
+    };
+    return {
+      funnel,
+      events,
+      get openOnceResult() {
+        return openOnceResult;
+      },
+      set openOnceResult(v: boolean) {
+        openOnceResult = v;
+      },
+    };
+  }
+
+  it('checkout.created 记第③步：不建订单、不进存档表，metadata 原样带上', async () => {
+    const db = fakeDb();
+    const c = collector();
+    const out = await deliver(
+      db,
+      {
+        type: 'checkout.created',
+        data: {
+          id: 'co_777',
+          amount: 2990,
+          currency: 'usd',
+          metadata: { src: 'hero', vid: 'v-abc', lang: 'ko' },
+        },
+      },
+      { deps: { funnel: c.funnel } },
+    );
+    expect(out.status).toBe(200);
+    expect(out.json).toEqual({ ok: true, result: 'ignored', funnel: 'recorded' });
+    expect(c.events).toEqual([
+      { step: 'checkout_open', checkoutId: 'co_777', src: 'hero', vid: 'v-abc', lang: 'ko' },
+    ]);
+    expect(db.state.orders.size).toBe(0);
+    expect(db.state.events.size).toBe(0);
+  });
+
+  it('checkout.created 重投（去重命中）回报 duplicate', async () => {
+    const db = fakeDb();
+    const c = collector();
+    c.openOnceResult = false;
+    const out = await deliver(
+      db,
+      { type: 'checkout.created', data: { id: 'co_1' } },
+      { deps: { funnel: c.funnel } },
+    );
+    expect(out.json.funnel).toBe('duplicate');
+  });
+
+  it('未配置 funnel 时 checkout.created 回 skipped，其余行为不变', async () => {
+    const db = fakeDb();
+    const out = await deliver(db, { type: 'checkout.created', data: { id: 'co_2' } });
+    expect(out.json).toEqual({ ok: true, result: 'ignored', funnel: 'skipped' });
+  });
+
+  it('order.paid 首次落库记第④步一次，metadata 的 src/vid 随行；重投不再记', async () => {
+    const db = fakeDb();
+    const c = collector();
+    const paid = {
+      type: 'order.paid',
+      data: {
+        ...PAID.data,
+        metadata: { locale: 'en', src: 'cta', vid: 'v-9' },
+      },
+    };
+    await deliver(db, paid, { deps: { funnel: c.funnel } });
+    await deliver(db, paid, { deps: { funnel: c.funnel } }); // 同 event_id 重投
+    expect(c.events).toEqual([
+      { step: 'order_paid', orderId: 'ord_abc', src: 'cta', vid: 'v-9', lang: 'en' },
+    ]);
+  });
+});

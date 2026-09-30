@@ -3,7 +3,7 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { parse } from 'node-html-parser';
 import { SAMPLES, isReady } from '@/data/samples';
-import { SITE } from '@/config/site';
+import { SITE, POLAR_CHECKOUT_URL } from '@/config/site';
 
 /**
  * Task 11 落了九个新页面（en/ko × faq / docs / samples / 404，加根 404），
@@ -424,7 +424,8 @@ describe('/buy links out to checkout instead of hosting one', () => {
   /**
    * 这一页有两个形态，取决于 `PUBLIC_BUY_CTA_URL` 在构建时有没有设。
    * 断言跟着同一个常量分叉，而不是假定其中一种——否则本地构建（未设）
-   * 与生产构建（已设）之中必有一种是没人测过的。
+   * 与生产构建（已设）之中必有一种是没人测过的。默认形态的按钮走站内
+   * 计数中转（漏斗第②步），显式覆盖时直链覆盖值。
    */
   it('renders the state its configuration actually asks for', () => {
     for (const lang of ['en', 'ko']) {
@@ -440,6 +441,9 @@ describe('/buy links out to checkout instead of hosting one', () => {
           .not.toContain(SITE.buyCtaUrl);
         expect(hrefs, `${file} drops the email route`)
           .toContain(`mailto:${SITE.supportEmail}`);
+      } else if (SITE.buyCtaUrl === POLAR_CHECKOUT_URL) {
+        const to = hrefs.filter((h) => h === `/api/checkout/start?src=buy-page&lang=${lang}`);
+        expect(to, `${file} does not link to the checkout hop exactly once`).toHaveLength(1);
       } else {
         const to = hrefs.filter((h) => h === SITE.buyCtaUrl);
         expect(to, `${file} does not link to the checkout exactly once`).toHaveLength(1);

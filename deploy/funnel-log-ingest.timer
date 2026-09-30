@@ -1,0 +1,13 @@
+# 与 funnel-log-ingest.service 配套的定时器。5 分钟一次足够看漏斗趋势
+# （这不是实时监控），间隔再短只会让每次都读到「没有新完整行」。
+
+[Unit]
+Description=Run TeachFlow funnel log ingestion every 5 minutes
+
+[Timer]
+OnCalendar=*-*-* *:0/5:00
+RandomizedDelaySec=30
+Persistent=true
+
+[Install]
+WantedBy=timers.target

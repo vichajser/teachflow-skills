@@ -9,6 +9,28 @@
 	root * /srv/teachflow/dist
 	encode zstd gzip
 
+	# ---- 访问日志：漏斗统计第①步（page_view）的数据源 ----
+	#
+	# JSON 一行一条，含 UA 与 Referer；解析器（shop-api/src/bin/ingest-caddy-logs.ts，
+	# 由 funnel-log-ingest.timer 每 5 分钟跑一次）按字节偏移断点续读，只把
+	# 「GET + 200 + 页面形态路径」写成 funnel_events，不存 IP。日志文件本身
+	# 保留 ≤30 天（与 /legal/privacy 的承诺一致：roll_keep_for 30d）。
+	# 目录若不存在：sudo mkdir -p /var/log/caddy && sudo chown caddy:caddy /var/log/caddy
+	#
+	# ⚠ 坑（2026-09-29 实测）：`caddy validate` 以 root 运行时会**预创建**日志文件
+	# （root 属主 0600），随后 caddy 进程（caddy 用户）打开即 permission denied，
+	# reload 失败、restart 起不来。validate 之后若见到 root 属主的 access.log，
+	# 先 `sudo rm /var/log/caddy/access.log` 再 reload/restart——caddy 会自己以
+	# caddy 属主重建。
+	log {
+		output file /var/log/caddy/access.log {
+			roll_size 50MiB
+			roll_keep 4
+			roll_keep_for 30d
+		}
+		format json
+	}
+
 	# ---- shop-api：发版、履约、下载。反代到本机 8787，不走静态文件。----
 	#
 	# 这三条路径合成一个 matcher，因为它们要在**三处**同时被照顾到，漏一处

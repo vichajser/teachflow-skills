@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { SITE, buyHref } from '@/config/site';
+import { SITE, buyHref, POLAR_CHECKOUT_URL } from '@/config/site';
 
 describe('SITE constants', () => {
   it('renders the price with an explicit currency code', () => {
@@ -49,22 +49,30 @@ describe('SITE constants', () => {
 });
 
 /**
- * 全站「购买」按钮的唯一去处是 buyHref()：结账链接配好了直达 Polar，
- * 没配（本地构建）回落到 /buy 的兜底页。两条路都必须成立——
- * 回落坏了意味着本地构建的购买按钮是死链。
+ * 全站「购买」按钮的唯一去处是 buyHref()。三种形态各自对着一种构建环境：
+ * 默认（未设 PUBLIC_BUY_CTA_URL）走站内计数中转；显式覆盖为第三方 URL
+ * （支付演练）直链；置空回落 /buy 兜底页。三条路都必须成立——回落坏了
+ * 意味着本地构建的购买按钮是死链，中转坏了意味着生产按钮打到 404。
  */
 describe('buyHref', () => {
-  it('points straight at checkout when a checkout URL is configured', () => {
-    if (SITE.buyCtaUrl !== '') {
-      expect(buyHref('en')).toBe(SITE.buyCtaUrl);
-      expect(buyHref('ko')).toBe(SITE.buyCtaUrl);
+  it('routes through the on-site counting hop by default', () => {
+    if (SITE.buyCtaUrl === POLAR_CHECKOUT_URL) {
+      expect(buyHref('en', 'hero')).toBe('/api/checkout/start?src=hero&lang=en');
+      expect(buyHref('ko', 'header')).toBe('/api/checkout/start?src=header&lang=ko');
+    }
+  });
+
+  it('links straight out when an override URL is configured (payment drills)', () => {
+    if (SITE.buyCtaUrl !== '' && SITE.buyCtaUrl !== POLAR_CHECKOUT_URL) {
+      expect(buyHref('en', 'hero')).toBe(SITE.buyCtaUrl);
+      expect(buyHref('ko', 'header')).toBe(SITE.buyCtaUrl);
     }
   });
 
   it('falls back to the localized /buy page when no checkout URL is configured', () => {
     if (SITE.buyCtaUrl === '') {
-      expect(buyHref('en')).toBe('/en/buy');
-      expect(buyHref('ko')).toBe('/ko/buy');
+      expect(buyHref('en', 'hero')).toBe('/en/buy');
+      expect(buyHref('ko', 'header')).toBe('/ko/buy');
     }
   });
 });

@@ -97,6 +97,9 @@ webhook 正文入库但从不打印。
 | GET | `/api/admin/releases` | Bearer | 列出已发版本，核对用 |
 | POST | `/api/webhooks/polar` | 签名 | 收结算事件，登记权益、发货 |
 | POST | `/api/orders/resend-link` | 无（限流） | 重发下载链接，恒定回 202 |
+| GET | `/api/checkout/start` | 无 | 购买中转：记漏斗②，302 去 Polar |
+| GET | `/api/checkout/return` | 无 | 支付回跳：记漏斗⑤，302 去成功页 |
+| GET | `/api/admin/funnel` | Bearer | 漏斗计数报表（`?days=30&format=json\|html`） |
 | GET | `/download` | query token | 买家看到的下载页 |
 | GET | `/api/download/:skillId` | query token | 真正的文件流 |
 
@@ -128,6 +131,34 @@ python3 ../tools/publish.py \
 
 changelog 的两种语言都要给——更新通知按买家的语言选一份发出去，缺一种就会
 有一批人收到空白正文。
+
+---
+
+## 漏斗统计
+
+全流程丢失率（进入页面 → 点击购买 → 到达支付页 → 支付成功 → 回跳）走
+**零客户端脚本**的服务端管道——站点保持无脚本、无 cookie、无第三方请求
+（隐私政策已按此口径更新）：
+
+| 步骤 | 事件 | 来源 |
+|---|---|---|
+| ① | `page_view` | Caddy 访问日志 → `src/bin/ingest-caddy-logs.ts`（timer 每 5 分钟） |
+| ② | `checkout_click` | `GET /api/checkout/start?src=…&lang=…`（站点按钮的唯一去处） |
+| ③ | `checkout_open` | Polar `checkout.created` webhook（旁路记录，不进订单状态机） |
+| ④ | `order_paid` | Polar `order.paid`（`applied` 首次落库时记一笔） |
+| ⑤ | `success_return` | `GET /api/checkout/return?checkout_id=…`（Polar 后台 Success URL 指到这里） |
+
+看报表：`curl -H "Authorization: Bearer $ADMIN_TOKEN" https://<域名>/api/admin/funnel?days=30&format=html`。
+部署步骤与线上自检见 [`../deploy/README.md`](../deploy/README.md) §3c。
+
+事实源是 `funnel_events` 表（不含 IP，长期保留）；`POSTHOG_API_KEY` 只是
+可选镜像，`POLAR_ACCESS_TOKEN` + `POLAR_PRODUCT_PRICE_ID` 只是可选的
+「API 建会话」增强（vid 关联 ②→④，**未经 sandbox 实测**，见方案文档 §7）。
+两项都不设时管道完整可用。
+
+**本机未验证的部分**：`polar-session.ts` 的请求字段与 PostHog `/batch/` 端点
+照公开文档所写（实施时网络不可用）；摄取脚本的文件 IO 与 timer 行为只能在
+服务器上确认。上线后按 deploy/README §3c 的自检逐条过。
 
 ---
 

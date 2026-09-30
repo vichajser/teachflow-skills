@@ -1,7 +1,7 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import PriceBlock from '@/components/PriceBlock.astro';
-import { SITE } from '@/config/site';
+import { SITE, buyHref } from '@/config/site';
 import { localizePath, type Locale } from '@/i18n/config';
 import { useTranslations } from '@/i18n/t';
 
@@ -31,14 +31,15 @@ const open = SITE.buyCtaUrl !== '';
 
   {/*
     站内不托管任何支付表单：这一整页没有 <form>、没有 <input>、没有脚本。
-    买家点这个链接之后就已经在 Polar 的托管结账页上，卡号从不经过本站，
-    PCI 面与支付页审核因此完全消失。tests/build/pages.test.mjs 把这一点
-    钉死——它是本页存在的全部理由，不是一句注释里的承诺。
+    买家点这个链接后先经 /api/checkout/start 记一笔（漏斗第②步）就到了
+    Polar 的托管结账页，卡号从不经过本站，PCI 面与支付页审核因此完全
+    消失。tests/build/pages.test.mjs 把这一点钉死——它是本页存在的全部
+    理由，不是一句注释里的承诺。
   */}
   {open ? (
     <section class="mt-10 max-w-2xl">
       <a
-        href={SITE.buyCtaUrl}
+        href={buyHref(lang, 'buy-page')}
         rel="noopener"
         class="inline-block rounded-lg bg-accent px-6 py-3 font-semibold text-bg hover:opacity-90"
       >{t('buy.cta')}</a>

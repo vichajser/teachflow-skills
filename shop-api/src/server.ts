@@ -11,6 +11,10 @@ import { downloadPageRoute, downloadAllRoute, downloadFileRoute } from './routes
 import { resendLinkRoute } from './routes/resend-link.ts';
 import { adminReleasesRoute, releasesListRoute } from './routes/admin-releases.ts';
 import { webhookRoute } from './routes/webhooks.ts';
+import { checkoutStartRoute, checkoutReturnRoute } from './routes/checkout.ts';
+import { funnelReportRoute } from './routes/funnel-report.ts';
+import { createFunnelSink } from './funnel/events.ts';
+import { createPosthogMirror } from './funnel/posthog.ts';
 import { createBoss, ensureQueues, enqueue } from './jobs/queue.ts';
 
 // 对外的那一半。后台任务在 worker.ts 里另起一个进程，理由见那个文件的开头。
@@ -78,6 +82,21 @@ async function main(): Promise<void> {
     }),
   );
 
+  // 漏斗统计：PostHog 镜像（可选）+ 事件汇。汇的落库失败只打日志，
+  // 永不影响购买主链路——见 funnel/events.ts。
+  const posthogMirror = config.posthog ? createPosthogMirror(config.posthog) : null;
+  const funnel = createFunnelSink({ pool, mirror: posthogMirror });
+
+  router.add('GET', '/api/checkout/start', checkoutStartRoute({
+    pool,
+    funnel,
+    checkoutUrl: config.checkoutUrl,
+    publicBaseUrl: config.publicBaseUrl,
+    polar: config.polarSession,
+  }));
+  router.add('GET', '/api/checkout/return', checkoutReturnRoute({ pool, funnel, checkoutUrl: config.checkoutUrl, publicBaseUrl: config.publicBaseUrl }));
+  router.add('GET', '/api/admin/funnel', funnelReportRoute({ adminToken: config.adminToken, pool }));
+
   router.add(
     'POST',
     '/api/webhooks/polar',
@@ -86,6 +105,7 @@ async function main(): Promise<void> {
       secret: config.polarWebhookSecret,
       pool,
       skillIds: config.bundleSkillIds,
+      funnel,
       enqueue: put,
     }),
   );

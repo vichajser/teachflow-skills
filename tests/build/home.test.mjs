@@ -63,7 +63,17 @@ describe('home page', () => {
       const main = parse(read(page)).querySelector('main');
       expect(main, `no <main> on ${page}`).not.toBeNull();
       const hrefs = main.querySelectorAll('a').map((a) => a.getAttribute('href'));
-      expect(hrefs.some((h) => h === `/${lang}/buy` || (SITE.buyCtaUrl !== '' && h === SITE.buyCtaUrl)),
+      // 购买按钮的去处跟着配置分叉：默认走站内计数中转（src=hero/home-bottom），
+      // PUBLIC_BUY_CTA_URL 覆盖时直链该 URL，置空时回落 /buy。
+      const hop = (src) => `/api/checkout/start?src=${src}&lang=${lang}`;
+      expect(
+        hrefs.some(
+          (h) =>
+            h === `/${lang}/buy` ||
+            h === SITE.buyCtaUrl ||
+            h === hop('hero') ||
+            h === hop('home-bottom'),
+        ),
         `${page} buries the buy action`,
       ).toBe(true);
       expect(hrefs, `${page} buries the refund policy`).toContain(

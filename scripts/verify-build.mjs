@@ -186,6 +186,9 @@ const assets = new Set((await fg('**/*', { cwd: DIST })).map((f) => '/' + f));
 const resolveHref = (href, page) => {
   const clean = href.split('#')[0].split('?')[0];
   if (!clean) return null; // 纯片段（`#main`）或空
+  // /api/* 由 Caddy 反代到 shop-api（购买中转、报表等动态接口），不落在
+  // dist 里——按静态产物检查它们必然是“死链”，这里显式放行。
+  if (clean.startsWith('/api/')) return null;
   if (ASTRO_SITE && clean.startsWith(ASTRO_SITE)) {
     return clean.slice(ASTRO_SITE.length) || '/'; // 同源绝对 → 站内路径
   }
@@ -359,18 +362,22 @@ for (const page of allHtml.filter((p) => p !== REDIRECT_SHELL)) {
 //
 // spec §9.2 的「两分钟 Stripe 审核模拟」本要人肉交互，沙箱做不了（裁决 4）。
 // 改为对 `dist/` 的站内链接图做 BFS：从每语首页出发，商品（/skills）、
-// 退款政策（/legal/refund）须在 ≤2 跳内可达。购买路径分两种形态：
-// 配了结账链接时首页按钮**直达站外结账**（一跳，比经 /buy 中转更短），
-// 断言首页出现该链接；显式置空时回落 /buy 兜底页，BFS 须 ≤2 跳可达。
+// 退款政策（/legal/refund）须在 ≤2 跳内可达。购买路径分三种形态：
+// 默认（无覆盖）走站内计数中转 /api/checkout/start（shop-api 302 去 Polar），
+// 断言首页出现中转链接；PUBLIC_BUY_CTA_URL 显式覆盖（支付演练）时按钮
+// 直链该 URL，断言首页出现该链接；显式置空时回落 /buy 兜底页，BFS 须
+// ≤2 跳可达。
 //
 // 客服邮箱与公司主体信息断言在**首页自身**，不写成“≤2 跳内任意页面”——后者与
 // 它宣称的“从首页出发”不是一回事：把首页页脚整个删掉，只要任意一个二跳页面还
 // 有邮箱，旧的写法仍旧是绿的（S-12）。实测两者都在首页，收紧后余量充足。
 {
+  const CHECKOUT_HOP = '/api/checkout/start';
+  const OVERRIDE_SET = process.env.PUBLIC_BUY_CTA_URL !== undefined;
   const targets = (lang) => ({
     product: `/${lang}/skills`,
     // 直达结账时 /buy 不再出现在首页，BFS 查不到它不是缺陷——购买路径由
-    // 下面的站外链接断言接管。只有回落形态才把 /buy 列入两跳清单。
+    // 下面的中转/直链断言接管。只有回落形态才把 /buy 列入两跳清单。
     ...(BUY_CTA_URL === '' ? { buy: `/${lang}/buy` } : {}),
     refund: `/${lang}/legal/refund`,
   });
@@ -406,7 +413,10 @@ for (const page of allHtml.filter((p) => p !== REDIRECT_SHELL)) {
     if (parse(homeRaw).querySelectorAll('a[href^="mailto:"]').length === 0) {
       fail('audit-reachability', `${lang} home page itself carries no clickable mailto: link`);
     }
-    if (BUY_CTA_URL !== '' && !homeRaw.includes(BUY_CTA_URL)) {
+    if (BUY_CTA_URL !== '' && !OVERRIDE_SET && !homeRaw.includes(CHECKOUT_HOP)) {
+      fail('audit-reachability', `${lang} home does not route the buy button through the checkout hop`);
+    }
+    if (BUY_CTA_URL !== '' && OVERRIDE_SET && !homeRaw.includes(BUY_CTA_URL)) {
       fail('audit-reachability', `${lang} home does not link straight to the checkout`);
     }
     if (!homeRaw.includes('CROSSXTOP LTD')) {

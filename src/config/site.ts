@@ -12,6 +12,10 @@ import { localizePath, type Locale } from '@/i18n/config';
  * 因此永远读到同一个值，不会再有「构建带了链接、测试进程没读环境变量」
  * 的假红。`PUBLIC_BUY_CTA_URL` 只剩一个用途：**覆盖**，比如用 sandbox
  * 链接做支付演练，或显式设空串把全站打回「结账尚未开放」的兜底形态。
+ *
+ * 运行时这份值镜像在 `shop-api/src/config.ts` 的 `DEFAULT_CHECKOUT_URL`
+ * （/api/checkout/start 的 302 目标）——换 checkout link 时两处一起改，
+ * 没有测试守这层同步。
  */
 export const POLAR_CHECKOUT_URL =
   'https://buy.polar.sh/polar_cl_sE7Dgs4mL2RhSttmxJ44TvRNIuTRnYDi2vylc18I4Kq';
@@ -53,10 +57,24 @@ export const SITE = {
 } as const;
 
 /**
- * 全站「购买」按钮的唯一去处：默认**直达 Polar 托管结账页**，不再经 /buy
- * 中转——买家少点一次，就少一次流失。只有显式把 `PUBLIC_BUY_CTA_URL`
- * 设成空串时才回落到 /buy，那一页自己渲染「结账尚未开放」的兜底。
+ * 购买按钮的来源标注：随中转 URL 传给 shop-api，记进漏斗事件 checkout_click
+ * 的 src 字段。shop-api 侧只认这份清单加 'other'——新增按钮位置时同步登记。
  */
-export function buyHref(lang: Locale): string {
-  return SITE.buyCtaUrl !== '' ? SITE.buyCtaUrl : localizePath('/buy', lang);
+export const BUY_SOURCES = ['header', 'hero', 'home-bottom', 'cta', 'buy-page'] as const;
+export type BuySource = (typeof BUY_SOURCES)[number];
+
+/**
+ * 全站「购买」按钮的唯一去处。三种形态：
+ *  - 默认（未覆盖）：站内一跳 `/api/checkout/start`——shop-api 记下
+ *    checkout_click（漏斗第②步）后 302 去 Polar 结账页。买家多付的只是
+ *    同域一次几十毫秒的重定向，换来的是站内第一次「看得见」购买意图，
+ *    以及结账链接进运行时配置（换 sandbox 链接不再需要重新构建站点）；
+ *  - `PUBLIC_BUY_CTA_URL` 显式设为第三方 URL（支付演练）：直链该 URL，
+ *    绕过中转——演练流量不该混进生产漏斗；
+ *  - 显式设空串：回落 /buy 兜底页（「结账尚未开放」）。
+ */
+export function buyHref(lang: Locale, src: BuySource = 'other'): string {
+  if (SITE.buyCtaUrl === '') return localizePath('/buy', lang);
+  if (SITE.buyCtaUrl !== POLAR_CHECKOUT_URL) return SITE.buyCtaUrl;
+  return `/api/checkout/start?src=${src}&lang=${lang}`;
 }

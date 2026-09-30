@@ -132,6 +132,80 @@ sudo systemctl enable --now shop-api shop-api-worker
 
 ---
 
+## 3c. 漏斗统计（进入 → 支付 → 回跳）
+
+2026-09-29 起，全流程丢失率统计走**零客户端脚本**的服务端管道：页面访问来自
+Caddy 访问日志，购买点击来自站内中转 `/api/checkout/start`，支付两步来自
+Polar webhook，回跳来自 `/api/checkout/return`。设计与口径见
+[`../docs/2026-09-29-funnel-analytics-plan.md`](../docs/2026-09-29-funnel-analytics-plan.md)。
+
+**一次性准备（在 3b 的基础上追加）：**
+
+```bash
+# 1) Caddy 访问日志目录（Caddyfile 已带 log 配置与 30 天轮转）
+sudo mkdir -p /var/log/caddy && sudo chown caddy:caddy /var/log/caddy
+# ⚠ validate 以 root 会预创建 root 属主的 access.log，caddy 随后打不开——
+# validate 之后、reload 之前先删掉它，caddy 会以自己的属主重建（2026-09-29 实测的坑，
+# Caddyfile 里也有同样注记）。
+sudo rm -f /var/log/caddy/access.log
+sudo SITE_DOMAIN=<域名> caddy validate --config /etc/caddy/Caddyfile
+sudo rm -f /var/log/caddy/access.log
+sudo systemctl reload caddy
+
+# 2) 迁移（003_funnel.sql：funnel_events 表 + 日志断点表）
+sudo -u teachflow env $(sudo cat /etc/teachflow/shop-api.env | xargs) \
+     npm run migrate --prefix /srv/teachflow/shop-api
+
+# 3) 日志摄取定时器（每 5 分钟一次）
+sudo cp deploy/funnel-log-ingest.service deploy/funnel-log-ingest.timer /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now funnel-log-ingest.timer
+
+# 4) 重启 shop-api（装载新路由：/api/checkout/*、/api/admin/funnel、webhook 旁路）
+sudo systemctl restart shop-api
+```
+
+**Polar 后台要改一处**：checkout link 的 Success URL 从
+`/en/buy/success?checkout_id={CHECKOUT_ID}` 改为
+`https://tryteachflow.com/api/checkout/return?checkout_id={CHECKOUT_ID}`——
+中转接口记一笔（漏斗第⑤步）后 302 到原成功页，买家看到的最终页面不变。
+
+**怎么看数据**（`ADMIN_TOKEN` 与发版接口同一个）：
+
+```bash
+# 人读：先落成 HTML 再开（接口要 Bearer 头，浏览器直接打开会 401）
+curl -s -H "Authorization: Bearer $ADMIN_TOKEN" \
+     "https://tryteachflow.com/api/admin/funnel?days=30&format=html" > funnel.html && open funnel.html
+
+# 程序读：JSON（steps[].fromPrev 即逐步转化率，100 减它就是该步丢失率）
+curl -s -H "Authorization: Bearer $ADMIN_TOKEN" \
+     "https://tryteachflow.com/api/admin/funnel?days=7"
+```
+
+**自检**（只能在线上验）：
+
+```bash
+DOMAIN=tryteachflow.com
+# 中转可用：302 到 buy.polar.sh，且 Cache-Control: no-store
+curl -sI "https://$DOMAIN/api/checkout/start?src=hero&lang=en" | head -3
+# 回跳接缝：302 到 /en/buy/success?checkout_id=smoke
+curl -sI "https://$DOMAIN/api/checkout/return?checkout_id=smoke&lang=ko" | head -3
+# 报表鉴权在拦：401
+curl -sI "https://$DOMAIN/api/admin/funnel" | head -1
+# 摄取器真的在跑（journal 里应有 [ingest] 行；新站点流量小，"无新日志"也是正常输出）
+sudo journalctl -u funnel-log-ingest.service -n 5
+```
+
+**可选项**（都不设也完整可用，只是没有第三方 UI / vid 关联）：
+- `POSTHOG_API_KEY`：漏斗事件镜像到 PostHog 免费档做趋势与细分。区域跟账号走
+  （`us.posthog.com` 后台 → `POSTHOG_HOST=https://us.i.posthog.com`），改区域要
+  同步隐私政策里的处理器措辞；
+- `POLAR_ACCESS_TOKEN` + `POLAR_PRODUCT_PRICE_ID`：购买中转升级为 Polar API
+  建会话（metadata 带 src/vid），②→④ 可关联。**字段名未经 sandbox 实测**，
+  启用前先走方案文档 §7 的验证清单。
+
+---
+
 ## 4. 域名与构建期变量
 
 占位域名 `https://tryteachflow.com` 只允许出现在**两个**文件里：
@@ -155,23 +229,22 @@ shop-api 的 `PUBLIC_BASE_URL`（在 `/etc/teachflow/shop-api.env` 里）是第�
 
 ### 构建期变量：`PUBLIC_BUY_CTA_URL`
 
-购买按钮指向 Polar 的托管结账页。线上正式链接已作为默认值提交在
-`src/config/site.ts` 的 `POLAR_CHECKOUT_URL` 里（它是公开值，本来就印在
-每页 HTML 中），常规构建**不需要**设任何变量：
+购买按钮的去处（`buyHref()`，`src/config/site.ts`）按配置分三种形态：
 
-```bash
-npm run build
-```
+- **默认（不设）**：按钮指向站内中转 `/api/checkout/start?src=…&lang=…`，
+  shop-api 记漏斗第②步后 302 去 Polar 结账页。**302 的目标在运行时**：
+  `/etc/teachflow/shop-api.env` 的 `CHECKOUT_URL`（默认与 `POLAR_CHECKOUT_URL`
+  同值）——换商品、切 sandbox 演练都只改 env + 重启，**不再需要重新构建站点**。
+- **设为第三方 URL**（支付演练）：按钮直链该 URL，绕过中转，演练流量不进
+  生产漏斗。注意此时 checkout 目标回到了「进静态产物」的旧语义，改了要
+  重新 `npm run build` 并 rsync。
+- **显式设空串**（`PUBLIC_BUY_CTA_URL= npm run build`）：全站回落「直接结账
+  尚未开放」的兜底形态，购买按钮指向 `/buy`。
 
-`PUBLIC_BUY_CTA_URL` 只剩覆盖用途：支付演练时传 sandbox 链接
-（`PUBLIC_BUY_CTA_URL=https://sandbox-api.polar.sh/... npm run build`），
-或显式设空串（`PUBLIC_BUY_CTA_URL= npm run build`）把全站打回
-「直接结账尚未开放」、把读者指向邮件咨询的兜底形态。
-
-它与 shop-api 的运行时变量是两套东西：这一个进的是静态产物，改了必须重新
-`npm run build` 并重新 rsync，重启服务没有任何作用。换正式商品（新的
-checkout link）时改 `POLAR_CHECKOUT_URL` 一处即可，测试里的形状断言
-不绑定具体值，不用跟着动。
+正式 checkout link 的登记处有两份，换链接时**两处一起改**：
+`src/config/site.ts` 的 `POLAR_CHECKOUT_URL`（构建侧）与
+`shop-api/src/config.ts` 的 `DEFAULT_CHECKOUT_URL`（运行时侧）。没有测试守
+这层同步——deploy/README 与本节就是唯一的提醒。
 
 ---
 

@@ -95,7 +95,7 @@ Refund policy: https://tryteachflow.com/en/legal/refund
 |---|---|
 | Label | `site-buy-cta-sandbox` |
 | Products | 只勾 `TeachFlow — 6-skill bundle` 一个 |
-| Success URL | `https://tryteachflow.com/en/buy/success?checkout_id={CHECKOUT_ID}` |
+| Success URL | `https://tryteachflow.com/api/checkout/return?checkout_id={CHECKOUT_ID}` |
 | Return URL | `https://tryteachflow.com/en/pricing` |
 | Preset discount | 不选 |
 | Allow discount codes | 关闭 |
@@ -104,7 +104,8 @@ Refund policy: https://tryteachflow.com/en/legal/refund
 
 ### 3.1 说明
 
-- Success URL 指向的页面**现在不存在**（手册 §2.4 记录的缺口：`buy.astro` 未实现），属已知项，测试期先容忍跳转 404
+- Success URL 经 `/api/checkout/return` 中转（记漏斗第⑤步后 302 到
+  `/en/buy/success`）；2026-09-29 前的旧配置是直达成功页，等价但缺第⑤步事件
 - Return URL 指向已存在的 `/en/pricing`，保证结账页返回按钮可用
 
 ### 3.2 Checkout Description（如 link 层面有描述字段，填这段）

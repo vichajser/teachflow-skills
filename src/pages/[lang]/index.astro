@@ -45,14 +45,14 @@ const metaDescription = t('home.metaDescription');
 
       {/*
         CTA hierarchy: buy first, samples second. The owner directive
-        (2026-09-23) is to shorten the path to payment — every purchase
-        button goes straight to the Polar checkout via buyHref(), with
-        /buy as the unconfigured-checkout fallback. Samples stay one
+        (2026-09-23) is to shorten the path to payment — every purchase button
+        routes through buyHref() (one counted hop, then the Polar checkout),
+        with /buy as the unconfigured-checkout fallback. Samples stay one
         click away for visitors who still want proof before price.
       */}
       <div class="mt-8 flex flex-wrap gap-3">
         <a
-          href={buyHref(lang)}
+          href={buyHref(lang, 'hero')}
           class="rounded-lg bg-accent px-5 py-3 font-medium text-void shadow-[0_0_40px_rgba(46,125,255,0.35)] transition-transform hover:-translate-y-0.5 motion-reduce:hover:translate-y-0"
         >{t('home.buyCta')} — {SITE.price.display}</a>
         <a
@@ -167,11 +167,11 @@ const metaDescription = t('home.metaDescription');
       </h2>
       <p class="mt-2 text-text-body">{t('home.buyBody')}</p>
       {/*
-        主按钮直达结账（buyHref）：价格写在按钮上，买家不用先猜
-        "点进去多少钱"，也不用再经任何中转页。
+        主按钮经 buyHref 一跳直达结账：价格写在按钮上，买家不用先猜
+        "点进去多少钱"；那一跳只做计数，不再有任何中转页。
       */}
       <a
-        href={buyHref(lang)}
+        href={buyHref(lang, 'home-bottom')}
         class="mt-5 inline-block rounded-lg bg-accent px-6 py-3 font-semibold text-void shadow-[0_0_40px_rgba(46,125,255,0.35)] transition-transform hover:-translate-y-0.5 motion-reduce:hover:translate-y-0"
       >{t('home.buyCta')} — {SITE.price.display}</a>
       <ul class="mt-4 space-y-1 text-sm">

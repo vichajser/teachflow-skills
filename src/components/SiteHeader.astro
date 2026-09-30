@@ -93,15 +93,15 @@ const links = [
 
     {/*
       Persistent header CTA: after the hero scrolls away the page would otherwise
-      offer no action outlet at all. It goes **straight to checkout** via
-      buyHref() — every extra click between "I want this" and the payment form
-      is a leak in the funnel. Kept text-sm and compact so it never competes
-      with the in-page hero CTA; hidden below sm where the 메뉴 panel carries
-      the links.
+      offer no action outlet at all. It goes to checkout via buyHref() — one
+      same-origin hop that counts the click (funnel step ②), then straight to
+      the Polar payment form; every extra click beyond that is a leak in the
+      funnel. Kept text-sm and compact so it never competes with the in-page
+      hero CTA; hidden below sm where the 메뉴 panel carries the links.
     */}
     <div class="ml-auto flex items-center gap-3">
       <a
-        href={buyHref(lang)}
+        href={buyHref(lang, 'header')}
         class="hidden rounded-lg bg-accent px-3 py-1.5 text-sm font-medium text-void transition-transform hover:-translate-y-0.5 motion-reduce:hover:translate-y-0 sm:inline-block"
       >{t('nav.cta')}</a>
       <LanguageSwitcher lang={lang} path={path} />

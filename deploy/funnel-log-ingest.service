@@ -1,0 +1,51 @@
+# TeachFlow 漏斗统计：Caddy 访问日志 → funnel_events(page_view)。
+#
+# 安装：
+#   sudo cp deploy/funnel-log-ingest.service deploy/funnel-log-ingest.timer /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now funnel-log-ingest.timer
+#
+# 每 5 分钟一次（OnCalendar 在 .timer 里）。读 /var/log/caddy/access.log，
+# 断点记在数据库（funnel_log_state），重跑不重复计数。环境变量与 shop-api
+# 共用 /etc/teachflow/shop-api.env（只用得到 DATABASE_URL 与可选项
+# CADDY_ACCESS_LOG / POSTHOG_*）。
+#
+# 为什么 User=caddy 而不是 teachflow：Caddy 的日志文件固定 0600、属主 caddy
+# （Go FileWriter 无 mode 选项），别的用户读不到；而连 Postgres 走的是
+# DATABASE_URL 里的密码认证，与操作系统用户无关，所以读日志的这一侧迁就 caddy。
+# 前提：/srv/teachflow/shop-api 对 caddy 可读（默认 755 目录 + 644 文件即满足）。
+
+[Unit]
+Description=TeachFlow funnel: ingest Caddy access log
+Documentation=file:///srv/teachflow/shop-api/README.md
+After=network-online.target postgresql.service caddy.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=caddy
+Group=caddy
+WorkingDirectory=/srv/teachflow/shop-api
+EnvironmentFile=/etc/teachflow/shop-api.env
+ExecStart=/usr/local/bin/node src/bin/ingest-caddy-logs.ts
+
+# 摄取失败的可见性：非零退出让 `systemctl status` 与 journalctl 标红，
+# 而不是静默漏数据。定时器下一轮从上次 offset 继续，不会重复计数。
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=teachflow-funnel-ingest
+
+# ---- 沙箱。只读日志 + 连本机 Postgres（+ 可选出网访问 PostHog），无写盘。----
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictNamespaces=true
+LockPersonality=true
+MemoryDenyWriteExecute=false
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX

@@ -3,11 +3,12 @@ slug: privacy
 lang: en
 title: Privacy Policy
 description: What we collect, what we do not, and how the skills keep your students' material on your own machine.
-updated: '2026-09-28'
+updated: '2026-09-29'
 ---
 
-Short version: this site has no analytics, no cookies and no third-party requests, and
-the skills you buy never send anything anywhere.
+Short version: pages on this site carry no analytics script, no cookie and no
+third-party request; we keep anonymous, aggregate funnel statistics on our server,
+described below. The skills you buy never send anything anywhere.
 
 ## Who is the data controller
 
@@ -21,7 +22,9 @@ For any privacy question, email <crossxtop@gmail.com>.
 This is a static site. Pages are plain HTML, CSS and a small amount of JavaScript served
 from our own server.
 
-- **No analytics.** We run no analytics or measurement product of any kind.
+- **No client-side analytics.** Pages contain no analytics script, pixel, tracker
+  or profiling of any kind. We do count funnel steps server-side — see
+  "Aggregate funnel statistics" below.
 - **No cookies.** The site sets no cookies and uses no local storage for tracking.
 - **No third-party requests.** Everything a page needs is served from our own domain. There
   are no embedded scripts, pixels, iframes or hosted images, and no font, stylesheet or
@@ -38,6 +41,18 @@ Our web server keeps standard request logs — IP address, timestamp, requested 
 agent — which exist to keep the server running and secure. Our lawful basis is legitimate
 interest. They are not used to build a profile of you, and our policy is to retain them for
 no longer than 30 days.
+
+### Aggregate funnel statistics
+
+To understand where visitors give up on the way to checkout, we count five steps —
+page views (from the request logs above), buy-button clicks, checkouts opened, orders
+paid and success-page returns (the last three from our payment provider's server
+notifications). These statistics are aggregate: they contain no IP address, no email
+address, no card data, and no identifier that persists across visits. Our lawful basis
+is legitimate interest. We may share these anonymous event records with a third-party
+analytics processor (PostHog Inc., US region) so we can chart them; that processor receives
+nothing beyond the anonymous records described here, and no page of this site ever
+contacts it.
 
 ## The skills you buy
 

@@ -10,6 +10,14 @@ export interface Config {
   downloadTokenTtlDays: number;
   morProvider: 'polar' | 'paddle';
   polarWebhookSecret: string;
+  /** /api/checkout/start 的 302 兜底目标（Polar checkout link）。 */
+  checkoutUrl: string;
+  /** 设置后才启用「API 建会话」路径；null = 静态链接直跳。 */
+  polarSession: { accessToken: string; productPriceId: string; apiBase: string } | null;
+  /** 设置后才把漏斗事件镜像到 PostHog；null = 完全自建报表。 */
+  posthog: { apiKey: string; host: string } | null;
+  /** Caddy 访问日志路径（日志摄取脚本读）。 */
+  caddyAccessLog: string;
   r2: {
     accountId: string;
     accessKeyId: string;
@@ -49,6 +57,19 @@ export const DEFAULT_BUNDLE_SKILL_IDS = [
   'worksheet-workflow',
   'report-workflow',
 ] as const;
+
+/**
+ * 与站点 `src/config/site.ts` 的 `POLAR_CHECKOUT_URL` 是**同一商品的两份登记**：
+ * 那份进静态产物（本默认值被覆盖/置空时按钮的兜底形态），这份是运行时
+ * /api/checkout/start 的 302 目标。换 checkout link 时两处一起改——
+ * verify-build.mjs 只扫站点仓库，这里漂移了不会有测试变红。
+ */
+export const DEFAULT_CHECKOUT_URL =
+  'https://buy.polar.sh/polar_cl_sE7Dgs4mL2RhSttmxJ44TvRNIuTRnYDi2vylc18I4Kq';
+
+export const DEFAULT_POSTHOG_HOST = 'https://eu.i.posthog.com';
+export const DEFAULT_POLAR_API_BASE = 'https://api.polar.sh';
+export const DEFAULT_CADDY_ACCESS_LOG = '/var/log/caddy/access.log';
 
 export class ConfigError extends Error {
   readonly problems: string[];
@@ -96,6 +117,28 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     problems.push(`PUBLIC_BASE_URL 必须是不带路径的站点根，例如 https://example.com，收到 ${baseUrl}`);
   }
 
+  const checkoutUrl = env.CHECKOUT_URL?.trim() || DEFAULT_CHECKOUT_URL;
+  if (!/^https:\/\/.+/.test(checkoutUrl)) {
+    problems.push(`CHECKOUT_URL 必须是 https 结账链接，收到 ${checkoutUrl}`);
+  }
+
+  // Polar API 建会话：两项必须成对出现，半份配置只会换来运行时静默回退。
+  const polarToken = env.POLAR_ACCESS_TOKEN?.trim() || null;
+  const polarPrice = env.POLAR_PRODUCT_PRICE_ID?.trim() || null;
+  if ((polarToken !== null) !== (polarPrice !== null)) {
+    problems.push('POLAR_ACCESS_TOKEN 与 POLAR_PRODUCT_PRICE_ID 必须同时设置（或同时留空走静态链接）');
+  }
+  const polarApiBase = env.POLAR_API_BASE?.trim() || DEFAULT_POLAR_API_BASE;
+  if (!/^https:\/\/[^/]+$/.test(polarApiBase)) {
+    problems.push(`POLAR_API_BASE 必须是不带路径的 https 根，收到 ${polarApiBase}`);
+  }
+
+  const posthogKey = env.POSTHOG_API_KEY?.trim() || null;
+  const posthogHost = env.POSTHOG_HOST?.trim() || DEFAULT_POSTHOG_HOST;
+  if (!/^https:\/\/[^/]+$/.test(posthogHost)) {
+    problems.push(`POSTHOG_HOST 必须是不带路径的 https 根，收到 ${posthogHost}`);
+  }
+
   const bundle = (env.BUNDLE_SKILL_IDS ?? DEFAULT_BUNDLE_SKILL_IDS.join(','))
     .split(',')
     .map((s) => s.trim())
@@ -118,6 +161,11 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     downloadTokenTtlDays: ttl,
     morProvider: provider,
     polarWebhookSecret: env.POLAR_WEBHOOK_SECRET!,
+    checkoutUrl,
+    polarSession:
+      polarToken && polarPrice ? { accessToken: polarToken, productPriceId: polarPrice, apiBase: polarApiBase } : null,
+    posthog: posthogKey ? { apiKey: posthogKey, host: posthogHost } : null,
+    caddyAccessLog: env.CADDY_ACCESS_LOG?.trim() || DEFAULT_CADDY_ACCESS_LOG,
     r2: {
       accountId: env.R2_ACCOUNT_ID!,
       accessKeyId: env.R2_ACCESS_KEY_ID!,

@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { loadConfig, ConfigError, DEFAULT_BUNDLE_SKILL_IDS } from '../src/config.ts';
+import {
+  loadConfig,
+  ConfigError,
+  DEFAULT_BUNDLE_SKILL_IDS,
+  DEFAULT_CHECKOUT_URL,
+} from '../src/config.ts';
 
 const FULL: NodeJS.ProcessEnv = {
   DATABASE_URL: 'postgres://teachflow@localhost/teachflow',
@@ -73,5 +78,45 @@ describe('loadConfig', () => {
       'b-skill',
     ]);
     expect(() => loadConfig({ ...FULL, BUNDLE_SKILL_IDS: 'Bad_Skill' })).toThrow(/非法 skill id/);
+  });
+
+  it('漏斗可选项默认：静态结账链接、无 Polar 会话、无 PostHog 镜像', () => {
+    const config = loadConfig(FULL);
+    expect(config.checkoutUrl).toBe(DEFAULT_CHECKOUT_URL);
+    expect(config.checkoutUrl.startsWith('https://')).toBe(true);
+    expect(config.polarSession).toBeNull();
+    expect(config.posthog).toBeNull();
+    expect(config.caddyAccessLog).toBe('/var/log/caddy/access.log');
+  });
+
+  it('CHECKOUT_URL 非 https 拒绝；合法值生效', () => {
+    expect(() => loadConfig({ ...FULL, CHECKOUT_URL: 'http://buy.polar.sh/x' })).toThrow(
+      /CHECKOUT_URL/,
+    );
+    expect(loadConfig({ ...FULL, CHECKOUT_URL: 'https://sandbox.polar.sh/x' }).checkoutUrl).toBe(
+      'https://sandbox.polar.sh/x',
+    );
+  });
+
+  it('POLAR_ACCESS_TOKEN 与 POLAR_PRODUCT_PRICE_ID 必须成对', () => {
+    expect(() => loadConfig({ ...FULL, POLAR_ACCESS_TOKEN: 'pat_x' })).toThrow(/POLAR_/);
+    const both = loadConfig({
+      ...FULL,
+      POLAR_ACCESS_TOKEN: 'pat_x',
+      POLAR_PRODUCT_PRICE_ID: 'price_x',
+    });
+    expect(both.polarSession).toMatchObject({
+      accessToken: 'pat_x',
+      productPriceId: 'price_x',
+      apiBase: 'https://api.polar.sh',
+    });
+  });
+
+  it('POSTHOG_HOST 非 https 根拒绝', () => {
+    expect(() => loadConfig({ ...FULL, POSTHOG_API_KEY: 'phc_x', POSTHOG_HOST: 'eu.posthog.com' })).toThrow(
+      /POSTHOG_HOST/,
+    );
+    const withKey = loadConfig({ ...FULL, POSTHOG_API_KEY: 'phc_x' });
+    expect(withKey.posthog).toEqual({ apiKey: 'phc_x', host: 'https://eu.i.posthog.com' });
   });
 });
